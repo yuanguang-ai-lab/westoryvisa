@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>落地页数据｜WestoryVisa</title>
+  <link rel="stylesheet" href="analytics.css?v=20260723-analytics-v1">
+</head>
+<body>
+  <header class="analytics-header">
+    <a class="analytics-brand" href="/">
+      <span>WV</span>
+      <div><strong lang="en">WestoryVisa</strong><small>落地页数据</small></div>
+    </a>
+    <div class="analytics-header-actions">
+      <a href="/landing-page" target="_blank" rel="noopener">查看落地页</a>
+      <a class="back-button" href="/workspace">返回工作台</a>
+    </div>
+  </header>
+
+  <main class="analytics-main">
+    <section class="analytics-title">
+      <div><p>产品详情页</p><h1>访问与转化</h1><span id="rangeLabel">最近 30 天</span></div>
+      <div class="range-control" role="group" aria-label="统计时间范围">
+        <button type="button" data-days="7">7 天</button>
+        <button type="button" class="active" data-days="30">30 天</button>
+        <button type="button" data-days="90">90 天</button>
+      </div>
+    </section>
+
+    <div class="analytics-notice" id="analyticsNotice" role="status" hidden></div>
+
+    <section class="metric-strip" aria-label="关键指标">
+      <div><span>匿名访客</span><strong id="metricVisitors">—</strong><small>已同意统计的访问会话</small></div>
+      <div><span>页面浏览</span><strong id="metricPageViews">—</strong><small>产品页载入次数</small></div>
+      <div><span>平均有效停留</span><strong id="metricDwell">—</strong><small>仅计算页面可见时间</small></div>
+      <div><span>问卷打开率</span><strong id="metricConversion">—</strong><small><span id="metricWjxVisitors">0</span> 位访客打开问卷</small></div>
+    </section>
+
+    <section class="analytics-grid chart-section">
+      <article class="analytics-panel trend-panel">
+        <header><div><p>访问趋势</p><h2>每天有多少人看过产品页</h2></div><span id="trendTotal"></span></header>
+        <div class="trend-chart" id="trendChart" aria-label="每日访问趋势图"></div>
+      </article>
+      <article class="analytics-panel device-panel">
+        <header><div><p>访问设备</p><h2>访客使用什么设备</h2></div></header>
+        <div class="device-list" id="deviceList"></div>
+      </article>
+    </section>
+
+    <section class="analytics-grid behavior-section">
+      <article class="analytics-panel">
+        <header><div><p>点击去向</p><h2>访客点进了哪里</h2></div></header>
+        <div class="rank-list" id="clickList"></div>
+      </article>
+      <article class="analytics-panel">
+        <header><div><p>内容浏览</p><h2>哪些模块被真正看到</h2></div></header>
+        <div class="rank-list" id="sectionList"></div>
+      </article>
+    </section>
+
+    <section class="analytics-panel session-panel">
+      <header><div><p>最近访问</p><h2>逐次查看浏览路径</h2></div><span>点击一行查看事件时间线</span></header>
+      <div class="session-table-wrap">
+        <table class="session-table">
+          <thead><tr><th>访问时间</th><th>有效停留</th><th>来源</th><th>设备</th><th>浏览</th><th>问卷</th></tr></thead>
+          <tbody id="sessionRows"></tbody>
+        </table>
+      </div>
+      <div class="empty-table" id="sessionEmpty" hidden>这个时间范围内还没有匿名访问数据。</div>
+    </section>
+
+    <section class="settings-section">
+      <div class="settings-copy">
+        <p>问卷星接入</p>
+        <h2>粘贴发布链接，预约表单就会出现在产品页。</h2>
+        <span>支持问卷星 HTTPS 发布地址。访客允许匿名统计后，WestoryVisa 会附加来源编号，方便将答卷与产品页访问关联；问卷内部答题行为仍在问卷星后台查看。</span>
+      </div>
+      <form class="settings-form" id="wjxSettingsForm">
+        <label for="wjxSurveyUrl">问卷星发布链接</label>
+        <div class="settings-input-row">
+          <input id="wjxSurveyUrl" name="wjxSurveyUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.wjx.cn/vm/……">
+          <button type="submit" id="saveWjxSettings">保存链接</button>
+        </div>
+        <p id="settingsStatus" role="status" aria-live="polite">尚未读取配置</p>
+      </form>
+    </section>
+
+    <section class="privacy-band">
+      <div><strong>匿名统计边界</strong><p>只记录页面、模块、按钮标签和有效停留时间。不保存表单输入、客户材料、账号密码或原始 IP。</p></div>
+      <div><strong>数据保留</strong><p>访问事件在本地数据库保留 180 天。访客可以拒绝统计，浏览器的 Do Not Track 设置会被尊重。</p></div>
+      <div><strong>问卷星数据</strong><p>答卷内容保存在问卷星。企业版可查看问卷内部平均停留、放弃作答点和选项切换。</p></div>
+    </section>
+  </main>
+
+  <div class="session-drawer-layer" id="sessionDrawer" aria-hidden="true">
+    <button class="drawer-backdrop" type="button" data-close-drawer aria-label="关闭访问详情"></button>
+    <aside class="session-drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <header><div><p>匿名访问路径</p><h2 id="drawerTitle">访问详情</h2></div><button type="button" data-close-drawer aria-label="关闭">×</button></header>
+      <div class="drawer-summary" id="drawerSummary"></div>
+      <ol class="event-timeline" id="eventTimeline"></ol>
+    </aside>
+  </div>
+
+  <script src="runtime-config.js?v=20260727-frontend-backend-split-v1"></script>
+  <script src="api-client.js?v=20260727-frontend-boundary-v1"></script>
+  <script src="analytics.js?v=20260723-analytics-v1"></script>
+</body>
+</html>

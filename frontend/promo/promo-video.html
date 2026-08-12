@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WestoryVisa 宣传片</title>
+  <link rel="stylesheet" href="promo-video.css">
+</head>
+<body>
+  <main class="film" id="film">
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="grid"></div>
+
+    <header class="film-header">
+      <div class="mini-brand"><span>WV</span><strong>WestoryVisa</strong></div>
+      <div class="timecode"><i></i><span>PRODUCT FILM · 00:30</span></div>
+    </header>
+
+    <section class="scene scene-intro">
+      <div class="intro-mark">WV</div>
+      <p class="overline">WESTORYVISA</p>
+      <h1>让材料先说清楚</h1>
+      <p class="intro-subtitle">把客户资料，变成可核查的初稿</p>
+    </section>
+
+    <section class="scene scene-problem">
+      <div class="scene-copy">
+        <p class="overline">每一份案件，都从材料开始</p>
+        <h2>文件很多<br>重点很少</h2>
+        <p>护照、I-20、行程、资金证明<br>信息散落在不同文件里</p>
+      </div>
+      <div class="document-cloud" aria-hidden="true">
+        <div class="paper paper-one"><span>PDF</span><b>Passport</b><small>Identity · 2 pages</small></div>
+        <div class="paper paper-two"><span>PDF</span><b>I-20</b><small>SEVIS · School</small></div>
+        <div class="paper paper-three"><span>IMG</span><b>Travel plan</b><small>Arrival · Contact</small></div>
+        <div class="paper paper-four"><span>PDF</span><b>Bank statement</b><small>Funding · 8 pages</small></div>
+        <div class="paper paper-five"><span>DOC</span><b>Client notes</b><small>History · Questions</small></div>
+      </div>
+    </section>
+
+    <section class="scene scene-intake">
+      <div class="scene-copy compact-copy">
+        <p class="overline">先读材料</p>
+        <h2>已有的信息<br>不再问第二遍</h2>
+      </div>
+      <div class="product-window intake-window">
+        <div class="window-top"><span><i></i><i></i><i></i></span><b>客户材料</b><em>自动整理中</em></div>
+        <div class="upload-row row-one"><i>PDF</i><div><b>Passport_LIN_RAN.pdf</b><span><em></em></span></div><small>12 个字段</small></div>
+        <div class="upload-row row-two"><i>PDF</i><div><b>I-20_University.pdf</b><span><em></em></span></div><small>9 个字段</small></div>
+        <div class="upload-row row-three"><i>IMG</i><div><b>Travel_Plan.jpg</b><span><em></em></span></div><small>识别中</small></div>
+      </div>
+    </section>
+
+    <section class="scene scene-gaps">
+      <div class="scene-copy compact-copy">
+        <p class="overline">再补缺失</p>
+        <h2>只问材料里<br>没有的内容</h2>
+      </div>
+      <div class="metric-stage">
+        <div class="metric metric-main"><strong>42</strong><span>已整理字段</span></div>
+        <div class="metric metric-open"><strong>6</strong><span>待客户补充</span></div>
+        <div class="metric metric-conflict"><strong>1</strong><span>信息冲突</span></div>
+        <div class="question-stack">
+          <div><i></i><span>过去五年出境记录</span><em>缺失</em></div>
+          <div><i></i><span>美国联系人电话</span><em>缺失</em></div>
+          <div><i></i><span>预计抵达日期</span><em>冲突</em></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-review">
+      <div class="review-title">
+        <p class="overline">最后交给顾问</p>
+        <h2>只看真正需要判断的地方</h2>
+      </div>
+      <div class="review-window">
+        <div class="review-head"><span>DS-160 重点核查</span><em>3 项待处理</em></div>
+        <div class="review-line confirmed"><small>护照号码</small><b>E12•••••8</b><em>已确认</em></div>
+        <div class="review-line attention"><small>预计抵达日期</small><b>18 JUL / 20 JUL</b><em>信息冲突</em></div>
+        <div class="review-line sensitive"><small>安全背景</small><b>等待顾问逐项确认</b><em>待核对</em></div>
+      </div>
+    </section>
+
+    <section class="scene scene-draft">
+      <div class="draft-panel">
+        <div class="draft-check">✓</div>
+        <p class="overline">核查链路完成</p>
+        <h2>DS-160 初稿已生成</h2>
+        <div class="draft-stats"><span><b>42</b><small>已整理字段</small></span><span><b>6</b><small>待确认项</small></span><span><b>3</b><small>来源文件</small></span></div>
+      </div>
+    </section>
+
+    <section class="scene scene-final">
+      <div class="final-brand"><span>WV</span><strong>WestoryVisa</strong></div>
+      <h2>下一份客户资料<br>从一开始就更清楚</h2>
+      <p>按每月案件量订阅 · 不按顾问人数增加负担</p>
+      <div class="final-offer"><b>¥199</b><span>/ 月起</span><i></i><strong>30 天免费试用</strong></div>
+    </section>
+
+    <div class="film-progress"><span></span></div>
+  </main>
+  <script>
+    window.__promoReady = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById('film').classList.add('playing');
+      window.setTimeout(() => { window.__promoDone = true; }, 30500);
+    }));
+  </script>
+</body>
+</html>

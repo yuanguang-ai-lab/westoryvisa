@@ -1,0 +1,14 @@
+.git
+.gitignore
+._*
+.env
+.env.*
+!.env.example
+.venv*/
+__pycache__/
+*.pyc
+data/
+backups/
+frontend/promo/rendered/frames/
+deploy/backend.env
+.deploy-secrets/

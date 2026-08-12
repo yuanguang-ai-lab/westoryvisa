@@ -1,0 +1,4 @@
+westoryvisa.com, www.westoryvisa.com {
+    encode zstd gzip
+    reverse_proxy frontend:80
+}

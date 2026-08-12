@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "schools": [
+    {
+      "aliases": [
+        "营口市第一高级中学",
+        "营口市高级中学",
+        "营口市一高中",
+        "YING KOU SHI DI YI GAO JI MIDDLE SCHOOL",
+        "YINGKOU NO. 1 HIGH SCHOOL",
+        "YINGKOU NO. 1 SENIOR HIGH SCHOOL",
+        "YINGKOU SENIOR HIGH SCHOOL"
+      ],
+      "school": "YINGKOU SENIOR HIGH SCHOOL",
+      "officialEnglishName": "YINGKOU SENIOR HIGH SCHOOL",
+      "address": "NO. 1 JINXIU AVENUE, LAOBIAN DISTRICT",
+      "city": "YINGKOU",
+      "region": "LIAONING",
+      "postalCode": "115005",
+      "postalCodeConfidence": "district",
+      "country": "CHINA",
+      "sourceUrl": "https://www.yingkou.gov.cn/govxxgk/ykszf/2022-11-04/ce7ff1af-6a25-4266-acf9-9d29b57c3e4e.html",
+      "sourceLabel": "营口市人民政府考点地址；邮编按老边区补全"
+    },
+    {
+      "aliases": [
+        "辽宁理工学院",
+        "LIAO NING LI GONG COLLEGE",
+        "LIAONING POLYTECHNIC COLLEGE",
+        "LIAONING INSTITUTE OF SCIENCE AND ENGINEERING"
+      ],
+      "school": "LIAONING INSTITUTE OF SCIENCE AND ENGINEERING",
+      "officialEnglishName": "LIAONING INSTITUTE OF SCIENCE AND ENGINEERING",
+      "address": "NO. 2 KUNMING STREET, HIGH-TECH INDUSTRIAL PARK",
+      "city": "JINZHOU",
+      "region": "LIAONING",
+      "postalCode": "121013",
+      "postalCodeConfidence": "official",
+      "country": "CHINA",
+      "sourceUrl": "https://www.lise.edu.cn/index.php/cms/item-view-id-3691-page-1",
+      "postalSourceUrl": "https://www.lise.edu.cn/html/925/",
+      "sourceLabel": "辽宁理工学院官网章程与常用服务"
+    }
+  ]
+}

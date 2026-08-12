@@ -1,0 +1,33 @@
+# Runtime data and customer documents stay in the encrypted/local archive only.
+data/
+
+# Local credentials and deployment secrets.
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+deploy/backend.env
+*.pem
+*.p12
+*.key
+
+# Local databases, logs, and temporary outputs.
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.bak
+.DS_Store
+playwright-report/
+test-results/
+
+# Re-creatable dependencies and build caches.
+.venv-docling/
+.venv-browser-use/
+node_modules/
+__pycache__/
+*.pyc
+visa-form-practice-lab/dist/
+frontend/promo/rendered/frames/

@@ -1,0 +1,24 @@
+services:
+  backend:
+    environment:
+      DOCFLOW_ALLOWED_ORIGINS: https://westoryvisa.com,https://www.westoryvisa.com
+      DOCFLOW_COOKIE_SAMESITE: Lax
+      DOCFLOW_COOKIE_SECURE: "true"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

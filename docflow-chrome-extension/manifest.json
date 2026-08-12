@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "DocFlow DS-160 Page Agent",
+  "version": "0.9.3",
+  "description": "在用户明确启动后，将 DocFlow 已确认字段写入当前可见的 DS-160 或预约资料页面。",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://ceac.state.gov/*",
+    "https://www.usvisascheduling.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "DocFlow Page Agent",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1/*",
+        "http://localhost/*"
+      ],
+      "js": [
+        "docflow-bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://ceac.state.gov/GenNIV/*"
+      ],
+      "js": [
+        "ceac-postback-monitor.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://ceac.state.gov/GenNIV/*"
+      ],
+      "js": [
+        "agent-core.js",
+        "ceac-agent.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.usvisascheduling.com/*"
+      ],
+      "js": [
+        "agent-core.js",
+        "appointment-agent.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocFlow Page Agent</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="mark">D</span>
+      <div>
+        <strong>DocFlow Page Agent</strong>
+        <small id="version"></small>
+      </div>
+      <span class="status-dot" id="statusDot"></span>
+    </header>
+    <section>
+      <span class="eyebrow">当前状态</span>
+      <h1 id="statusTitle">正在检查</h1>
+      <p id="statusMessage">正在读取本机任务状态。</p>
+      <dl>
+        <div><dt>页面</dt><dd id="pageLabel">未连接</dd></div>
+        <div><dt>字段</dt><dd id="progress">0 / 0</dd></div>
+      </dl>
+    </section>
+    <button id="stopButton" type="button" disabled>停止当前任务</button>
+    <p class="boundary">不会处理验证码、敏感背景、电子签名、付款、预约选时或最终确认。</p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

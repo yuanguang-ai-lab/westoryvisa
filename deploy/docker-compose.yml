@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+    restart: unless-stopped
+    environment:
+      DOCFLOW_BACKEND_HOST: 0.0.0.0
+      DOCFLOW_BACKEND_PORT: 4176
+      DOCFLOW_COOKIE_SAMESITE: Lax
+      DOCFLOW_COOKIE_SECURE: ${DOCFLOW_COOKIE_SECURE:-false}
+      OCR_PROVIDER: ${OCR_PROVIDER:-auto}
+      MINERU_API_BASE_URL: ${MINERU_API_BASE_URL:-https://mineru.net/api/v4}
+      MINERU_MODEL_VERSION: ${MINERU_MODEL_VERSION:-vlm}
+      DOCLING_SERVE_URL: ${DOCLING_SERVE_URL:-http://host.docker.internal:5001}
+      LIBRETRANSLATE_URL: ${LIBRETRANSLATE_URL:-http://host.docker.internal:5000}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+    env_file:
+      - path: backend.env
+        required: false
+    volumes:
+      - docflow_data:/app/data
+    expose:
+      - "4176"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/frontend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${DOCFLOW_BIND_ADDRESS:-0.0.0.0}:${DOCFLOW_PUBLIC_PORT:-8080}:80"
+
+volumes:
+  docflow_data:

@@ -1,0 +1,4 @@
+interface:
+  display_name: "DocFlow Practice Lab"
+  short_description: "Fill the authorized local DocFlow practice form."
+  default_prompt: "Run the authorized DocFlow Practice Lab task and stop before sensitive questions."

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'">
+    <title>Screen Agent Import · Visa Form Practice Lab</title>
+    <link rel="stylesheet" href="screen-agent-import.css">
+  </head>
+  <body>
+    <header class="agent-guard">
+      <div><span class="guard-light" aria-hidden="true"></span><strong>VISA FORM PRACTICE LAB</strong><span>独立本地练习站</span></div>
+      <div class="agent-verification" aria-live="polite">
+        <strong id="agentProgress">FIELDS FILLED 0 OF 0</strong>
+        <span id="lastField">WAITING FOR FIELD INPUT</span>
+      </div>
+      <div><code id="jobLabel">LOCAL DEMO</code><kbd>ESC</kbd><span>急停</span></div>
+    </header>
+
+    <main class="agent-shell">
+      <aside class="agent-rail">
+        <a class="agent-brand" href="index.html#/">VF</a>
+        <nav aria-label="导入章节">
+          <a href="#personal">Personal</a>
+          <a href="#passport">Passport</a>
+          <a href="#travel">Travel</a>
+          <a href="#contact">Contact</a>
+          <a href="#work">Work / Study</a>
+          <a href="#security">Safety Gate</a>
+        </nav>
+        <div class="rail-progress"><strong id="fieldCounter">0 / 0</strong><span>已映射字段</span></div>
+      </aside>
+
+      <div class="agent-content">
+        <section class="agent-intro">
+          <div>
+            <span class="eyebrow">Controlled local browser task</span>
+            <h1>DocFlow 本机草稿导入</h1>
+            <p>Screen Agent 正在通过可见屏幕把当前客户档案中的客观字段填入独立练习站。数据仅保存在本机练习页和当前浏览器草稿中。</p>
+          </div>
+          <div class="agent-ready"><span></span><b id="executorLabel">Vision OCR ready</b></div>
+        </section>
+
+        <section class="privacy-note">
+          <strong>非官方网站 · 本机练习环境</strong>
+          <p>本页面不连接政府网站，也没有提交、付款、预约或法律声明功能。请仅在受信任的本机设备上运行。</p>
+        </section>
+
+        <section class="import-section" id="personal">
+          <header><span>01</span><div><h2>Personal Information</h2><p>客户档案客观字段</p></div></header>
+          <div class="field-stack">
+            <label class="agent-field" data-docflow-field="personal.surname"><strong>Surname</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Surname"><i></i></label>
+            <label class="agent-field" data-docflow-field="personal.givenNames"><strong>Given Names</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Given Names"><i></i></label>
+            <label class="agent-field" data-docflow-field="personal.dateOfBirth"><strong>Date of Birth</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Date of Birth"><i></i></label>
+            <label class="agent-field" data-docflow-field="personal.placeOfBirth"><strong>Place of Birth</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Place of Birth"><i></i></label>
+          </div>
+        </section>
+
+        <section class="import-section" id="passport">
+          <header><span>02</span><div><h2>Passport Information</h2><p>证件识别字段</p></div></header>
+          <div class="field-stack">
+            <label class="agent-field" data-docflow-field="passport.number"><strong>Passport Number</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Passport Number"><i></i></label>
+            <label class="agent-field" data-docflow-field="passport.issueDate"><strong>Passport Issue Date</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Passport Issue Date"><i></i></label>
+            <label class="agent-field" data-docflow-field="passport.expiration"><strong>Passport Expiration Date</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Passport Expiration Date"><i></i></label>
+          </div>
+        </section>
+
+        <section class="import-section" id="travel">
+          <header><span>03</span><div><h2>Travel Information</h2><p>旅行资料字段</p></div></header>
+          <div class="field-stack">
+            <label class="agent-field" data-docflow-field="travel.visaType"><strong>Purpose of Trip</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Purpose of Trip"><i></i></label>
+            <label class="agent-field" data-docflow-field="travel.arrivalDate"><strong>Intended Date of Arrival</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Intended Date of Arrival"><i></i></label>
+            <label class="agent-field" data-docflow-field="contact.usAddress"><strong>Address Where You Will Stay</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Address Where You Will Stay"><i></i></label>
+          </div>
+        </section>
+
+        <section class="import-section" id="contact">
+          <header><span>04</span><div><h2>U.S. Contact</h2><p>美国联系人字段</p></div></header>
+          <div class="field-stack">
+            <label class="agent-field" data-docflow-field="contact.organizationName"><strong>U.S. Contact Organization</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="U.S. Contact Organization"><i></i></label>
+            <label class="agent-field" data-docflow-field="contact.phone"><strong>U.S. Contact Phone</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="U.S. Contact Phone"><i></i></label>
+          </div>
+        </section>
+
+        <section class="import-section" id="work">
+          <header><span>05</span><div><h2>Work / Education</h2><p>工作、学校与项目字段</p></div></header>
+          <div class="field-stack">
+            <label class="agent-field" data-docflow-field="work.employerName"><strong>Present Employer or School</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Present Employer or School"><i></i></label>
+            <label class="agent-field" data-docflow-field="education.schoolName"><strong>School Name</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="School Name"><i></i></label>
+            <label class="agent-field" data-docflow-field="education.sevisId"><strong>SEVIS ID</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="SEVIS ID"><i></i></label>
+            <label class="agent-field" data-docflow-field="education.programNumber"><strong>Program Number</strong><input type="text" autocomplete="off" spellcheck="false" aria-label="Program Number"><i></i></label>
+          </div>
+        </section>
+
+        <section class="import-section safety-section" id="security">
+          <header><span>06</span><div><h2>Security and Background</h2><p>强制人工接管</p></div></header>
+          <div class="safety-gate"><span>!</span><div><strong>Screen Agent stops here</strong><p>背景问题、验证码、法律声明、付款和最终提交不会由本地 Agent 操作。</p></div></div>
+        </section>
+
+        <section class="draft-result">
+          <div><span class="eyebrow">Local draft result</span><h2>导入结果正在保存到当前浏览器</h2><p id="saveStatus">等待 Screen Agent 输入字段。</p></div>
+          <a id="reviewDraft" href="index.html#/drafts">打开 Practice Lab 草稿</a>
+        </section>
+
+        <footer><strong>NOT SUBMITTED</strong><span>Practice data only. No external transmission is available.</span></footer>
+      </div>
+    </main>
+    <script type="module" src="src/screen-agent-import.ts"></script>
+  </body>
+</html>

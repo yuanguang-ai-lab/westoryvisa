@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WestoryVisa 帮助签证顾问先读客户材料、补齐缺失信息，并生成来源可追踪、可集中核查的 DS-160 初稿。">
+  <meta name="theme-color" content="#111310">
+  <title>WestoryVisa Agent｜签证资料核查与逐页填写</title>
+  <link rel="stylesheet" href="/product.css?v=20260812-landing-page-route-v1">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header" id="siteHeader">
+    <a class="product-brand" href="#top" data-track="Header brand">
+      <span class="brand-mark" aria-hidden="true">WV</span>
+      <span>
+        <strong lang="en">WestoryVisa Agent</strong>
+        <small>签证资料核查与逐页填写</small>
+      </span>
+    </a>
+    <nav class="desktop-nav" aria-label="Product navigation">
+      <a href="#capabilities" data-track="Nav capabilities">产品能力</a>
+      <a href="#workflow" data-track="Nav workflow">工作流程</a>
+      <a href="#security" data-track="Nav security">数据安全</a>
+      <a href="#pricing" data-track="Nav pricing">会员定价</a>
+      <a href="#questions" data-track="Nav questions">常见问题</a>
+    </nav>
+    <div class="header-actions">
+      <a class="text-link desktop-only" href="/workspace" data-track="Header login">登录工作台</a>
+      <a class="button button-primary compact" href="#demo" data-track="Header view product">查看产品</a>
+      <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile product navigation" hidden>
+    <a href="#capabilities">产品能力</a>
+    <a href="#workflow">工作流程</a>
+    <a href="#security">数据安全</a>
+    <a href="#pricing">会员定价</a>
+    <a href="#questions">常见问题</a>
+    <a href="/workspace">登录机构工作台</a>
+  </nav>
+
+  <main id="main">
+    <section class="hero" id="top" data-section="Hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><strong lang="en">WestoryVisa Agent</strong><span>为签证顾问打造</span></p>
+        <h1>先理清材料，再让 Gemini 逐页填写</h1>
+        <p class="hero-description">真实前端直接展示材料整理、字段核查与 Gemini Computer Use 执行状态。顾问负责判断，Agent 负责重复操作。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#demo" data-track="Hero view sample case">查看模拟案件</a>
+          <button class="button button-secondary" type="button" data-wjx-open data-track="Hero book demo" hidden>预约产品演示</button>
+        </div>
+        <div class="hero-boundaries" aria-label="Product trust principles">
+          <span>字段来源可追踪</span>
+          <span>敏感项人工确认</span>
+          <span>机构数据隔离</span>
+        </div>
+      </div>
+
+      <div class="workspace-visual source-workspace-visual" id="product-preview" aria-label="WestoryVisa Agent source-code preview">
+        <div class="preview-demo-label"><strong>源代码实时页面</strong><span>来自 Gemini Agent 的 HTML、CSS 与 JavaScript</span></div>
+        <div class="source-demo-frame">
+          <iframe src="/workspace?demo=prefill" title="WestoryVisa Gemini Computer Use 源代码运行页面"></iframe>
+        </div>
+      </div>
+      <a class="hero-next" href="#outcomes" aria-label="Continue exploring the product" data-track="Hero continue"><span></span></a>
+    </section>
+
+    <section class="outcome-band" id="outcomes" data-section="Core outcome">
+      <div class="section-intro">
+        <p class="eyebrow">一个清晰的工作结果</p>
+        <h2>材料进来，重点留下</h2>
+        <p class="section-lead">一份客户资料，沿着同一条核查链路向前</p>
+      </div>
+      <div class="outcome-steps" aria-label="Product outcome path">
+        <div><span>01</span><strong>先读材料</strong><small>已有信息不再重复询问</small></div>
+        <div><span>02</span><strong>再补缺失</strong><small>只收集材料里没有的内容</small></div>
+        <div><span>03</span><strong>集中核查</strong><small>把缺失、冲突与敏感项交给顾问</small></div>
+      </div>
+    </section>
+
+    <section class="demo-section" id="demo" data-section="Continuous demo">
+      <div class="demo-section-heading">
+        <p class="eyebrow">产品演示</p>
+        <h2>从材料，到初稿</h2>
+        <p class="demo-kicker">四个关键时刻，一次看清</p>
+        <p class="section-lead">宣传片直接录制真实前端运行页面，不使用任何客户截屏</p>
+      </div>
+
+      <div class="source-video-player" aria-label="WestoryVisa Agent source-code product film">
+        <iframe src="../../docflow-gemini-private-working/frontend/promo-gemini/promo-video.html?live=source-components-v2" title="WestoryVisa Agent HTML 与 CSS 动画演示"></iframe>
+      </div>
+      <div class="demo-player source-demo-fallback" data-demo-player aria-label="Continuous WestoryVisa product demo" hidden>
+        <div class="demo-player-top">
+          <div class="demo-window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span>模拟案件 · 林然 · F-1</span>
+          <small><i aria-hidden="true"></i> 自动播放</small>
+        </div>
+
+        <div class="demo-screen" aria-live="polite">
+          <article class="demo-stage is-active" data-demo-stage="0" aria-hidden="false">
+            <div class="demo-stage-copy"><span>01 / 04</span><h3>上传材料</h3><p>护照、I-20 与行程材料进入同一份客户档案</p></div>
+            <div class="demo-stage-ui demo-upload-ui">
+              <div class="demo-ui-title"><span>客户材料</span><b>正在整理</b></div>
+              <div class="demo-file"><i>PDF</i><div><strong>Passport_LIN_RAN.pdf</strong><span><em style="--file-progress: 100%"></em></span></div><small>完成</small></div>
+              <div class="demo-file"><i>PDF</i><div><strong>I-20_University.pdf</strong><span><em style="--file-progress: 100%"></em></span></div><small>完成</small></div>
+              <div class="demo-file"><i>IMG</i><div><strong>Travel_Plan.jpg</strong><span><em style="--file-progress: 82%"></em></span></div><small>识别中</small></div>
+            </div>
+          </article>
+
+          <article class="demo-stage" data-demo-stage="1" aria-hidden="true">
+            <div class="demo-stage-copy"><span>02 / 04</span><h3>发现缺失</h3><p>系统先使用材料里已有的信息，只留下确实需要补充的问题</p></div>
+            <div class="demo-stage-ui demo-gap-ui">
+              <div class="demo-ui-title"><span>待补充信息</span><b>6 项</b></div>
+              <div class="demo-gap-summary"><strong>42</strong><span>个字段已从材料中整理</span><em>6 个问题需要客户补充</em></div>
+              <div class="demo-gap-list"><span>过去五年出境记录</span><span>美国联系人电话</span><span>预计停留时间</span></div>
+            </div>
+          </article>
+
+          <article class="demo-stage" data-demo-stage="2" aria-hidden="true">
+            <div class="demo-stage-copy"><span>03 / 04</span><h3>顾问核查</h3><p>缺失、冲突与敏感项集中出现，其余已确认内容保持安静</p></div>
+            <div class="demo-stage-ui demo-review-ui">
+              <div class="demo-ui-title"><span>重点核查</span><b>3 项</b></div>
+              <div class="demo-review-row"><span>护照号码</span><strong>E12•••••8</strong><em class="demo-ok">已确认</em></div>
+              <div class="demo-review-row demo-attention"><span>预计抵达日期</span><strong>18 JUL / 20 JUL</strong><em>信息冲突</em></div>
+              <div class="demo-review-row"><span>安全背景</span><strong>等待顾问逐项确认</strong><em>待核对</em></div>
+            </div>
+          </article>
+
+          <article class="demo-stage" data-demo-stage="3" aria-hidden="true">
+            <div class="demo-stage-copy"><span>04 / 04</span><h3>生成初稿</h3><p>按 DS-160 页面结构形成初稿，并附上待确认项与字段来源</p></div>
+            <div class="demo-stage-ui demo-draft-ui">
+              <div class="demo-draft-check" aria-hidden="true">✓</div>
+              <p>DS-160 初稿已生成</p>
+              <div><span><strong>42</strong><small>已整理字段</small></span><span><strong>6</strong><small>待确认项</small></span><span><strong>3</strong><small>来源文件</small></span></div>
+              <button type="button" tabindex="-1">查看核查清单</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="demo-control-bar">
+          <button class="demo-toggle" id="demoToggle" type="button" aria-label="暂停连续演示"><i aria-hidden="true"></i><b>暂停</b></button>
+          <div class="demo-progress-track" aria-hidden="true"><span id="demoProgress"></span></div>
+          <span class="demo-time"><b id="demoTime">00:00</b> / 00:28</span>
+        </div>
+      </div>
+
+      <div class="demo-chapters" role="tablist" aria-label="Demo chapters">
+        <button class="is-active" type="button" data-demo-chapter="0" role="tab" aria-selected="true"><span>01</span><strong>上传材料</strong><small>0–7 秒</small></button>
+        <button type="button" data-demo-chapter="1" role="tab" aria-selected="false"><span>02</span><strong>发现缺失</strong><small>7–14 秒</small></button>
+        <button type="button" data-demo-chapter="2" role="tab" aria-selected="false"><span>03</span><strong>顾问核查</strong><small>14–21 秒</small></button>
+        <button type="button" data-demo-chapter="3" role="tab" aria-selected="false"><span>04</span><strong>生成初稿</strong><small>21–28 秒</small></button>
+      </div>
+      <p class="demo-disclaimer">使用模拟资料展示产品逻辑，不代表真实客户数据或实际处理结果</p>
+    </section>
+
+    <section class="editorial-section" id="capabilities" data-section="Capabilities">
+      <div class="section-number">01</div>
+      <div class="section-copy">
+        <p class="eyebrow">客户资料整理</p>
+        <h2>已有的信息，不再问第二遍</h2>
+        <p class="section-lead">系统先读材料，再决定还要问什么</p>
+        <p>护照、身份证、行程、资金材料、I-20 或 DS-2019 先进入同一份档案。系统提取文件中已经存在的信息，只把材料里确实没有的内容整理成客户补充问卷。</p>
+        <ul class="quiet-list">
+          <li>保留原文件、识别文字和字段来源</li>
+          <li>学校与地址自动拆分为可填写结构</li>
+          <li>B1/B2、F-1、J-1 按签证类别显示不同内容</li>
+        </ul>
+      </div>
+      <div class="material-visual product-surface">
+        <div class="surface-header"><span>材料库</span><em>7 份文件</em></div>
+        <div class="file-row"><i>PDF</i><span><b>Passport_LIN_RAN.pdf</b><small>已提取 12 个字段</small></span><strong>98%</strong></div>
+        <div class="file-row"><i>PDF</i><span><b>I-20_University.pdf</b><small>已提取 SEVIS 与学校信息</small></span><strong>96%</strong></div>
+        <div class="file-row"><i>IMG</i><span><b>National_ID.jpg</b><small>已提取身份与地址信息</small></span><strong>94%</strong></div>
+        <div class="surface-footer"><span>下一步</span><b>生成客户补充问卷</b></div>
+      </div>
+    </section>
+
+    <section class="editorial-section reverse" data-section="Field review">
+      <div class="section-number">02</div>
+      <div class="section-copy">
+        <p class="eyebrow">DS-160 字段核查</p>
+        <h2>只把重点，留给顾问</h2>
+        <p class="section-lead">缺失、冲突与敏感项集中出现，其余内容保持安静</p>
+        <p>系统把文档识别、客户补充与既有资料映射到对应字段，保留来源和置信度。姓名、护照、赴美历史和敏感背景等关键项进入重点复核，其余信息保持安静。</p>
+        <div class="status-legend">
+          <span><i class="confirmed-dot"></i>已确认</span>
+          <span><i class="review-dot"></i>待核对</span>
+          <span><i class="conflict-dot"></i>信息冲突</span>
+        </div>
+      </div>
+      <div class="review-visual product-surface">
+        <div class="review-heading"><span>Work / Education</span><strong>8 / 10</strong></div>
+        <div class="review-item"><span>当前雇主</span><b>HORIZON FINANCE CO., LTD.</b><em class="status-confirmed">已确认</em></div>
+        <div class="review-item"><span>入职日期</span><b>06 AUG 2025</b><em class="status-confirmed">已确认</em></div>
+        <div class="review-item focus"><span>工作职责</span><b>FINANCIAL RECORDS AND REPORTING</b><em class="status-review">待核对</em></div>
+        <div class="review-item"><span>过往雇主</span><b>DOES NOT APPLY</b><em class="status-confirmed">已确认</em></div>
+      </div>
+    </section>
+
+    <section class="module-section" data-section="DS-160 structure">
+      <div class="section-intro compact-intro">
+        <p class="eyebrow">真实表格结构</p>
+        <h2>一套结构，贯穿整个案件</h2>
+        <p class="section-lead">按真实 DS-160 页面组织，从材料、补充问卷一路延续到初稿核查</p>
+      </div>
+      <div class="module-rail" role="list">
+        <div role="listitem"><span>01</span><b>基础信息</b><small>姓名、出生、国籍</small></div>
+        <div role="listitem"><span>02</span><b>护照信息</b><small>号码、签发、有效期</small></div>
+        <div role="listitem"><span>03</span><b>旅行信息</b><small>目的、行程、费用</small></div>
+        <div role="listitem"><span>04</span><b>赴美记录</b><small>签证、入境、拒签</small></div>
+        <div role="listitem"><span>05</span><b>家庭信息</b><small>父母、配偶、亲属</small></div>
+        <div role="listitem"><span>06</span><b>工作教育</b><small>时间线与经历</small></div>
+        <div role="listitem"><span>07</span><b>安全背景</b><small>逐项人工确认</small></div>
+        <div role="listitem"><span>08</span><b>SEVIS</b><small>F / M / J 类适用</small></div>
+      </div>
+    </section>
+
+    <section class="workflow-section" id="workflow" data-section="Workflow">
+      <div class="section-intro">
+        <p class="eyebrow">从材料到初稿</p>
+        <h2>从材料到初稿，每一步都有来源</h2>
+        <p class="section-lead">顾问始终知道信息从哪里来、为什么需要确认、下一步该做什么</p>
+      </div>
+      <ol class="workflow-list">
+        <li><span>01</span><div><h3>创建客户档案</h3><p>登记姓名、签证类型和负责人，建立机构内部案件。</p></div></li>
+        <li><span>02</span><div><h3>上传与整理材料</h3><p>保存文件，扫描文字，自动识别身份、旅行与教育信息。</p></div></li>
+        <li><span>03</span><div><h3>发送补充问卷</h3><p>只收集现有材料里没有的信息，减少客户重复填写。</p></div></li>
+        <li><span>04</span><div><h3>生成 DS-160 初稿</h3><p>按真实字段结构形成可核查建议，标记缺失与冲突。</p></div></li>
+        <li><span>05</span><div><h3>顾问复核与归档</h3><p>集中确认关键内容，导出核查清单并保留修改记录。</p></div></li>
+      </ol>
+    </section>
+
+    <section class="security-section" id="security" data-section="Data security">
+      <div class="security-copy">
+        <p class="eyebrow">客户资料安全</p>
+        <h2>客户资料，只在该看的地方出现</h2>
+        <p>客户档案按机构账号隔离。护照、家庭、工作教育与背景信息保存在受控数据库和文件库中，并保留访问与修改记录。</p>
+      </div>
+      <div class="security-points">
+        <div><span>01</span><strong>机构隔离</strong><p>不同账号与机构不能互相查看客户档案。</p></div>
+        <div><span>02</span><strong>来源可追踪</strong><p>字段保留文件、页码、识别方式和置信度。</p></div>
+        <div><span>03</span><strong>人工最终确认</strong><p>敏感背景问题不默认回答，也不替代专业判断。</p></div>
+      </div>
+    </section>
+
+    <section class="pricing-section" id="pricing" data-section="Membership pricing">
+      <div class="pricing-intro">
+        <p class="eyebrow">会员制订阅</p>
+        <h2>按每月案件量付费，不按顾问人数增加负担</h2>
+        <p>和按访问量计费的产品一样，WestoryVisa 根据每月新建客户档案数调整订阅价格。团队可以先从较小额度开始，案件量增长后再升级。</p>
+      </div>
+
+      <div class="pricing-controls" aria-label="Membership billing options">
+        <div class="billing-toggle" aria-label="Billing period">
+          <button type="button" data-billing="monthly" aria-pressed="false">月付</button>
+          <button class="is-active" type="button" data-billing="yearly" aria-pressed="true">年付 <span>免两个月</span></button>
+        </div>
+        <label class="volume-control" for="caseVolumeRange">
+          <span>每月最多新建 <strong id="pricingVolume">20</strong> 份客户档案</span>
+          <input id="caseVolumeRange" type="range" min="0" max="4" step="1" value="0" aria-valuetext="Up to 20 new client profiles per month">
+          <span class="volume-marks" aria-hidden="true"><i>20</i><i>50</i><i>100</i><i>250</i><i>500+</i></span>
+        </label>
+      </div>
+
+      <div class="pricing-grid">
+        <article class="pricing-card">
+          <p>Starter</p><h3>独立顾问</h3><p class="pricing-summary">从材料整理到初稿核查的完整基础流程</p>
+          <div class="plan-price"><span>¥</span><strong data-plan-price="starter">166</strong><small>/ 月</small></div>
+          <p class="billing-note" data-plan-note="starter">按年支付 ¥1,990</p>
+          <a class="button pricing-button" href="/workspace" data-track="Pricing starter open workspace">进入工作台</a>
+          <ul><li>材料识别与字段整理</li><li>客户补充问卷</li><li>DS-160 初稿与字段来源</li><li>基础核查清单</li></ul>
+        </article>
+        <article class="pricing-card featured">
+          <p>Growth</p><h3>顾问团队</h3><p class="pricing-summary">让多人在同一套案件结构里分工与复核</p>
+          <div class="plan-price"><span>¥</span><strong data-plan-price="growth">333</strong><small>/ 月</small></div>
+          <p class="billing-note" data-plan-note="growth">按年支付 ¥3,990</p>
+          <a class="button button-primary pricing-button" href="/workspace" data-track="Pricing growth open workspace">进入工作台</a>
+          <ul><li>包含独立顾问版全部功能</li><li>不限顾问席位</li><li>案件分配与团队状态</li><li>共享核查记录与导出</li></ul>
+        </article>
+        <article class="pricing-card">
+          <p>Business</p><h3>签证机构</h3><p class="pricing-summary">为稳定业务量提供权限、记录与管理能力</p>
+          <div class="plan-price"><span>¥</span><strong data-plan-price="business">666</strong><small>/ 月</small></div>
+          <p class="billing-note" data-plan-note="business">按年支付 ¥7,990</p>
+          <a class="button pricing-button" href="/workspace" data-track="Pricing business open workspace">进入工作台</a>
+          <ul><li>包含团队版全部功能</li><li>角色与数据访问权限</li><li>完整修改与操作记录</li><li>优先支持与数据导出</li></ul>
+        </article>
+        <article class="pricing-card enterprise">
+          <p>Enterprise</p><h3>大型机构</h3><p class="pricing-summary">更高案件量、定制部署和组织级支持</p>
+          <div class="plan-price custom-price"><strong>定制</strong></div>
+          <p class="billing-note">根据案件量与部署需求报价</p>
+          <button class="button pricing-button" type="button" data-wjx-open data-track="Pricing enterprise contact" hidden>联系开通</button>
+          <a class="pricing-fallback" href="#demo">先看产品演示</a>
+          <ul><li>包含机构版全部功能</li><li>单点登录与定制权限</li><li>专属迁移与培训</li><li>服务等级与优先响应</li></ul>
+        </article>
+      </div>
+      <p class="pricing-footnote">建议方案：30 天免费试用，无需信用卡。每月案件量按新建客户档案计算，超出前会先提醒，不自动产生额外费用。</p>
+    </section>
+
+    <section class="faq-section" id="questions" data-section="Frequently asked questions">
+      <div class="section-intro compact-intro">
+        <p class="eyebrow">常见问题</p>
+        <h2>关于使用方式与产品边界</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>这个工具会直接提交 DS-160 吗？<span></span></summary>
+          <p>不会。WestoryVisa 用于资料整理、初稿生成和字段核查，不处理支付、电子签名、法律声明或最终提交。</p>
+        </details>
+        <details>
+          <summary>系统会替客户回答拒签或安全背景问题吗？<span></span></summary>
+          <p>不会。此类问题只做结构化提醒与待确认标记，必须根据客户真实情况由顾问逐项核查。</p>
+        </details>
+        <details>
+          <summary>不同签证类型会显示相同的问题吗？<span></span></summary>
+          <p>不会。B1/B2、F-1 和 J-1 会使用不同分支；例如 SEVIS、学校和项目内容只在适用签证中出现。</p>
+        </details>
+        <details>
+          <summary>团队可以管理多个客户吗？<span></span></summary>
+          <p>可以。机构工作台集中展示每个客户的资料收集、初稿生成、待核查和已完成状态。</p>
+        </details>
+        <details>
+          <summary>会员如何计费？<span></span></summary>
+          <p>按每月新建客户档案数选择额度，不按顾问席位重复收费。可以月付，也可以年付；建议的年付方案相当于免两个月，达到额度前会先提醒。</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="final-section" data-section="Final call to action">
+      <p class="eyebrow">从下一份客户档案开始</p>
+      <h2>下一份客户资料，可以从一开始就更清楚</h2>
+      <p>先看一个模拟案件，再决定是否安排产品演示。</p>
+      <div class="hero-actions centered-actions">
+        <a class="button button-primary" href="#demo" data-track="Footer view sample case">查看模拟案件</a>
+        <button class="button button-secondary light" type="button" data-wjx-open data-track="Footer book demo" hidden>预约产品演示</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div><strong lang="en">WestoryVisa</strong><span>签证资料核查工作台</span></div>
+    <p>本工具不提供法律建议，不预测签证结果，不处理真实支付或最终提交。</p>
+  </footer>
+
+  <div class="modal-layer" id="wjxModal" aria-hidden="true">
+    <button class="modal-backdrop" type="button" data-wjx-close aria-label="Close demo request form"></button>
+    <section class="survey-sheet" role="dialog" aria-modal="true" aria-labelledby="surveyTitle">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <div><p>预约产品演示</p><h2 id="surveyTitle">告诉我们你的团队需求</h2></div>
+        <div class="sheet-actions">
+          <a id="wjxExternalLink" href="#" target="_blank" rel="noopener" data-track="Survey open new window" hidden>新窗口打开</a>
+          <button class="close-button" type="button" data-wjx-close aria-label="Close">×</button>
+        </div>
+      </header>
+      <div class="survey-state" id="surveyState">
+        <div class="survey-loading"><span></span><p>正在载入问卷…</p></div>
+      </div>
+      <iframe id="wjxFrame" title="WestoryVisa product demo questionnaire" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
+    </section>
+  </div>
+
+  <aside class="consent-banner" id="consentBanner" aria-labelledby="consentTitle" hidden>
+    <div><strong id="consentTitle">匿名访问统计</strong><p>允许后仅记录页面停留、看过的模块和按钮点击，不记录表单内容、客户资料或原始 IP。</p></div>
+    <div><button type="button" class="consent-decline" id="declineAnalytics">暂不允许</button><button type="button" class="consent-accept" id="acceptAnalytics">允许匿名统计</button></div>
+  </aside>
+
+  <script src="/runtime-config.js?v=20260727-frontend-backend-split-v1"></script>
+  <script src="/api-client.js?v=20260727-frontend-boundary-v1"></script>
+  <script src="/product.js?v=20260812-landing-page-route-v1"></script>
+</body>
+</html>
