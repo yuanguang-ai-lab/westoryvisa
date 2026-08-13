@@ -70,5 +70,20 @@
       </section>
     </main>
   </div>
+  <script>
+    (function enableLocalFileNavigation() {
+      if (window.location.protocol !== "file:") return;
+      const localRoutes = {
+        "/": "index.html",
+        "/membership": "membership.html",
+        "/payment-console": "payment-console.html",
+        "/workspace": "workspace.html"
+      };
+      document.querySelectorAll("a[href]").forEach((link) => {
+        const localTarget = localRoutes[link.getAttribute("href")];
+        if (localTarget) link.setAttribute("href", localTarget);
+      });
+    })();
+  </script>
 </body>
 </html>

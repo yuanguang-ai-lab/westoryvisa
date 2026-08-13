@@ -49,6 +49,22 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertNotIn("登录 / 注册账号</a>", home_html)
         self.assertIn('href="styles.css?', home_html)
         self.assertNotIn('href="/styles.css?', home_html)
+        self.assertIn('window.location.protocol !== "file:"', home_html)
+        self.assertIn('"/workspace": "workspace.html"', home_html)
+
+    def test_workspace_assets_work_from_http_and_local_files(self):
+        workspace_html = (server.FRONTEND_DIR / "workspace.html").read_text(
+            encoding="utf-8"
+        )
+        for asset in (
+            "styles.css",
+            "mockData.js",
+            "runtime-config.js",
+            "api-client.js",
+            "app.js",
+        ):
+            self.assertIn(f'="{asset}', workspace_html)
+            self.assertNotIn(f'="/{asset}', workspace_html)
 
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
