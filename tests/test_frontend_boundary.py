@@ -85,6 +85,20 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn('/refunds`', billing_js)
         self.assertIn("billing.js", server.PUBLIC_FILES)
 
+    def test_login_and_workspace_enforce_membership_purchase(self):
+        app_js = (server.FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
+        api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
+            encoding="utf-8"
+        )
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('window.location.replace(`/membership?auth=', app_js)
+        self.assertIn('state.user && !state.membership?.active', app_js)
+        self.assertIn('response.status === 402', api_client)
+        self.assertIn('/membership?access=required', api_client)
+        self.assertIn('id="membershipWorkspaceLink"', membership_html)
+
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
             encoding="utf-8"

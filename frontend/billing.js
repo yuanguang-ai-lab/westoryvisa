@@ -80,6 +80,7 @@
         title.textContent = "会员权益有效";
         detail.textContent = `当前有效期至 ${dateTime(membership.currentPeriodEnd)}。新购买的时长会接在现有有效期之后。`;
         badge.textContent = "已开通";
+        document.querySelector("#membershipWorkspaceLink").hidden = false;
       } else {
         title.textContent = "当前未开通有效会员";
         detail.textContent = "选择方案后进入支付公司托管收银台；只有验签回调确认到账后才开通权益。";
@@ -108,7 +109,16 @@
         });
       });
       const params = new URLSearchParams(global.location.search);
-      if (params.get("checkout") === "success") {
+      if (params.get("auth") === "registered") {
+        showNotice("账号已创建。请先购买会员，支付到账后才能进入工作台。", "success");
+      } else if (params.get("auth") === "logged-in" || params.get("access") === "required") {
+        showNotice(
+          membership.active
+            ? "登录成功，你的会员有效，可以进入工作台。"
+            : "登录成功。当前没有有效会员，请先完成购买后再进入工作台。",
+          membership.active ? "success" : "warning"
+        );
+      } else if (params.get("checkout") === "success") {
         showNotice("支付页面已返回。会员状态以支付公司验签回调为准，到账后会自动更新。", "success");
       } else if (params.get("checkout") === "cancelled") {
         showNotice("本次支付已取消，订单不会开通会员权益。", "warning");

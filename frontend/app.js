@@ -62,6 +62,7 @@ const state = {
   translationService: null,
   mailService: null,
   screenAgentRuntime: null,
+  membership: null,
   registrationVerification: { mode: "none", required: false },
   emailCodeTimer: null,
   emailCodeCooldownUntil: 0,
@@ -335,6 +336,13 @@ async function loadState() {
       if (sessionResponse.ok) {
         const sessionData = await sessionResponse.json();
         state.user = sessionData.user || null;
+        if (state.user) {
+          const billingResponse = await DocFlowApi.request(`${API_BASE}/billing`);
+          if (billingResponse.ok) {
+            const billingData = await billingResponse.json();
+            state.membership = billingData.membership || null;
+          }
+        }
       }
     }
   } catch (error) {
@@ -349,6 +357,10 @@ async function loadApplicationsForCurrentOrganization() {
     if (response.status === 401) {
       state.user = null;
       state.applications = [];
+      return;
+    }
+    if (response.status === 402) {
+      window.location.replace("/membership?access=required");
       return;
     }
     if (!response.ok) throw new Error("客户档案读取失败");
@@ -965,7 +977,7 @@ function renderLogin(container) {
             </div>
             <div id="authError" class="auth-error ${state.authError ? "visible" : ""}" role="alert">${escapeHtml(state.authError)}</div>
             <div class="actions">
-              <button class="btn auth-submit" id="authSubmit" type="submit">${isRegister ? "创建账号并进入" : "登录机构工作台"}</button>
+              <button class="btn auth-submit" id="authSubmit" type="submit">${isRegister ? "创建账号并选择会员" : "登录并查看会员"}</button>
               <a class="auth-product-link" href="/landing-page">查看产品详情 <span aria-hidden="true">→</span></a>
             </div>
             ${isRegister ? `<p class="auth-helper">当前测试阶段暂不进行验证码校验；手机号会作为后续账号验证与找回信息保存，请妥善保管账号密码。</p>` : ""}
@@ -1169,12 +1181,11 @@ async function submitAuthForm(event) {
     state.draftCase = {};
     state.authDraft = { ...state.authDraft, emailCode: "", password: "", confirmPassword: "" };
     persistLocal();
-    await loadApplicationsForCurrentOrganization();
-    route("dashboard");
+    window.location.replace(`/membership?auth=${isRegister ? "registered" : "logged-in"}`);
   } catch (error) {
     showAuthError(error.message || "账号操作失败，请稍后重试。");
     submitButton.disabled = false;
-    submitButton.textContent = isRegister ? "创建账号并进入" : "登录机构工作台";
+    submitButton.textContent = isRegister ? "创建账号并选择会员" : "登录并查看会员";
   }
 }
 
@@ -7123,6 +7134,10 @@ async function boot() {
     return;
   }
   await loadState();
+  if (state.user && !state.membership?.active) {
+    window.location.replace("/membership?access=required");
+    return;
+  }
   const savedNavigation = readSavedNavigation();
   const restorableViews = new Set([
     "dashboard", "create", "documents", "processing", "fields", "questions",

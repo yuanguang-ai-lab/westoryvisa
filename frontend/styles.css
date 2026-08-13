@@ -6920,6 +6920,8 @@ td input {
 }
 
 .membership-status-card > div:first-child { display: grid; gap: 7px; }
+.membership-status-actions { display: flex; align-items: center; gap: 12px; }
+.membership-status-actions .btn { text-decoration: none; }
 .membership-status-card h2,
 .membership-section h2,
 .membership-plan-card h3 { margin: 0; }

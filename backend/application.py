@@ -4190,6 +4190,29 @@ def public_membership(row):
     }
 
 
+def active_membership_for_user(user):
+    if not user or not user.get("organizationId"):
+        return None
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT * FROM billing_subscriptions
+            WHERE organization_id = ? AND status = 'active' AND current_period_end > ?
+            """,
+            (user["organizationId"], now_iso()),
+        ).fetchone()
+    return public_membership(row) if row else None
+
+
+def workspace_membership_required(path):
+    return (
+        path == "/api/cases"
+        or path.startswith("/api/cases/")
+        or path == "/api/ocr/start"
+        or path == "/api/ocr/health"
+    )
+
+
 def billing_summary(user):
     with connect() as conn:
         product_rows = conn.execute(
@@ -5529,6 +5552,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self.ensure_origin_allowed():
             return None
         parsed = urlparse(self.path)
+        if workspace_membership_required(parsed.path) and not self.require_member():
+            return None
         if parsed.path in {"/", "/status"}:
             return self.html_response(
                 render_status_page(health_payload(), ocr_service_status())
@@ -5709,6 +5734,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self.ensure_origin_allowed():
             return None
         parsed = urlparse(self.path)
+        if workspace_membership_required(parsed.path) and not self.require_member():
+            return None
         if parsed.path == "/api/billing/webhooks/stripe":
             try:
                 return self.json_response(process_stripe_webhook(
@@ -6027,6 +6054,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self.ensure_origin_allowed():
             return None
         parsed = urlparse(self.path)
+        if workspace_membership_required(parsed.path) and not self.require_member():
+            return None
         if parsed.path == "/api/intake":
             try:
                 token = self.headers.get("X-DocFlow-Intake", "")
@@ -6059,6 +6088,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self.ensure_origin_allowed():
             return None
         parsed = urlparse(self.path)
+        if workspace_membership_required(parsed.path) and not self.require_member():
+            return None
         codex_agent_match = re.fullmatch(
             r"/api/cases/([^/]+)/codex-agent/([^/]+)", parsed.path
         )
@@ -6109,6 +6140,20 @@ class Handler(BaseHTTPRequestHandler):
         user = self.current_user()
         if not user:
             self.json_response({"error": "登录已失效，请重新登录"}, status=401, clear_auth=True)
+        return user
+
+    def require_member(self):
+        user = self.require_user()
+        if not user:
+            return None
+        membership = active_membership_for_user(user)
+        if not membership:
+            self.json_response({
+                "error": "请先购买有效会员后再使用机构工作台",
+                "code": "membership_required",
+                "redirect": "/membership",
+            }, status=402)
+            return None
         return user
 
     def read_json(self):

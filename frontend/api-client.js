@@ -10,7 +10,15 @@
 
   async function request(resource, options) {
     const requestOptions = Object.assign({ credentials: "include" }, options || {});
-    return transport(resource, requestOptions);
+    const response = await transport(resource, requestOptions);
+    if (
+      response.status === 402
+      && global.location.protocol !== "file:"
+      && global.location.pathname !== "/membership"
+    ) {
+      global.location.replace("/membership?access=required");
+    }
+    return response;
   }
 
   Object.defineProperty(global, "DocFlowApi", {

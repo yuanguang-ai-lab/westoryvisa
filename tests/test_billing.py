@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import http.client
 import json
 import os
 import tempfile
@@ -82,6 +83,30 @@ class BillingTests(unittest.TestCase):
             hashlib.sha256,
         ).hexdigest()
         return raw, f"t={timestamp},v1={signature}"
+
+    def authenticated_request(self, method, path, token, body=None):
+        httpd = server.ThreadingHTTPServer(("127.0.0.1", 0), server.ApiHandler)
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        try:
+            connection = http.client.HTTPConnection(
+                "127.0.0.1", httpd.server_port, timeout=5
+            )
+            headers = {"Cookie": f"{server.AUTH_COOKIE}={token}"}
+            encoded = None
+            if body is not None:
+                encoded = json.dumps(body).encode("utf-8")
+                headers["Content-Type"] = "application/json"
+                headers["Content-Length"] = str(len(encoded))
+            connection.request(method, path, body=encoded, headers=headers)
+            response = connection.getresponse()
+            payload = json.loads(response.read().decode("utf-8"))
+            connection.close()
+            return response.status, payload
+        finally:
+            httpd.shutdown()
+            httpd.server_close()
+            thread.join(timeout=2)
 
     def pay_order(self, order):
         event = {
@@ -218,6 +243,38 @@ class BillingTests(unittest.TestCase):
             allow_gateway.set()
             thread.join(timeout=3)
         self.assertEqual(result["status"], "succeeded")
+
+    def test_workspace_api_requires_active_membership_but_billing_remains_available(self):
+        token = server.create_auth_session(self.user["id"])
+        status, payload = self.authenticated_request("GET", "/api/cases", token)
+        self.assertEqual(status, 402)
+        self.assertEqual(payload["code"], "membership_required")
+        self.assertEqual(payload["redirect"], "/membership")
+
+        billing_status, billing = self.authenticated_request(
+            "GET", "/api/billing", token
+        )
+        self.assertEqual(billing_status, 200)
+        self.assertEqual(len(billing["products"]), 2)
+
+        order = self.create_order()
+        self.pay_order(order)
+        active_status, active_payload = self.authenticated_request(
+            "GET", "/api/cases", token
+        )
+        self.assertEqual(active_status, 200)
+        self.assertEqual(active_payload, {"cases": []})
+
+        with server.connect() as connection:
+            connection.execute(
+                "UPDATE billing_subscriptions SET current_period_end = ? WHERE organization_id = ?",
+                ("2020-01-01T00:00:00+00:00", self.user["organizationId"]),
+            )
+        expired_status, expired_payload = self.authenticated_request(
+            "GET", "/api/cases", token
+        )
+        self.assertEqual(expired_status, 402)
+        self.assertEqual(expired_payload["code"], "membership_required")
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>WestoryVisa｜会员中心</title>
-  <link rel="stylesheet" href="styles.css?v=20260813-billing-v1">
+  <link rel="stylesheet" href="styles.css?v=20260813-membership-gate-v1">
 </head>
 <body data-billing-page="membership">
   <div class="organization-shell">
@@ -21,7 +21,7 @@
         <div><div class="page-kicker">机构订阅</div><h1>会员中心</h1><p class="muted">选择适合当前机构的会员周期，订阅开通后绑定机构账号。</p></div>
         <div class="topbar-actions"><a class="btn" href="/payment-console">进入真实支付工程</a><a class="btn secondary" href="/">返回机构接入</a></div>
       </div>
-      <section class="membership-status-card observe"><div><span class="page-kicker">当前状态</span><h2 id="membershipStatusTitle">正在读取会员状态</h2><p id="membershipStatusDetail">会员有效期、权益和订单与机构账号关联。</p></div><div class="membership-mode-badge" id="membershipStatusBadge">机构级会员</div></section>
+      <section class="membership-status-card observe"><div><span class="page-kicker">当前状态</span><h2 id="membershipStatusTitle">正在读取会员状态</h2><p id="membershipStatusDetail">会员有效期、权益和订单与机构账号关联。</p></div><div class="membership-status-actions"><div class="membership-mode-badge" id="membershipStatusBadge">机构级会员</div><a class="btn" id="membershipWorkspaceLink" href="/workspace" hidden>进入工作台</a></div></section>
       <div class="billing-notice" id="billingNotice" role="status" hidden></div>
       <section class="membership-section">
         <div class="section-heading"><span class="page-kicker">会员方案</span><h2>选择月付或年付</h2></div>
@@ -33,7 +33,7 @@
     </main>
   </div>
   <script src="runtime-config.js?v=20260813-billing-v1"></script>
-  <script src="api-client.js?v=20260813-billing-v1"></script>
-  <script src="billing.js?v=20260813-billing-v1"></script>
+  <script src="api-client.js?v=20260813-membership-gate-v1"></script>
+  <script src="billing.js?v=20260813-membership-gate-v1"></script>
 </body>
 </html>
