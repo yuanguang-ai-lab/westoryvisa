@@ -1,5 +1,11 @@
 BEGIN;
 
+DROP TABLE IF EXISTS billing_webhook_events CASCADE;
+DROP TABLE IF EXISTS billing_subscriptions CASCADE;
+DROP TABLE IF EXISTS billing_refunds CASCADE;
+DROP TABLE IF EXISTS payment_transactions CASCADE;
+DROP TABLE IF EXISTS billing_orders CASCADE;
+DROP TABLE IF EXISTS billing_products CASCADE;
 DROP TABLE IF EXISTS intake_links CASCADE;
 DROP TABLE IF EXISTS auth_sessions CASCADE;
 DROP TABLE IF EXISTS email_verifications CASCADE;
@@ -201,6 +207,86 @@ CREATE TABLE intake_links (
   updated_at TIMESTAMPTZ NOT NULL
 );
 
+CREATE TABLE billing_products (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  duration_days INTEGER NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE billing_orders (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  product_id TEXT NOT NULL REFERENCES billing_products(id),
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  provider_checkout_id TEXT UNIQUE,
+  provider_payment_id TEXT,
+  checkout_url TEXT,
+  paid_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE payment_transactions (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES billing_orders(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  provider_transaction_id TEXT,
+  transaction_type TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_json JSONB,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE billing_refunds (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES billing_orders(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  requested_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  provider_refund_id TEXT,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE billing_subscriptions (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
+  product_id TEXT REFERENCES billing_products(id),
+  source_order_id TEXT REFERENCES billing_orders(id) ON DELETE SET NULL,
+  status TEXT NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  current_period_end TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE billing_webhook_events (
+  provider_event_id TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_sha256 TEXT NOT NULL,
+  processed_at TIMESTAMPTZ NOT NULL
+);
+
 CREATE INDEX idx_clients_organization_id ON clients(organization_id);
 CREATE INDEX idx_clients_created_by_user_id ON clients(created_by_user_id);
 CREATE INDEX idx_cases_organization_id ON ds160_cases(organization_id);
@@ -218,5 +304,8 @@ CREATE INDEX idx_intake_links_case_id ON intake_links(case_id, created_at DESC);
 CREATE INDEX idx_email_verifications_email_created ON email_verifications(email, purpose, created_at DESC);
 CREATE UNIQUE INDEX idx_email_verifications_sending
   ON email_verifications(email, purpose) WHERE send_status = 'sending';
+CREATE INDEX idx_billing_orders_org_created ON billing_orders(organization_id, created_at DESC);
+CREATE INDEX idx_payment_transactions_order ON payment_transactions(order_id, created_at DESC);
+CREATE INDEX idx_billing_refunds_order ON billing_refunds(order_id, created_at DESC);
 
 COMMIT;

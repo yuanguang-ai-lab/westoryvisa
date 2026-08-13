@@ -18,7 +18,9 @@ from email import policy
 from email.parser import BytesParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.error import HTTPError, URLError
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse
+from urllib.request import Request, urlopen
 
 from .docling_client import DoclingError, check_docling
 from .ocr_provider import (
@@ -163,6 +165,25 @@ PRODUCT_ANALYTICS_CONSENT_VERSION = "anonymous-product-analytics-v1"
 PRODUCT_EVENT_TYPES = {
     "page_view", "click", "section_view", "dwell", "wjx_open", "wjx_close",
 }
+BILLING_PROVIDER = "stripe"
+BILLING_PRODUCTS = (
+    {
+        "id": "membership-monthly",
+        "name": "月度会员",
+        "description": "WestoryVisa 机构工作台 30 天使用权",
+        "amount": 19900,
+        "currency": "cny",
+        "durationDays": 30,
+    },
+    {
+        "id": "membership-yearly",
+        "name": "年度会员",
+        "description": "WestoryVisa 机构工作台 365 天使用权",
+        "amount": 199000,
+        "currency": "cny",
+        "durationDays": 365,
+    },
+)
 
 for env_name, env_value in load_env_file().items():
     os.environ.setdefault(env_name, env_value)
@@ -679,6 +700,86 @@ CREATE TABLE IF NOT EXISTS product_analytics_events (
   active_ms INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS billing_products (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  duration_days INTEGER NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS billing_orders (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  product_id TEXT NOT NULL REFERENCES billing_products(id),
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  provider_checkout_id TEXT,
+  provider_payment_id TEXT,
+  checkout_url TEXT,
+  paid_at TEXT,
+  expires_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS payment_transactions (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES billing_orders(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  provider_transaction_id TEXT,
+  transaction_type TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_json TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS billing_refunds (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES billing_orders(id) ON DELETE CASCADE,
+  organization_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  requested_by_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  provider_refund_id TEXT,
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL,
+  reason TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS billing_subscriptions (
+  id TEXT PRIMARY KEY,
+  organization_id TEXT NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
+  product_id TEXT REFERENCES billing_products(id),
+  source_order_id TEXT REFERENCES billing_orders(id) ON DELETE SET NULL,
+  status TEXT NOT NULL,
+  starts_at TEXT NOT NULL,
+  current_period_end TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS billing_webhook_events (
+  provider_event_id TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload_sha256 TEXT NOT NULL,
+  processed_at TEXT NOT NULL
+);
 """
 
 
@@ -772,6 +873,30 @@ def init_db():
             "CREATE INDEX IF NOT EXISTS idx_product_events_session "
             "ON product_analytics_events(session_id, created_at)"
         )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_billing_orders_org_created ON billing_orders(organization_id, created_at DESC)")
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_orders_checkout ON billing_orders(provider_checkout_id) WHERE provider_checkout_id IS NOT NULL")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_payment_transactions_order ON payment_transactions(order_id, created_at DESC)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_billing_refunds_order ON billing_refunds(order_id, created_at DESC)")
+        stamped = now_iso()
+        for product in BILLING_PRODUCTS:
+            conn.execute(
+                """
+                INSERT INTO billing_products (
+                  id, name, description, amount, currency, duration_days,
+                  active, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                  name = excluded.name, description = excluded.description,
+                  amount = excluded.amount, currency = excluded.currency,
+                  duration_days = excluded.duration_days, active = 1,
+                  updated_at = excluded.updated_at
+                """,
+                (
+                    product["id"], product["name"], product["description"],
+                    product["amount"], product["currency"], product["durationDays"],
+                    stamped, stamped,
+                ),
+            )
         backfill_record_keys(conn)
         backfill_questionnaires(conn)
 
@@ -3989,6 +4114,516 @@ def delete_auth_session(cookie_header):
         conn.execute("DELETE FROM auth_sessions WHERE token_hash = ?", (session_token_hash(token),))
 
 
+class BillingConfigurationError(RuntimeError):
+    pass
+
+
+class BillingProviderError(RuntimeError):
+    pass
+
+
+def billing_settings():
+    secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+    public_base_url = os.environ.get("BILLING_PUBLIC_BASE_URL", "").strip().rstrip("/")
+    configured = bool(secret_key and webhook_secret and public_base_url)
+    return {
+        "provider": BILLING_PROVIDER,
+        "configured": configured,
+        "checkoutConfigured": bool(secret_key and public_base_url),
+        "webhookConfigured": bool(webhook_secret),
+        "publicBaseUrlConfigured": bool(public_base_url),
+        "mode": "live" if secret_key.startswith("sk_live_") else "test" if secret_key else "unconfigured",
+        "message": (
+            "Stripe 已配置，可创建真实支付订单。"
+            if configured else
+            "支付通道尚未配置：需要 STRIPE_SECRET_KEY、STRIPE_WEBHOOK_SECRET 和 BILLING_PUBLIC_BASE_URL。"
+        ),
+    }
+
+
+def public_billing_product(row):
+    return {
+        "id": row["id"], "name": row["name"],
+        "description": row["description"] or "", "amount": row["amount"],
+        "currency": row["currency"], "durationDays": row["duration_days"],
+        "active": bool(row["active"]),
+    }
+
+
+def public_billing_order(row):
+    return {
+        "id": row["id"], "productId": row["product_id"],
+        "amount": row["amount"], "currency": row["currency"],
+        "status": row["status"], "provider": row["provider"],
+        "providerCheckoutId": row["provider_checkout_id"],
+        "providerPaymentId": row["provider_payment_id"],
+        "checkoutUrl": row["checkout_url"], "paidAt": row["paid_at"],
+        "expiresAt": row["expires_at"], "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def public_billing_refund(row):
+    return {
+        "id": row["id"], "orderId": row["order_id"],
+        "providerRefundId": row["provider_refund_id"],
+        "amount": row["amount"], "currency": row["currency"],
+        "status": row["status"], "reason": row["reason"] or "",
+        "createdAt": row["created_at"], "updatedAt": row["updated_at"],
+    }
+
+
+def public_membership(row):
+    if not row:
+        return {"status": "inactive", "active": False}
+    active = row["status"] == "active" and datetime.fromisoformat(
+        row["current_period_end"]
+    ) > datetime.now(timezone.utc)
+    inactive_status = row["status"] if row["status"] in {"expired", "revoked"} else "expired"
+    return {
+        "id": row["id"], "status": row["status"] if active else inactive_status,
+        "active": active, "productId": row["product_id"],
+        "sourceOrderId": row["source_order_id"], "startsAt": row["starts_at"],
+        "currentPeriodEnd": row["current_period_end"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def billing_summary(user):
+    with connect() as conn:
+        product_rows = conn.execute(
+            "SELECT * FROM billing_products WHERE active = 1 ORDER BY amount"
+        ).fetchall()
+        membership = conn.execute(
+            "SELECT * FROM billing_subscriptions WHERE organization_id = ?",
+            (user["organizationId"],),
+        ).fetchone()
+        order_rows = conn.execute(
+            "SELECT * FROM billing_orders WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50",
+            (user["organizationId"],),
+        ).fetchall()
+        refund_rows = conn.execute(
+            "SELECT * FROM billing_refunds WHERE organization_id = ? ORDER BY created_at DESC LIMIT 50",
+            (user["organizationId"],),
+        ).fetchall()
+    return {
+        "gateway": billing_settings(),
+        "products": [public_billing_product(row) for row in product_rows],
+        "membership": public_membership(membership),
+        "orders": [public_billing_order(row) for row in order_rows],
+        "refunds": [public_billing_refund(row) for row in refund_rows],
+    }
+
+
+def stripe_request(method, path, fields=None, *, idempotency_key=""):
+    secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    if not secret_key:
+        raise BillingConfigurationError("Stripe 商户密钥尚未配置，不能创建真实交易。")
+    request = Request(
+        f"https://api.stripe.com/v1/{path.lstrip('/')}",
+        data=urlencode(fields or {}, doseq=True).encode("utf-8") if method != "GET" else None,
+        method=method,
+        headers={
+            "Authorization": f"Bearer {secret_key}",
+            "Content-Type": "application/x-www-form-urlencoded",
+            **({"Idempotency-Key": idempotency_key} if idempotency_key else {}),
+        },
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as error:
+        try:
+            payload = json.loads(error.read().decode("utf-8"))
+            message = (payload.get("error") or {}).get("message")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            message = ""
+        raise BillingProviderError(message or f"支付网关请求失败（HTTP {error.code}）") from error
+    except URLError as error:
+        raise BillingProviderError("暂时无法连接支付网关，请稍后重试。") from error
+
+
+def create_checkout_order(payload, user):
+    settings = billing_settings()
+    if not settings["configured"]:
+        raise BillingConfigurationError(settings["message"])
+    product_id = str(payload.get("productId") or "").strip()
+    with connect() as conn:
+        product = conn.execute(
+            "SELECT * FROM billing_products WHERE id = ? AND active = 1", (product_id,)
+        ).fetchone()
+    if not product:
+        raise ValueError("会员商品不存在或已下架")
+
+    order_id = f"order-{secrets.token_hex(12)}"
+    stamped = now_iso()
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO billing_orders (
+              id, organization_id, user_id, product_id, amount, currency,
+              status, provider, expires_at, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'creating', ?, ?, ?, ?)
+            """,
+            (
+                order_id, user["organizationId"], user["id"], product["id"],
+                product["amount"], product["currency"], BILLING_PROVIDER,
+                expires_at, stamped, stamped,
+            ),
+        )
+
+    base_url = os.environ["BILLING_PUBLIC_BASE_URL"].strip().rstrip("/")
+    try:
+        checkout = stripe_request(
+            "POST", "checkout/sessions",
+            {
+                "mode": "payment",
+                "success_url": f"{base_url}/membership?checkout=success&session_id={{CHECKOUT_SESSION_ID}}",
+                "cancel_url": f"{base_url}/membership?checkout=cancelled",
+                "client_reference_id": order_id,
+                "customer_email": user.get("email") or "",
+                "line_items[0][price_data][currency]": product["currency"],
+                "line_items[0][price_data][unit_amount]": str(product["amount"]),
+                "line_items[0][price_data][product_data][name]": product["name"],
+                "line_items[0][price_data][product_data][description]": product["description"] or "",
+                "line_items[0][quantity]": "1",
+                "metadata[order_id]": order_id,
+                "metadata[organization_id]": user["organizationId"],
+                "metadata[product_id]": product["id"],
+                "payment_intent_data[metadata][order_id]": order_id,
+                "expires_at": str(int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())),
+            },
+            idempotency_key=order_id,
+        )
+    except (BillingProviderError, BillingConfigurationError):
+        with connect() as conn:
+            conn.execute(
+                "UPDATE billing_orders SET status = 'failed', updated_at = ? WHERE id = ?",
+                (now_iso(), order_id),
+            )
+        raise
+    if not checkout.get("id") or not checkout.get("url"):
+        raise BillingProviderError("支付网关没有返回有效收银台地址")
+    with connect() as conn:
+        conn.execute(
+            """
+            UPDATE billing_orders
+            SET status = 'pending', provider_checkout_id = ?, checkout_url = ?,
+                updated_at = ? WHERE id = ?
+            """,
+            (checkout["id"], checkout["url"], now_iso(), order_id),
+        )
+        row = conn.execute("SELECT * FROM billing_orders WHERE id = ?", (order_id,)).fetchone()
+    return public_billing_order(row)
+
+
+def order_status(order_id, user):
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
+            (order_id, user["organizationId"]),
+        ).fetchone()
+    if not row:
+        raise FileNotFoundError("订单不存在")
+    return public_billing_order(row)
+
+
+def recalculate_membership(conn, organization_id, stamped):
+    eligible = conn.execute(
+        """
+        SELECT billing_orders.*, billing_products.duration_days
+        FROM billing_orders
+        JOIN billing_products ON billing_products.id = billing_orders.product_id
+        WHERE billing_orders.organization_id = ?
+          AND billing_orders.status IN ('paid', 'partially_refunded')
+          AND billing_orders.paid_at IS NOT NULL
+        ORDER BY billing_orders.paid_at, billing_orders.created_at
+        """,
+        (organization_id,),
+    ).fetchall()
+    if not eligible:
+        conn.execute(
+            """
+            UPDATE billing_subscriptions
+            SET status = 'revoked', current_period_end = ?, updated_at = ?
+            WHERE organization_id = ?
+            """,
+            (stamped, stamped, organization_id),
+        )
+        return
+    starts_at = eligible[0]["paid_at"]
+    period_end = None
+    for item in eligible:
+        paid_at = datetime.fromisoformat(item["paid_at"])
+        period_base = max(paid_at, period_end) if period_end else paid_at
+        period_end = period_base + timedelta(days=item["duration_days"])
+    latest = eligible[-1]
+    status = "active" if period_end > datetime.now(timezone.utc) else "expired"
+    conn.execute(
+        """
+        INSERT INTO billing_subscriptions (
+          id, organization_id, product_id, source_order_id, status,
+          starts_at, current_period_end, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(organization_id) DO UPDATE SET
+          product_id = excluded.product_id, source_order_id = excluded.source_order_id,
+          status = excluded.status, starts_at = excluded.starts_at,
+          current_period_end = excluded.current_period_end,
+          updated_at = excluded.updated_at
+        """,
+        (
+            f"membership-{organization_id}", organization_id, latest["product_id"],
+            latest["id"], status, starts_at, period_end.isoformat(), stamped, stamped,
+        ),
+    )
+
+
+def mark_order_paid(conn, order, payment_id, stamped, source_reference):
+    if order["status"] == "paid":
+        return
+    conn.execute(
+        """
+        UPDATE billing_orders SET status = 'paid', provider_payment_id = ?,
+          paid_at = ?, updated_at = ? WHERE id = ?
+        """,
+        (payment_id, stamped, stamped, order["id"]),
+    )
+    conn.execute(
+        """
+        INSERT INTO payment_transactions (
+          id, order_id, organization_id, provider,
+          provider_transaction_id, transaction_type, amount,
+          currency, status, payload_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 'payment', ?, ?, 'succeeded', ?, ?, ?)
+        """,
+        (
+            f"payment-{secrets.token_hex(12)}", order["id"],
+            order["organization_id"], BILLING_PROVIDER, payment_id,
+            order["amount"], order["currency"],
+            json.dumps({"source": source_reference}, ensure_ascii=False), stamped, stamped,
+        ),
+    )
+    recalculate_membership(conn, order["organization_id"], stamped)
+
+
+def refresh_checkout_order(order_id, user):
+    with connect() as conn:
+        order = conn.execute(
+            "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
+            (order_id, user["organizationId"]),
+        ).fetchone()
+    if not order:
+        raise FileNotFoundError("订单不存在")
+    if not order["provider_checkout_id"]:
+        raise ValueError("订单尚未生成支付网关单号")
+    checkout = stripe_request(
+        "GET", f"checkout/sessions/{quote(order['provider_checkout_id'], safe='')}"
+    )
+    if int(checkout.get("amount_total") or 0) != order["amount"] or str(
+        checkout.get("currency") or ""
+    ).lower() != order["currency"]:
+        raise ValueError("支付网关返回的金额或币种与订单不一致")
+    stamped = now_iso()
+    with connect() as conn:
+        current = conn.execute(
+            "SELECT * FROM billing_orders WHERE id = ?", (order["id"],)
+        ).fetchone()
+        if checkout.get("payment_status") == "paid":
+            mark_order_paid(
+                conn, current,
+                str(checkout.get("payment_intent") or checkout.get("id") or ""),
+                stamped, f"stripe-query:{checkout.get('id')}",
+            )
+        elif checkout.get("status") == "expired" and current["status"] == "pending":
+            conn.execute(
+                "UPDATE billing_orders SET status = 'expired', updated_at = ? WHERE id = ?",
+                (stamped, current["id"]),
+            )
+        refreshed = conn.execute(
+            "SELECT * FROM billing_orders WHERE id = ?", (order["id"],)
+        ).fetchone()
+    return public_billing_order(refreshed)
+
+
+def verify_stripe_signature(raw_body, signature_header, webhook_secret, tolerance=300):
+    pairs = {}
+    for item in (signature_header or "").split(","):
+        name, separator, value = item.partition("=")
+        if separator:
+            pairs.setdefault(name.strip(), []).append(value.strip())
+    timestamp_values = pairs.get("t") or []
+    signatures = pairs.get("v1") or []
+    if not timestamp_values or not signatures:
+        raise PermissionError("Stripe 回调签名格式无效")
+    try:
+        timestamp = int(timestamp_values[0])
+    except ValueError as error:
+        raise PermissionError("Stripe 回调时间戳无效") from error
+    if abs(int(time.time()) - timestamp) > tolerance:
+        raise PermissionError("Stripe 回调已过期")
+    signed = f"{timestamp}.".encode("utf-8") + raw_body
+    expected = hmac.new(webhook_secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    if not any(hmac.compare_digest(expected, candidate) for candidate in signatures):
+        raise PermissionError("Stripe 回调验签失败")
+
+
+def process_stripe_webhook(raw_body, signature_header):
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+    if not webhook_secret:
+        raise BillingConfigurationError("Stripe Webhook 密钥尚未配置")
+    verify_stripe_signature(raw_body, signature_header, webhook_secret)
+    try:
+        event = json.loads(raw_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("Stripe 回调内容不是有效 JSON") from error
+    event_id = str(event.get("id") or "")
+    event_type = str(event.get("type") or "")
+    if not event_id or not event_type:
+        raise ValueError("Stripe 回调缺少事件标识")
+    stamped = now_iso()
+    payload_hash = hashlib.sha256(raw_body).hexdigest()
+    with connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        existing = conn.execute(
+            "SELECT provider_event_id FROM billing_webhook_events WHERE provider_event_id = ?",
+            (event_id,),
+        ).fetchone()
+        if existing:
+            return {"received": True, "duplicate": True}
+        obj = ((event.get("data") or {}).get("object") or {})
+        if event_type in {"checkout.session.completed", "checkout.session.async_payment_succeeded"}:
+            order_id = str((obj.get("metadata") or {}).get("order_id") or obj.get("client_reference_id") or "")
+            order = conn.execute("SELECT * FROM billing_orders WHERE id = ?", (order_id,)).fetchone()
+            if order:
+                amount_total = int(obj.get("amount_total") or 0)
+                currency = str(obj.get("currency") or "").lower()
+                paid = obj.get("payment_status") == "paid"
+                if amount_total != order["amount"] or currency != order["currency"]:
+                    raise ValueError("支付金额或币种与订单不一致")
+                if paid and order["status"] != "paid":
+                    payment_id = str(obj.get("payment_intent") or obj.get("id") or "")
+                    mark_order_paid(conn, order, payment_id, stamped, f"stripe-webhook:{event_id}")
+        elif event_type == "checkout.session.expired":
+            order_id = str((obj.get("metadata") or {}).get("order_id") or obj.get("client_reference_id") or "")
+            conn.execute(
+                "UPDATE billing_orders SET status = 'expired', updated_at = ? WHERE id = ? AND status = 'pending'",
+                (stamped, order_id),
+            )
+        elif event_type == "refund.updated":
+            refund_id = str(obj.get("id") or "")
+            status = "succeeded" if obj.get("status") == "succeeded" else str(obj.get("status") or "pending")
+            refund = conn.execute(
+                "SELECT * FROM billing_refunds WHERE provider_refund_id = ?",
+                (refund_id,),
+            ).fetchone()
+            conn.execute(
+                "UPDATE billing_refunds SET status = ?, updated_at = ? WHERE provider_refund_id = ?",
+                (status, stamped, refund_id),
+            )
+            if refund and status == "succeeded":
+                order = conn.execute(
+                    "SELECT * FROM billing_orders WHERE id = ?", (refund["order_id"],)
+                ).fetchone()
+                refunded_amount = conn.execute(
+                    "SELECT COALESCE(SUM(amount), 0) AS amount FROM billing_refunds WHERE order_id = ? AND status = 'succeeded'",
+                    (refund["order_id"],),
+                ).fetchone()["amount"]
+                order_status = "refunded" if refunded_amount >= order["amount"] else "partially_refunded"
+                conn.execute(
+                    "UPDATE billing_orders SET status = ?, updated_at = ? WHERE id = ?",
+                    (order_status, stamped, order["id"]),
+                )
+                recalculate_membership(conn, order["organization_id"], stamped)
+        elif event_type == "charge.refunded":
+            payment_id = str(obj.get("payment_intent") or "")
+            order = conn.execute(
+                "SELECT * FROM billing_orders WHERE provider_payment_id = ?", (payment_id,)
+            ).fetchone()
+            if order:
+                amount_refunded = int(obj.get("amount_refunded") or 0)
+                order_status = "refunded" if amount_refunded >= order["amount"] else "partially_refunded"
+                conn.execute(
+                    "UPDATE billing_orders SET status = ?, updated_at = ? WHERE id = ?",
+                    (order_status, stamped, order["id"]),
+                )
+                recalculate_membership(conn, order["organization_id"], stamped)
+        conn.execute(
+            """
+            INSERT INTO billing_webhook_events (
+              provider_event_id, provider, event_type, status,
+              payload_sha256, processed_at
+            ) VALUES (?, ?, ?, 'processed', ?, ?)
+            """,
+            (event_id, BILLING_PROVIDER, event_type, payload_hash, stamped),
+        )
+    return {"received": True, "duplicate": False}
+
+
+def create_refund(order_id, payload, user):
+    refund_id = f"refund-{secrets.token_hex(12)}"
+    stamped = now_iso()
+    with connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        order = conn.execute(
+            "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
+            (order_id, user["organizationId"]),
+        ).fetchone()
+        if not order:
+            raise FileNotFoundError("订单不存在")
+        if order["status"] not in {"paid", "partially_refunded"} or not order["provider_payment_id"]:
+            raise ValueError("只有已支付订单可以退款")
+        refunded = conn.execute(
+            "SELECT COALESCE(SUM(amount), 0) AS amount FROM billing_refunds WHERE order_id = ? AND status IN ('creating', 'pending', 'succeeded')",
+            (order_id,),
+        ).fetchone()["amount"]
+        available = order["amount"] - int(refunded or 0)
+        amount = int(payload.get("amount") or available)
+        if amount <= 0 or amount > available:
+            raise ValueError("退款金额超出可退金额")
+        reason = str(payload.get("reason") or "requested_by_customer").strip()[:240]
+        conn.execute(
+            """
+            INSERT INTO billing_refunds (
+              id, order_id, organization_id, requested_by_user_id, amount,
+              currency, status, reason, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'creating', ?, ?, ?)
+            """,
+            (
+                refund_id, order["id"], order["organization_id"], user["id"],
+                amount, order["currency"], reason, stamped, stamped,
+            ),
+        )
+    try:
+        stripe_refund = stripe_request(
+            "POST", "refunds",
+            {"payment_intent": order["provider_payment_id"], "amount": str(amount), "metadata[order_id]": order["id"]},
+            idempotency_key=refund_id,
+        )
+    except (BillingProviderError, BillingConfigurationError):
+        with connect() as conn:
+            conn.execute("UPDATE billing_refunds SET status = 'failed', updated_at = ? WHERE id = ?", (now_iso(), refund_id))
+        raise
+    provider_status = str(stripe_refund.get("status") or "pending")
+    status = (
+        "succeeded" if provider_status == "succeeded"
+        else "failed" if provider_status in {"failed", "canceled"}
+        else "pending"
+    )
+    with connect() as conn:
+        conn.execute(
+            "UPDATE billing_refunds SET provider_refund_id = ?, status = ?, updated_at = ? WHERE id = ?",
+            (stripe_refund.get("id"), status, now_iso(), refund_id),
+        )
+        if status == "succeeded":
+            new_order_status = "refunded" if amount == available else "partially_refunded"
+            conn.execute("UPDATE billing_orders SET status = ?, updated_at = ? WHERE id = ?", (new_order_status, now_iso(), order["id"]))
+            recalculate_membership(conn, order["organization_id"], now_iso())
+        row = conn.execute("SELECT * FROM billing_refunds WHERE id = ?", (refund_id,)).fetchone()
+    return public_billing_refund(row)
+
+
 def upsert_case(payload, user):
     payload = json.loads(json.dumps(payload, ensure_ascii=False))
     case_id = payload.get("id")
@@ -4874,7 +5509,7 @@ def health_payload():
     return {
         "ok": True,
         "auth": "cookie-v1",
-        "apiVersion": "2026-07-27-inline-intake-v17",
+        "apiVersion": "2026-08-13-billing-v1",
         "apiRevision": 20,
         "registrationVerification": {
             "mode": verification_mode,
@@ -4883,6 +5518,7 @@ def health_payload():
         "emailVerification": mail_service_status(),
         "translation": translation_service_status(),
         "screenAgent": screen_agent_runtime_status(),
+        "billing": billing_settings(),
     }
 
 
@@ -4958,6 +5594,22 @@ class Handler(BaseHTTPRequestHandler):
             return self.json_response(ocr_service_status())
         if parsed.path == "/api/session":
             return self.json_response({"user": self.current_user()})
+        if parsed.path == "/api/billing":
+            user = self.require_user()
+            if not user:
+                return None
+            return self.json_response(billing_summary(user))
+        billing_order_match = re.fullmatch(r"/api/billing/orders/([^/]+)", parsed.path)
+        if billing_order_match:
+            user = self.require_user()
+            if not user:
+                return None
+            try:
+                return self.json_response(order_status(
+                    unquote(billing_order_match.group(1)), user
+                ))
+            except FileNotFoundError as error:
+                return self.json_response({"error": str(error)}, status=404)
         if parsed.path == "/api/cases":
             user = self.require_user()
             if not user:
@@ -5057,6 +5709,69 @@ class Handler(BaseHTTPRequestHandler):
         if not self.ensure_origin_allowed():
             return None
         parsed = urlparse(self.path)
+        if parsed.path == "/api/billing/webhooks/stripe":
+            try:
+                return self.json_response(process_stripe_webhook(
+                    self.read_raw_body(), self.headers.get("Stripe-Signature", "")
+                ))
+            except PermissionError as error:
+                return self.json_response({"error": str(error)}, status=400)
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
+        if parsed.path == "/api/billing/checkout":
+            user = self.require_user()
+            if not user:
+                return None
+            try:
+                return self.json_response(
+                    {"order": create_checkout_order(self.read_json(), user)}, status=201
+                )
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except BillingProviderError as error:
+                return self.json_response({"error": str(error)}, status=502)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
+        billing_refresh_match = re.fullmatch(
+            r"/api/billing/orders/([^/]+)/refresh", parsed.path
+        )
+        if billing_refresh_match:
+            user = self.require_user()
+            if not user:
+                return None
+            try:
+                return self.json_response({"order": refresh_checkout_order(
+                    unquote(billing_refresh_match.group(1)), user
+                )})
+            except FileNotFoundError as error:
+                return self.json_response({"error": str(error)}, status=404)
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except BillingProviderError as error:
+                return self.json_response({"error": str(error)}, status=502)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
+        billing_refund_match = re.fullmatch(
+            r"/api/billing/orders/([^/]+)/refunds", parsed.path
+        )
+        if billing_refund_match:
+            user = self.require_user()
+            if not user:
+                return None
+            try:
+                return self.json_response({"refund": create_refund(
+                    unquote(billing_refund_match.group(1)), self.read_json(), user
+                )}, status=201)
+            except FileNotFoundError as error:
+                return self.json_response({"error": str(error)}, status=404)
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except BillingProviderError as error:
+                return self.json_response({"error": str(error)}, status=502)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
         if parsed.path == "/api/product/analytics/events":
             try:
                 return self.json_response(
@@ -5400,6 +6115,10 @@ class Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length).decode("utf-8") if length else "{}"
         return json.loads(raw or "{}")
+
+    def read_raw_body(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        return self.rfile.read(length) if length else b""
 
     def read_multipart_file(self, field_name):
         content_type = self.headers.get("Content-Type", "")

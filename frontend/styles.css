@@ -6976,6 +6976,45 @@ td input {
 .payment-overview-stats strong { font-family: var(--font-en); font-size: 30px; }
 .payment-overview-stats span { color: var(--muted); font-size: 12px; }
 .payment-console-block .actions .btn,
+.billing-checkout,
+.billing-refund {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.billing-notice {
+  margin: 0 0 24px;
+  padding: 15px 18px;
+  border: 1px solid #c9d8e6;
+  border-radius: 16px;
+  color: #24435f;
+  background: #eef7ff;
+  line-height: 1.65;
+}
+
+.billing-notice[data-tone="warning"] { border-color: #ead9a2; color: #705b16; background: #fff9df; }
+.billing-notice[data-tone="error"] { border-color: #ecc0c0; color: #8f2828; background: #fff0f0; }
+.billing-notice[data-tone="success"] { border-color: #b9dec8; color: #256a43; background: #effbf4; }
+.billing-checkout:disabled { cursor: not-allowed; opacity: .48; }
+.billing-console-section { display: grid; gap: 18px; padding-top: 10px; }
+.billing-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+.billing-table { width: 100%; min-width: 720px; border-collapse: collapse; }
+.billing-table th,
+.billing-table td { padding: 15px 17px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.billing-table tr:last-child td { border-bottom: 0; }
+.billing-table th { color: var(--muted); background: var(--surface-soft); font-size: 11px; letter-spacing: .04em; }
+.billing-table td { color: var(--text-soft); font-size: 13px; }
+.billing-table td strong { display: block; color: var(--text); font-size: 13px; }
+.billing-table td small { display: block; max-width: 250px; margin-top: 4px; overflow: hidden; color: var(--muted); text-overflow: ellipsis; white-space: nowrap; }
+.billing-table .btn { min-height: 36px; padding: 8px 12px; font-size: 11px; }
+.billing-status { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: var(--surface-soft); font-weight: 700; }
+.billing-status[data-status="paid"] { color: #256a43; background: #e7f7ed; }
+.billing-status[data-status="pending"] { color: #705b16; background: #fff4c7; }
+.billing-status[data-status="failed"],
+.billing-status[data-status="expired"] { color: #8f2828; background: #ffeded; }
+
+.payment-console-block .actions .btn,
 .portal-subpage .topbar-actions .btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 
 @media (max-width: 1080px) {

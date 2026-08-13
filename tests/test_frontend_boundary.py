@@ -66,6 +66,25 @@ class FrontendBoundaryTests(unittest.TestCase):
             self.assertIn(f'="{asset}', workspace_html)
             self.assertNotIn(f'="/{asset}', workspace_html)
 
+    def test_billing_pages_use_real_api_workflow(self):
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
+            encoding="utf-8"
+        )
+        console_html = (server.FRONTEND_DIR / "payment-console.html").read_text(
+            encoding="utf-8"
+        )
+        billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
+        for html in (membership_html, console_html):
+            self.assertIn('src="runtime-config.js?', html)
+            self.assertIn('src="api-client.js?', html)
+            self.assertIn('src="billing.js?', html)
+            self.assertIn('href="styles.css?', html)
+            self.assertNotIn('href="/styles.css?', html)
+        self.assertIn('request("/billing/checkout"', billing_js)
+        self.assertIn('/refresh`', billing_js)
+        self.assertIn('/refunds`', billing_js)
+        self.assertIn("billing.js", server.PUBLIC_FILES)
+
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
             encoding="utf-8"

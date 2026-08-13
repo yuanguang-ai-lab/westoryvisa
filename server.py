@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT / "frontend"
 PUBLIC_FILES = {
     "index.html", "workspace.html", "membership.html", "payment-console.html",
-    "styles.css", "runtime-config.js", "api-client.js", "app.js",
+    "styles.css", "runtime-config.js", "api-client.js", "app.js", "billing.js",
     "mockData.js", "product.html", "product.css", "product.js",
     "analytics.html", "analytics.css", "analytics.js",
     "screen-agent-target.html", "screen-agent-target.css",
