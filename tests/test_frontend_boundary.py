@@ -42,6 +42,12 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertNotIn('href="/landing-page', home_html)
         self.assertIn('href="/workspace"', landing_html)
 
+    def test_home_merges_account_and_workspace_into_one_entry_card(self):
+        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(home_html.count('<article class="portal-step'), 2)
+        self.assertEqual(home_html.count("登录 / 注册并进入工作台 →"), 1)
+        self.assertNotIn("登录 / 注册账号</a>", home_html)
+
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
             encoding="utf-8"
