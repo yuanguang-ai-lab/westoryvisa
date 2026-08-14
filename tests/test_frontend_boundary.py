@@ -39,26 +39,65 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertEqual(dev_server.STATIC_ALIASES["/"], "product.html")
         self.assertEqual(dev_server.STATIC_ALIASES["/landing-page"], "product.html")
         self.assertIn('href="/workspace"', product_html)
-        self.assertNotIn('href="/membership"', product_html)
+        self.assertIn('href="/membership"', product_html)
         self.assertNotIn('href="/payment-console"', product_html)
         self.assertNotIn('href="/admin/payments"', product_html)
 
-    def test_home_promotes_product_evidence_instead_of_pricing(self):
+    def test_home_is_consultant_focused_and_contains_accessible_demo(self):
         product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
-        self.assertIn("约 8 分钟跑通", product_html)
-        self.assertIn("DEEPSEEK API", product_html)
-        self.assertIn("GEMINI API", product_html)
-        self.assertIn("Human in control".upper(), product_html)
-        self.assertNotIn('<section class="pricing-section"', product_html)
-        self.assertNotIn("会员定价", product_html)
-        self.assertNotIn("¥1,990", product_html)
+        product_js = (server.FRONTEND_DIR / "product.js").read_text(encoding="utf-8")
+        self.assertEqual(product_html.count("<h1"), 1)
+        self.assertIn("<h1>WestoryVisa</h1>", product_html)
+        self.assertIn("为签证顾问打造", product_html)
+        self.assertEqual(product_html.count("data-demo-chapter="), 10)
+        self.assertIn("固定模拟数据", product_html)
+        self.assertIn("不调用案件 API", product_html)
+        self.assertIn("DEMO_STAGES = [", product_js)
+        self.assertEqual(product_js.count('eyebrow: "'), 10)
+        self.assertNotIn("WestoryVisa Agent", product_html)
+        self.assertNotIn("/api/cases", product_js)
+        self.assertNotIn("/cases", product_js)
+
+    def test_home_includes_required_product_story_and_boundaries(self):
+        product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        for phrase in (
+            "约 8 分钟",
+            "RPA",
+            "DeepSeek",
+            "Gemini",
+            "档案",
+            "资料",
+            "整理",
+            "字段核查",
+            "待确认项",
+            "风险复核",
+            "DS-160 初稿",
+            "核查清单",
+            "预约开户",
+            "预约资料",
+            "验证码、电子签名、敏感背景和最终提交保留人工控制",
+        ):
+            self.assertIn(phrase, product_html)
+        self.assertNotIn('class="value-grid"', product_html)
+        self.assertNotIn('class="comparison-grid"', product_html)
 
     def test_product_home_has_explicit_mobile_layout_rules(self):
         css = (server.FRONTEND_DIR / "product.css").read_text(encoding="utf-8")
         self.assertIn("@media (max-width: 720px)", css)
-        self.assertIn(".proof-grid { grid-template-columns: 1fr", css)
-        self.assertIn(".model-stack { width: 100%", css)
+        self.assertIn(".workflow-tabs { display: flex", css)
+        self.assertIn("overflow-x: auto", css)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", css)
         self.assertIn("100svh", css)
+
+    def test_home_membership_prices_reuse_current_product_configuration(self):
+        product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        products = {product["id"]: product for product in server.BILLING_PRODUCTS}
+        self.assertIn('data-product-id="membership-monthly"', product_html)
+        self.assertIn('data-product-id="membership-yearly"', product_html)
+        self.assertIn(f'¥{products["membership-monthly"]["amount"] // 100}', product_html)
+        yearly = f'{products["membership-yearly"]["amount"] // 100:,}'
+        self.assertIn(f'¥{yearly}', product_html)
+        self.assertIn('href="/membership"', product_html)
 
     def test_workspace_assets_work_from_http_and_local_files(self):
         workspace_html = (server.FRONTEND_DIR / "workspace.html").read_text(
@@ -93,6 +132,35 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn('/refunds`', billing_js)
         self.assertIn("billing.js", server.PUBLIC_FILES)
 
+    def test_public_merchant_legal_pages_and_routes_are_published(self):
+        expected = {
+            "/terms": "terms.html",
+            "/privacy": "privacy.html",
+            "/refund-policy": "refund-policy.html",
+            "/contact": "contact.html",
+        }
+        for route, filename in expected.items():
+            self.assertEqual(dev_server.STATIC_ALIASES[route], filename)
+            self.assertIn(filename, server.PUBLIC_FILES)
+            html = (server.FRONTEND_DIR / filename).read_text(encoding="utf-8")
+            self.assertIn('src="legal.js?', html)
+            self.assertIn('src="api-client.js?', html)
+            self.assertIn('data-merchant-summary', html)
+        self.assertIn("legal.css", server.PUBLIC_FILES)
+        self.assertIn("legal.js", server.PUBLIC_FILES)
+
+    def test_checkout_requires_legal_acceptance_and_discloses_policies(self):
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
+            encoding="utf-8"
+        )
+        billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
+        self.assertIn('id="legalAcceptance"', membership_html)
+        self.assertIn('href="/terms"', membership_html)
+        self.assertIn('href="/privacy"', membership_html)
+        self.assertIn('href="/refund-policy"', membership_html)
+        self.assertIn('legalAcceptance: {', billing_js)
+        self.assertIn('termsVersion: global.WESTORY_LEGAL.termsVersion', billing_js)
+
     def test_payment_operations_are_separate_from_consultant_pages(self):
         home_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
         membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
@@ -118,11 +186,15 @@ class FrontendBoundaryTests(unittest.TestCase):
         )
         billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
         self.assertNotIn("立即购买会员", home_html)
-        self.assertNotIn('<section class="pricing-section"', home_html)
+        self.assertIn('<section class="pricing-section"', home_html)
+        self.assertIn('href="/membership"', home_html)
+        self.assertNotIn('class="billing-checkout"', home_html)
         self.assertIn("直接在本页选择月付或年付并完成购买", membership_html)
         self.assertIn("立即购买月度会员", membership_html)
         self.assertIn("立即购买年度会员", membership_html)
-        self.assertNotIn('<nav class="organization-nav"', membership_html)
+        self.assertIn('<nav class="organization-nav"', membership_html)
+        for label in ("操作台", "会员中心", "个人中心", "帮助中心"):
+            self.assertIn(label, membership_html)
         self.assertNotIn("托管收银台", billing_js)
         self.assertIn("支付通道接入中", billing_js)
 
@@ -139,6 +211,8 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn('response.status === 402', api_client)
         self.assertIn('/membership?access=required', api_client)
         self.assertIn('id="membershipWorkspaceLink"', membership_html)
+        self.assertIn("renderWorkspacePortalHeader", app_js)
+        self.assertIn('href="/membership#account"', app_js)
 
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(

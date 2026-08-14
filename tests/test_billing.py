@@ -50,6 +50,10 @@ class BillingTests(unittest.TestCase):
             "STRIPE_SECRET_KEY": "sk_test_example",
             "STRIPE_WEBHOOK_SECRET": "whsec_example",
             "BILLING_PUBLIC_BASE_URL": "https://westoryvisa.com",
+            "MERCHANT_LEGAL_NAME_EN": "Westory Visa Test Limited",
+            "MERCHANT_BUSINESS_REGISTRATION_NUMBER": "12345678",
+            "MERCHANT_REGISTERED_ADDRESS": "Hong Kong",
+            "MERCHANT_SUPPORT_EMAIL": "support@westoryvisa.com",
         }
 
     def tearDown(self):
@@ -65,7 +69,14 @@ class BillingTests(unittest.TestCase):
             server, "stripe_request", return_value=checkout
         ) as gateway:
             order = server.create_checkout_order(
-                {"productId": "membership-monthly"}, self.user
+                {
+                    "productId": "membership-monthly",
+                    "legalAcceptance": {
+                        "accepted": True,
+                        "termsVersion": server.MERCHANT_TERMS_VERSION,
+                    },
+                },
+                self.user,
             )
         self.assertEqual(order["status"], "pending")
         self.assertEqual(order["amount"], 19900)
@@ -130,12 +141,12 @@ class BillingTests(unittest.TestCase):
         self.assertFalse(result["duplicate"])
         self.assertTrue(duplicate["duplicate"])
 
-    def test_schema_seeds_products_and_requires_real_gateway_configuration(self):
+    def test_schema_seeds_products_and_requires_merchant_configuration(self):
         with mock.patch.dict(os.environ, {}, clear=True):
             summary = server.billing_summary(self.user)
         self.assertFalse(summary["gateway"]["configured"])
-        self.assertEqual(summary["gateway"]["provider"], "four_party_aggregate")
-        self.assertIn("四方聚合支付待接入", summary["gateway"]["message"])
+        self.assertEqual(summary["gateway"]["provider"], "pending_selection")
+        self.assertIn("公司法定名称", summary["gateway"]["message"])
         self.assertNotIn("STRIPE", summary["gateway"]["message"])
         self.assertEqual(
             [item["id"] for item in summary["products"]],
@@ -143,13 +154,38 @@ class BillingTests(unittest.TestCase):
         )
         with self.assertRaises(server.BillingConfigurationError):
             server.create_checkout_order(
-                {"productId": "membership-monthly"}, self.user
+                {
+                    "productId": "membership-monthly",
+                    "legalAcceptance": {
+                        "accepted": True,
+                        "termsVersion": server.MERCHANT_TERMS_VERSION,
+                    },
+                },
+                self.user,
             )
         with server.connect() as connection:
             self.assertEqual(
                 connection.execute("SELECT COUNT(*) AS count FROM billing_orders").fetchone()["count"],
                 0,
             )
+
+    def test_checkout_requires_current_legal_acceptance(self):
+        with mock.patch.dict(os.environ, self.environment, clear=False):
+            with self.assertRaisesRegex(ValueError, "阅读并同意"):
+                server.create_checkout_order(
+                    {"productId": "membership-monthly"}, self.user
+                )
+            with self.assertRaisesRegex(ValueError, "条款已更新"):
+                server.create_checkout_order(
+                    {
+                        "productId": "membership-monthly",
+                        "legalAcceptance": {
+                            "accepted": True,
+                            "termsVersion": "outdated",
+                        },
+                    },
+                    self.user,
+                )
 
     def test_checkout_webhook_activates_membership_once(self):
         order = self.create_order()

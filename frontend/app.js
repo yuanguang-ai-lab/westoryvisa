@@ -598,6 +598,21 @@ function progressForApplication(application) {
   return Math.round(((application.currentStep || 0) + 1) / STEP_LABELS.length * 100);
 }
 
+function renderWorkspacePortalHeader() {
+  return `
+    <header class="workspace-portal-header">
+      <button class="workspace-portal-brand" type="button" onclick="route('dashboard')" aria-label="返回操作台首页"><span>WV</span><strong>WestoryVisa</strong></button>
+      <nav class="workspace-portal-nav" aria-label="工作台导航">
+        <button class="active" type="button" onclick="route('dashboard')">操作台</button>
+        <a href="/membership">会员中心</a>
+        <a href="/membership#account">个人中心</a>
+        <a href="/membership#help">帮助中心</a>
+      </nav>
+      <a class="workspace-portal-membership" href="/membership">会员与账户</a>
+    </header>
+  `;
+}
+
 function render(view = "login") {
   state.currentView = view;
   const app = document.querySelector("#app");
@@ -612,9 +627,12 @@ function render(view = "login") {
   }
 
   app.innerHTML = `
-    <div class="app-shell">
-      ${renderSidebar(stepIndexForView(view))}
-      <main class="content" id="content"></main>
+    <div class="workspace-root">
+      ${renderWorkspacePortalHeader()}
+      <div class="app-shell">
+        ${renderSidebar(stepIndexForView(view))}
+        <main class="content" id="content"></main>
+      </div>
     </div>
     ${renderModal()}
   `;

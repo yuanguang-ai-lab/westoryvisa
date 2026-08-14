@@ -76,6 +76,31 @@
       }
       const billing = await request("/billing");
       const membership = billing.membership || {};
+      const legalAcceptance = document.querySelector("#legalAcceptance");
+      const checkoutButtons = [...document.querySelectorAll(".billing-checkout")];
+      checkoutButtons.forEach((button) => { button.dataset.defaultText ||= button.textContent; });
+      const syncCheckoutAvailability = () => {
+        const legalReady = Boolean(global.WESTORY_LEGAL?.configured);
+        const accepted = Boolean(legalAcceptance?.checked);
+        checkoutButtons.forEach((button) => {
+          button.disabled = !billing.gateway.configured || !legalReady || !accepted;
+          if (!billing.gateway.configured) {
+            button.textContent = "支付通道接入中";
+            button.title = billing.gateway.message || "支付通道接通后可购买";
+          } else if (!legalReady) {
+            button.textContent = button.dataset.defaultText;
+            button.title = "运营主体资料配置完成后可购买";
+          } else if (!accepted) {
+            button.textContent = button.dataset.defaultText;
+            button.title = "请先阅读并同意购买页面下方的法律条款";
+          } else {
+            button.textContent = button.dataset.defaultText;
+            button.title = "";
+          }
+        });
+      };
+      legalAcceptance?.addEventListener("change", syncCheckoutAvailability);
+      document.addEventListener("westory:merchant-profile", syncCheckoutAvailability, { once: true });
       if (membership.active) {
         title.textContent = "会员权益有效";
         detail.textContent = `当前有效期至 ${dateTime(membership.currentPeriodEnd)}。新购买的时长会接在现有有效期之后。`;
@@ -87,28 +112,34 @@
         badge.textContent = "未开通";
       }
       if (!billing.gateway.configured) {
-        showNotice("四方聚合支付正在接入。接通后直接点击本页的购买按钮即可付款。", "warning");
+        showNotice(billing.gateway.message || "支付通道正在接入。", "warning");
       }
-      document.querySelectorAll(".billing-checkout").forEach((button) => {
-        button.disabled = !billing.gateway.configured;
-        if (!billing.gateway.configured) {
-          button.textContent = "支付通道接入中";
-          button.title = "四方聚合支付接通后可直接在本页购买";
-        }
+      syncCheckoutAvailability();
+      checkoutButtons.forEach((button) => {
         button.addEventListener("click", async () => {
+          if (!legalAcceptance?.checked || !global.WESTORY_LEGAL?.configured) {
+            showNotice("请先阅读并同意服务条款、隐私政策和退款政策。", "warning");
+            return;
+          }
           button.disabled = true;
           const original = button.textContent;
           button.textContent = "正在创建真实订单…";
           try {
             const result = await request("/billing/checkout", {
-              method: "POST", body: JSON.stringify({ productId: button.dataset.productId }),
+              method: "POST", body: JSON.stringify({
+                productId: button.dataset.productId,
+                legalAcceptance: {
+                  accepted: true,
+                  termsVersion: global.WESTORY_LEGAL.termsVersion,
+                },
+              }),
             });
             if (!result.order?.checkoutUrl) throw new Error("支付网关没有返回收银台地址");
             global.location.assign(result.order.checkoutUrl);
           } catch (error) {
             showNotice(error.message, "error");
-            button.disabled = !billing.gateway.configured;
             button.textContent = original;
+            syncCheckoutAvailability();
           }
         });
       });

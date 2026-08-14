@@ -166,6 +166,22 @@ PRODUCT_EVENT_TYPES = {
     "page_view", "click", "section_view", "dwell", "wjx_open", "wjx_close",
 }
 BILLING_PROVIDER = "stripe"
+MERCHANT_TERMS_VERSION = "2026-08-14"
+MERCHANT_PROFILE_FIELDS = {
+    "legalNameEn": "MERCHANT_LEGAL_NAME_EN",
+    "legalNameZh": "MERCHANT_LEGAL_NAME_ZH",
+    "businessRegistrationNumber": "MERCHANT_BUSINESS_REGISTRATION_NUMBER",
+    "registeredAddress": "MERCHANT_REGISTERED_ADDRESS",
+    "supportEmail": "MERCHANT_SUPPORT_EMAIL",
+    "supportPhone": "MERCHANT_SUPPORT_PHONE",
+    "supportHours": "MERCHANT_SUPPORT_HOURS",
+}
+MERCHANT_REQUIRED_FIELDS = (
+    "legalNameEn",
+    "businessRegistrationNumber",
+    "registeredAddress",
+    "supportEmail",
+)
 BILLING_PRODUCTS = (
     {
         "id": "membership-monthly",
@@ -727,6 +743,8 @@ CREATE TABLE IF NOT EXISTS billing_orders (
   provider_payment_id TEXT,
   checkout_url TEXT,
   paid_at TEXT,
+  terms_version TEXT,
+  terms_accepted_at TEXT,
   expires_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -833,6 +851,10 @@ def init_db():
             "identity_match": "INTEGER",
             "draft_json": "TEXT",
             "draft_updated_at": "TEXT",
+        })
+        ensure_columns(conn, "billing_orders", {
+            "terms_version": "TEXT",
+            "terms_accepted_at": "TEXT",
         })
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower "
@@ -4125,20 +4147,69 @@ class BillingProviderError(RuntimeError):
     pass
 
 
+def merchant_public_profile():
+    profile = {
+        public_name: os.environ.get(environment_name, "").strip()[:500]
+        for public_name, environment_name in MERCHANT_PROFILE_FIELDS.items()
+    }
+    missing = [field for field in MERCHANT_REQUIRED_FIELDS if not profile[field]]
+    try:
+        refund_window_days = int(os.environ.get("MERCHANT_REFUND_WINDOW_DAYS", "7"))
+    except ValueError:
+        refund_window_days = 7
+    profile.update({
+        "productName": "Westory Visa",
+        "website": os.environ.get(
+            "BILLING_PUBLIC_BASE_URL", "https://westoryvisa.com"
+        ).strip().rstrip("/")[:500],
+        "termsVersion": MERCHANT_TERMS_VERSION,
+        "privacyVersion": MERCHANT_TERMS_VERSION,
+        "refundPolicyVersion": MERCHANT_TERMS_VERSION,
+        "refundWindowDays": max(0, min(refund_window_days, 30)),
+        "configured": not missing,
+        "missingFields": missing,
+    })
+    return profile
+
+
 def billing_settings():
     selected_provider = os.environ.get(
-        "PAYMENT_PROVIDER", "four_party_aggregate"
+        "PAYMENT_PROVIDER", "pending_selection"
     ).strip().lower()
-    if selected_provider != "stripe":
+    merchant_profile = merchant_public_profile()
+    if not merchant_profile["configured"]:
         return {
-            "provider": "four_party_aggregate",
-            "providerLabel": "四方聚合支付",
+            "provider": selected_provider,
+            "providerLabel": "支付通道待启用",
             "configured": False,
             "checkoutConfigured": False,
             "webhookConfigured": False,
-            "publicBaseUrlConfigured": False,
+            "publicBaseUrlConfigured": bool(
+                os.environ.get("BILLING_PUBLIC_BASE_URL", "").strip()
+            ),
+            "merchantProfileConfigured": False,
+            "mode": "merchant_profile_required",
+            "message": "支付上线资料尚未配置完整：需填写公司法定名称、BRN、地址和客服邮箱。",
+        }
+    if selected_provider != "stripe":
+        provider_labels = {
+            "alipay_cross_border": "支付宝跨境",
+            "wechat_pay_cross_border": "微信支付跨境",
+            "hk_acquirer": "香港本地收单机构",
+            "pending_selection": "支付通道待选定",
+        }
+        return {
+            "provider": selected_provider,
+            "providerLabel": provider_labels.get(selected_provider, "支付通道待选定"),
+            "configured": False,
+            "checkoutConfigured": False,
+            "webhookConfigured": False,
+            "publicBaseUrlConfigured": bool(
+                os.environ.get("BILLING_PUBLIC_BASE_URL", "").strip()
+            ),
+            "merchantProfileConfigured": True,
             "mode": "pending_integration",
-            "message": "四方聚合支付待接入：取得服务商接口文档、商户号和签名规则后再启用真实交易。",
+            "message": "支付通道待接入：取得获批商户号、正式接口文档和签名材料后再启用真实交易。",
         }
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
@@ -4151,6 +4222,7 @@ def billing_settings():
         "checkoutConfigured": bool(secret_key and public_base_url),
         "webhookConfigured": bool(webhook_secret),
         "publicBaseUrlConfigured": bool(public_base_url),
+        "merchantProfileConfigured": True,
         "mode": "live" if secret_key.startswith("sk_live_") else "test" if secret_key else "unconfigured",
         "message": (
             "Stripe 已配置，可创建真实支付订单。"
@@ -4347,6 +4419,11 @@ def create_checkout_order(payload, user):
     settings = billing_settings()
     if not settings["configured"]:
         raise BillingConfigurationError(settings["message"])
+    legal_acceptance = payload.get("legalAcceptance")
+    if not isinstance(legal_acceptance, dict) or legal_acceptance.get("accepted") is not True:
+        raise ValueError("请先阅读并同意服务条款、隐私政策和退款政策")
+    if legal_acceptance.get("termsVersion") != MERCHANT_TERMS_VERSION:
+        raise ValueError("服务条款已更新，请刷新页面后重新确认")
     product_id = str(payload.get("productId") or "").strip()
     with connect() as conn:
         product = conn.execute(
@@ -4363,13 +4440,14 @@ def create_checkout_order(payload, user):
             """
             INSERT INTO billing_orders (
               id, organization_id, user_id, product_id, amount, currency,
-              status, provider, expires_at, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'creating', ?, ?, ?, ?)
+              status, provider, terms_version, terms_accepted_at,
+              expires_at, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'creating', ?, ?, ?, ?, ?, ?)
             """,
             (
                 order_id, user["organizationId"], user["id"], product["id"],
                 product["amount"], product["currency"], BILLING_PROVIDER,
-                expires_at, stamped, stamped,
+                MERCHANT_TERMS_VERSION, stamped, expires_at, stamped, stamped,
             ),
         )
 
@@ -5644,6 +5722,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.html_response(
                 render_status_page(health_payload(), ocr_service_status())
             )
+        if parsed.path == "/api/merchant-profile":
+            return self.json_response(merchant_public_profile())
         codex_task_match = re.fullmatch(
             r"/api/codex-agent/jobs/([^/]+)", parsed.path
         )

@@ -549,6 +549,34 @@ button {
   grid-template-columns: 290px minmax(0, 1fr);
 }
 
+.workspace-root { min-height: 100vh; }
+.workspace-root .app-shell { min-height: calc(100vh - 70px); }
+.workspace-root .sidebar { top: 70px; height: calc(100vh - 70px); }
+.workspace-portal-header {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto minmax(130px, 1fr);
+  align-items: center;
+  gap: 22px;
+  padding: 11px clamp(18px, 3vw, 42px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(246,245,242,.94);
+  backdrop-filter: blur(18px);
+}
+.workspace-portal-brand { display: inline-flex; align-items: center; justify-self: start; gap: 10px; padding: 0; border: 0; color: var(--text); background: transparent; }
+.workspace-portal-brand span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; color: #111; background: var(--accent); font-weight: 850; }
+.workspace-portal-brand strong { font-size: 15px; }
+.workspace-portal-nav { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.72); }
+.workspace-portal-nav a,
+.workspace-portal-nav button { min-height: 36px; display: inline-flex; align-items: center; padding: 0 15px; border: 0; border-radius: 999px; color: var(--text-soft); background: transparent; font-size: 12px; text-decoration: none; }
+.workspace-portal-nav a:hover,
+.workspace-portal-nav button:hover { color: var(--text); background: rgba(17,17,17,.06); }
+.workspace-portal-nav .active { color: #111; background: var(--accent); font-weight: 750; }
+.workspace-portal-membership { justify-self: end; padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--text-soft); background: rgba(255,255,255,.7); font-size: 12px; text-decoration: none; }
+
 .sidebar {
   position: sticky;
   top: 0;
@@ -6950,6 +6978,23 @@ td input {
 .membership-price span { color: var(--muted); font-size: 13px; }
 .membership-plan-card ul { display: grid; gap: 10px; margin: 0; padding-left: 20px; color: var(--text-soft); }
 .membership-plan-card .btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.membership-purchase-terms { display: grid; gap: 12px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+.membership-purchase-terms label { display: flex; align-items: flex-start; gap: 11px; color: var(--text-soft); font-size: 13px; line-height: 1.7; }
+.membership-purchase-terms input { flex: 0 0 auto; width: 17px; height: 17px; margin-top: 3px; accent-color: var(--text); }
+.membership-purchase-terms a { color: var(--text); font-weight: 700; text-underline-offset: 3px; }
+.membership-purchase-terms p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.membership-purchase-terms .billing-notice { margin: 0; }
+.portal-support-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 34px; scroll-margin-top: 118px; }
+.portal-support-grid article { display: grid; align-content: start; gap: 14px; min-height: 230px; padding: clamp(24px, 4vw, 34px); border: 1px solid var(--line); border-radius: 26px; background: var(--surface); }
+.portal-support-grid article:target { border-color: rgba(103, 151, 0, .45); box-shadow: 0 0 0 4px rgba(202, 255, 53, .18); }
+.portal-support-grid h2 { margin: 0; font-family: var(--font-zh-title); font-size: clamp(26px, 3vw, 38px); font-weight: 500; }
+.portal-support-grid p { margin: 0; color: var(--muted); line-height: 1.8; }
+.portal-support-grid .btn { width: fit-content; margin-top: auto; text-decoration: none; }
+.portal-support-grid article > div { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: auto; }
+.portal-support-grid article > div a { color: var(--text); font-size: 13px; font-weight: 700; text-underline-offset: 3px; }
+.membership-legal-footer { display: flex; justify-content: space-between; gap: 24px; padding: 24px clamp(18px, 4vw, 56px); color: var(--muted); border-top: 1px solid var(--line); background: var(--surface); font-size: 11px; line-height: 1.7; }
+.membership-legal-footer nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px 16px; }
+.membership-legal-footer a { color: var(--text-soft); }
 
 .payment-observe-banner {
   display: flex;
@@ -7044,4 +7089,26 @@ td input {
   .membership-plan-grid,
   .payment-workflow-grid,
   .payment-overview-stats { grid-template-columns: 1fr; }
+  .membership-legal-footer { align-items: flex-start; flex-direction: column; }
+  .membership-legal-footer nav { justify-content: flex-start; }
+  .portal-support-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 980px) {
+  .workspace-portal-header { grid-template-columns: 1fr auto; gap: 10px; }
+  .workspace-portal-nav { grid-column: 1 / -1; grid-row: 2; justify-content: center; overflow-x: auto; }
+  .workspace-portal-nav a,
+  .workspace-portal-nav button { flex: 0 0 auto; }
+  .workspace-root .sidebar { top: 122px; height: calc(100vh - 122px); }
+}
+
+@media (max-width: 640px) {
+  .workspace-portal-header { position: static; min-height: 0; padding: 10px 12px; }
+  .workspace-portal-brand strong,
+  .workspace-portal-membership { display: none; }
+  .workspace-portal-nav { width: 100%; justify-content: flex-start; padding: 3px; }
+  .workspace-portal-nav a,
+  .workspace-portal-nav button { min-height: 34px; padding: 0 12px; }
+  .workspace-root .app-shell { min-height: calc(100vh - 104px); }
+  .workspace-root .sidebar { top: 0; height: auto; }
 }
