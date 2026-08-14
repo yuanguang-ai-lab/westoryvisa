@@ -4123,12 +4123,27 @@ class BillingProviderError(RuntimeError):
 
 
 def billing_settings():
+    selected_provider = os.environ.get(
+        "PAYMENT_PROVIDER", "four_party_aggregate"
+    ).strip().lower()
+    if selected_provider != "stripe":
+        return {
+            "provider": "four_party_aggregate",
+            "providerLabel": "四方聚合支付",
+            "configured": False,
+            "checkoutConfigured": False,
+            "webhookConfigured": False,
+            "publicBaseUrlConfigured": False,
+            "mode": "pending_integration",
+            "message": "四方聚合支付待接入：取得服务商接口文档、商户号和签名规则后再启用真实交易。",
+        }
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
     public_base_url = os.environ.get("BILLING_PUBLIC_BASE_URL", "").strip().rstrip("/")
     configured = bool(secret_key and webhook_secret and public_base_url)
     return {
         "provider": BILLING_PROVIDER,
+        "providerLabel": "Stripe",
         "configured": configured,
         "checkoutConfigured": bool(secret_key and public_base_url),
         "webhookConfigured": bool(webhook_secret),

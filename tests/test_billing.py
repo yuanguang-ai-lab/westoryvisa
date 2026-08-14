@@ -46,6 +46,7 @@ class BillingTests(unittest.TestCase):
                 ),
             )
         self.environment = {
+            "PAYMENT_PROVIDER": "stripe",
             "STRIPE_SECRET_KEY": "sk_test_example",
             "STRIPE_WEBHOOK_SECRET": "whsec_example",
             "BILLING_PUBLIC_BASE_URL": "https://westoryvisa.com",
@@ -133,6 +134,9 @@ class BillingTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {}, clear=True):
             summary = server.billing_summary(self.user)
         self.assertFalse(summary["gateway"]["configured"])
+        self.assertEqual(summary["gateway"]["provider"], "four_party_aggregate")
+        self.assertIn("四方聚合支付待接入", summary["gateway"]["message"])
+        self.assertNotIn("STRIPE", summary["gateway"]["message"])
         self.assertEqual(
             [item["id"] for item in summary["products"]],
             ["membership-monthly", "membership-yearly"],

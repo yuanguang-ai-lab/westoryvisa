@@ -6711,6 +6711,7 @@ td input {
   background: rgba(246,245,242,0.92);
   backdrop-filter: blur(20px);
 }
+.organization-header.home-header { grid-template-columns: minmax(0, 1fr) auto; }
 
 .organization-brand {
   display: inline-grid;
@@ -7021,6 +7022,7 @@ td input {
 
 @media (max-width: 1080px) {
   .organization-header { grid-template-columns: 1fr auto; }
+  .organization-header.home-header { grid-template-columns: 1fr auto; }
   .organization-nav { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
   .organization-logout { grid-column: 2; grid-row: 1; }
   .portal-hero,
