@@ -50,7 +50,7 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn("<h1>WestoryVisa</h1>", product_html)
         self.assertIn("为签证顾问打造", product_html)
         self.assertEqual(product_html.count("data-demo-chapter="), 10)
-        self.assertIn("固定模拟数据", product_html)
+        self.assertIn("完整操作台 · 模拟案件", product_html)
         self.assertIn("不调用案件 API", product_html)
         self.assertIn("DEMO_STAGES = [", product_js)
         self.assertEqual(product_js.count('eyebrow: "'), 10)
@@ -75,7 +75,7 @@ class FrontendBoundaryTests(unittest.TestCase):
             "核查清单",
             "预约开户",
             "预约资料",
-            "验证码、电子签名、敏感背景和最终提交保留人工控制",
+            "验证码、电子签名和最终提交保留人工控制",
         ):
             self.assertIn(phrase, product_html)
         self.assertNotIn('class="value-grid"', product_html)
@@ -84,19 +84,21 @@ class FrontendBoundaryTests(unittest.TestCase):
     def test_product_home_has_explicit_mobile_layout_rules(self):
         css = (server.FRONTEND_DIR / "product.css").read_text(encoding="utf-8")
         self.assertIn("@media (max-width: 720px)", css)
-        self.assertIn(".workflow-tabs { display: flex", css)
+        self.assertIn(".workflow-tabs { display: grid", css)
         self.assertIn("overflow-x: auto", css)
         self.assertIn("@media (prefers-reduced-motion: reduce)", css)
         self.assertIn("100svh", css)
 
-    def test_home_membership_prices_reuse_current_product_configuration(self):
+    def test_membership_prices_reuse_current_product_configuration(self):
         product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(encoding="utf-8")
         products = {product["id"]: product for product in server.BILLING_PRODUCTS}
-        self.assertIn('data-product-id="membership-monthly"', product_html)
-        self.assertIn('data-product-id="membership-yearly"', product_html)
-        self.assertIn(f'¥{products["membership-monthly"]["amount"] // 100}', product_html)
+        self.assertNotIn('data-product-id="membership-monthly"', product_html)
+        self.assertIn('data-product-id="membership-monthly"', membership_html)
+        self.assertIn('data-product-id="membership-yearly"', membership_html)
+        self.assertIn(f'¥{products["membership-monthly"]["amount"] // 100}', membership_html)
         yearly = f'{products["membership-yearly"]["amount"] // 100:,}'
-        self.assertIn(f'¥{yearly}', product_html)
+        self.assertIn(f'¥{yearly}', membership_html)
         self.assertIn('href="/membership"', product_html)
 
     def test_workspace_assets_work_from_http_and_local_files(self):
@@ -186,7 +188,8 @@ class FrontendBoundaryTests(unittest.TestCase):
         )
         billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
         self.assertNotIn("立即购买会员", home_html)
-        self.assertIn('<section class="pricing-section"', home_html)
+        self.assertNotIn('<section class="pricing-section"', home_html)
+        self.assertIn('<section class="entry-section"', home_html)
         self.assertIn('href="/membership"', home_html)
         self.assertNotIn('class="billing-checkout"', home_html)
         self.assertIn("直接在本页选择月付或年付并完成购买", membership_html)
@@ -219,8 +222,11 @@ class FrontendBoundaryTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('global.fetch.bind(global)', api_client)
-        self.assertIn('value: Object.freeze({ apiBaseUrl, request })', api_client)
+        self.assertIn('value: Object.freeze({ apiBaseUrl, request, localFileHref, rewriteLocalFileLinks })', api_client)
         self.assertIn('credentials: "include"', api_client)
+        self.assertIn('"/membership": "membership.html"', api_client)
+        self.assertIn('"/workspace": "workspace.html"', api_client)
+        self.assertIn("rewriteLocalFileLinks", api_client)
         for script_name in ("app.js", "product.js", "analytics.js"):
             source = (server.FRONTEND_DIR / script_name).read_text(encoding="utf-8")
             self.assertNotIn("fetch(", source)

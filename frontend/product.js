@@ -90,8 +90,7 @@ function renderStage(stage, index) {
     <div class="screen-stats">${stage.stats.map((item) => `<div><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("")}</div>
     <div class="screen-grid">
       <section class="screen-card"><header class="card-head"><strong>${stage.mainTitle}</strong><span>${stage.badge}</span></header><div class="data-rows">${renderRows(stage.rows)}</div></section>
-      <section class="screen-card"><header class="card-head"><strong>${stage.sideTitle}</strong><span>自动同步</span></header><div class="side-list">${stage.side.map((item) => `<div class="side-item"><i>${item[0]}</i><div><strong>${item[1]}</strong><small>${item[2]}</small></div></div>`).join("")}</div></section>
-      <section class="screen-card wide-card"><header class="card-head"><strong>案件完整进度</strong><span>${index + 1} / ${DEMO_STAGES.length}</span></header><div class="timeline">${DEMO_STAGES.slice(Math.max(0, Math.min(index - 2, 5)), Math.max(0, Math.min(index - 2, 5)) + 5).map((item, visibleIndex) => { const absolute = Math.max(0, Math.min(index - 2, 5)) + visibleIndex; return `<div class="${absolute === index ? "active" : ""}"><strong>${String(absolute + 1).padStart(2, "0")} · ${item.title}</strong><small>${absolute < index ? "已完成" : absolute === index ? "当前阶段" : "等待推进"}</small></div>`; }).join("")}</div></section>
+      <section class="screen-card"><header class="card-head"><strong>${stage.sideTitle}</strong><span>${index + 1} / ${DEMO_STAGES.length}</span></header><div class="side-list">${stage.side.map((item) => `<div class="side-item"><i>${item[0]}</i><div><strong>${item[1]}</strong><small>${item[2]}</small></div></div>`).join("")}</div></section>
     </div>`;
 }
 
@@ -127,17 +126,17 @@ function initializeDemo() {
     current = (index + DEMO_STAGES.length) % DEMO_STAGES.length;
     elapsed = 0;
     update();
-    tabs[current].scrollIntoView({ block: "nearest", inline: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
+    tabs[current].scrollIntoView({ block: "nearest", inline: "nearest", behavior: reducedMotion.matches ? "auto" : "smooth" });
     if (focus) tabs[current].focus();
   };
   tabs.forEach((tab, index) => {
     tab.addEventListener("click", () => select(index));
     tab.addEventListener("keydown", (event) => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
       if (event.key === "Home") select(0, true);
       else if (event.key === "End") select(tabs.length - 1, true);
-      else select(index + (event.key === "ArrowRight" ? 1 : -1), true);
+      else select(index + (["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1), true);
     });
   });
   toggle.addEventListener("click", () => { wantsPlay = !wantsPlay; update(); });
