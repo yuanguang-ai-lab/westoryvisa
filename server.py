@@ -12,12 +12,12 @@ from backend import application as _application
 ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT / "frontend"
 PUBLIC_FILES = {
-    "index.html", "workspace.html", "membership.html", "admin-payments.html",
+    "workspace.html", "membership.html", "admin-payments.html",
     "styles.css", "runtime-config.js", "api-client.js", "app.js", "billing.js",
     "mockData.js", "product.html", "product.css", "product.js",
     "analytics.html", "analytics.css", "analytics.js",
     "screen-agent-target.html", "screen-agent-target.css",
-    "screen-agent-target.js",
+    "screen-agent-target.js", "promo/promo-video.html", "promo/promo-video.css",
 }
 
 
@@ -32,8 +32,9 @@ class CombinedHandler(_application.ApiHandler):
 
     def serve_static(self, path):
         aliases = {
-            "": "index.html",
-            "/": "index.html",
+            "": "product.html",
+            "/": "product.html",
+            "/index.html": "product.html",
             "/workspace": "workspace.html",
             "/workspace/": "workspace.html",
             "/membership": "membership.html",
@@ -48,6 +49,8 @@ class CombinedHandler(_application.ApiHandler):
             "/product/": "product.html",
             "/analytics": "analytics.html",
             "/analytics/": "analytics.html",
+            "/promo/promo-video.html": "promo/promo-video.html",
+            "/promo/promo-video.css": "promo/promo-video.css",
         }
         relative_path = aliases.get(path, unquote(path.lstrip("/")))
         if relative_path not in PUBLIC_FILES:

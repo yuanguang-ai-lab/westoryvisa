@@ -396,55 +396,11 @@ function initializeSurfaceTilt() {
   });
 }
 
-function initializePricing() {
-  const range = document.querySelector("#caseVolumeRange");
-  if (!range) return;
-  const volumeLabel = document.querySelector("#pricingVolume");
-  const billingButtons = [...document.querySelectorAll("[data-billing]")];
-  const levels = [
-    { cases: "20", starter: 199, growth: 399, business: 799 },
-    { cases: "50", starter: 299, growth: 599, business: 1199 },
-    { cases: "100", starter: 499, growth: 999, business: 1999 },
-    { cases: "250", starter: 899, growth: 1799, business: 3599 },
-    { cases: "500+", starter: 1499, growth: 2999, business: 5999 }
-  ];
-  let billing = "yearly";
-
-  const render = () => {
-    const level = levels[Number(range.value)];
-    volumeLabel.textContent = level.cases;
-    range.setAttribute("aria-valuetext", `每月最多 ${level.cases} 份客户档案`);
-    ["starter", "growth", "business"].forEach((plan) => {
-      const monthlyPrice = level[plan];
-      const displayedPrice = billing === "yearly" ? Math.round(monthlyPrice * 10 / 12) : monthlyPrice;
-      document.querySelector(`[data-plan-price="${plan}"]`).textContent = displayedPrice.toLocaleString("zh-CN");
-      document.querySelector(`[data-plan-note="${plan}"]`).textContent = billing === "yearly"
-        ? `按年支付 ¥${(monthlyPrice * 10).toLocaleString("zh-CN")}`
-        : "按月支付，可随时调整案件额度";
-    });
-  };
-
-  billingButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      billing = button.dataset.billing;
-      billingButtons.forEach((item) => {
-        const active = item === button;
-        item.classList.toggle("is-active", active);
-        item.setAttribute("aria-pressed", String(active));
-      });
-      render();
-    });
-  });
-  range.addEventListener("input", render);
-  render();
-}
-
 async function initializeProductPage() {
   initializeNavigation();
   initializeInteractions();
   initializeProductDemo();
   initializePageReveals();
-  initializePricing();
   await loadProductConfig();
   syncSurveyActions();
   initializeConsent();

@@ -37,6 +37,9 @@ class DeploymentBoundaryTests(unittest.TestCase):
         self.assertIn("alias /usr/share/nginx/html/admin-payments.html", nginx)
         self.assertIn("default_type text/html", nginx)
         self.assertIn("absolute_redirect off", nginx)
+        self.assertIn("location = / {", nginx)
+        self.assertIn("try_files /product.html", nginx)
+        self.assertIn("location = /index.html", nginx)
         self.assertIn("return 308 /admin/payments", nginx)
         self.assertIn("location = /landing-page", nginx)
 

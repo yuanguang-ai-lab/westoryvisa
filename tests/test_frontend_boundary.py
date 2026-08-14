@@ -33,31 +33,32 @@ class FrontendBoundaryTests(unittest.TestCase):
             self.assertIn(asset, workspace_html)
             self.assertIn(asset, server.PUBLIC_FILES)
 
-    def test_public_routes_keep_home_workspace_and_landing_page_separate(self):
-        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
-        landing_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
-        self.assertIn('href="/workspace"', home_html)
-        self.assertIn('href="/membership"', home_html)
-        self.assertNotIn('href="/payment-console"', home_html)
-        self.assertNotIn('href="/admin/payments"', home_html)
-        self.assertNotIn('href="/landing-page', home_html)
-        self.assertIn('href="/workspace"', landing_html)
+    def test_product_website_is_the_home_and_landing_page(self):
+        product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        self.assertFalse((server.FRONTEND_DIR / "index.html").exists())
+        self.assertEqual(dev_server.STATIC_ALIASES["/"], "product.html")
+        self.assertEqual(dev_server.STATIC_ALIASES["/landing-page"], "product.html")
+        self.assertIn('href="/workspace"', product_html)
+        self.assertNotIn('href="/membership"', product_html)
+        self.assertNotIn('href="/payment-console"', product_html)
+        self.assertNotIn('href="/admin/payments"', product_html)
 
-    def test_home_has_no_cross_page_header_navigation(self):
-        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
-        self.assertIn('class="organization-header home-header"', home_html)
-        self.assertNotIn('<nav class="organization-nav"', home_html)
-        self.assertNotIn('aria-label="机构接入导航"', home_html)
+    def test_home_promotes_product_evidence_instead_of_pricing(self):
+        product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        self.assertIn("约 8 分钟跑通", product_html)
+        self.assertIn("DEEPSEEK API", product_html)
+        self.assertIn("GEMINI API", product_html)
+        self.assertIn("Human in control".upper(), product_html)
+        self.assertNotIn('<section class="pricing-section"', product_html)
+        self.assertNotIn("会员定价", product_html)
+        self.assertNotIn("¥1,990", product_html)
 
-    def test_home_merges_account_and_workspace_into_one_entry_card(self):
-        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
-        self.assertEqual(home_html.count('<article class="portal-step'), 2)
-        self.assertEqual(home_html.count("登录 / 注册并选择会员 →"), 1)
-        self.assertNotIn("登录 / 注册账号</a>", home_html)
-        self.assertIn('href="styles.css?', home_html)
-        self.assertNotIn('href="/styles.css?', home_html)
-        self.assertIn('window.location.protocol !== "file:"', home_html)
-        self.assertIn('"/workspace": "workspace.html"', home_html)
+    def test_product_home_has_explicit_mobile_layout_rules(self):
+        css = (server.FRONTEND_DIR / "product.css").read_text(encoding="utf-8")
+        self.assertIn("@media (max-width: 720px)", css)
+        self.assertIn(".proof-grid { grid-template-columns: 1fr", css)
+        self.assertIn(".model-stack { width: 100%", css)
+        self.assertIn("100svh", css)
 
     def test_workspace_assets_work_from_http_and_local_files(self):
         workspace_html = (server.FRONTEND_DIR / "workspace.html").read_text(
@@ -93,7 +94,7 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn("billing.js", server.PUBLIC_FILES)
 
     def test_payment_operations_are_separate_from_consultant_pages(self):
-        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+        home_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
         membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
             encoding="utf-8"
         )
@@ -111,12 +112,13 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn("session.user.platformAdmin", billing_js)
 
     def test_membership_page_is_the_focused_purchase_page(self):
-        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+        home_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
         membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
             encoding="utf-8"
         )
         billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
-        self.assertIn("立即购买会员", home_html)
+        self.assertNotIn("立即购买会员", home_html)
+        self.assertNotIn('<section class="pricing-section"', home_html)
         self.assertIn("直接在本页选择月付或年付并完成购买", membership_html)
         self.assertIn("立即购买月度会员", membership_html)
         self.assertIn("立即购买年度会员", membership_html)

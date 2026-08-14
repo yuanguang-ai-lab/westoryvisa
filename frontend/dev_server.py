@@ -11,8 +11,9 @@ from urllib.parse import unquote, urlparse
 
 FRONTEND_DIR = Path(__file__).resolve().parent
 STATIC_ALIASES = {
-    "": "index.html",
-    "/": "index.html",
+    "": "product.html",
+    "/": "product.html",
+    "/index.html": "product.html",
     "/workspace": "workspace.html",
     "/workspace/": "workspace.html",
     "/membership": "membership.html",
@@ -27,6 +28,8 @@ STATIC_ALIASES = {
     "/product/": "product.html",
     "/analytics": "analytics.html",
     "/analytics/": "analytics.html",
+    "/promo/promo-video.html": "promo/promo-video.html",
+    "/promo/promo-video.css": "promo/promo-video.css",
 }
 
 
@@ -65,7 +68,11 @@ class FrontendHandler(BaseHTTPRequestHandler):
         relative_path = STATIC_ALIASES.get(
             parsed.path, unquote(parsed.path.lstrip("/"))
         )
-        if not relative_path or "/" in relative_path or "\\" in relative_path:
+        allowed_nested_assets = {"promo/promo-video.html", "promo/promo-video.css"}
+        if not relative_path or (
+            ("/" in relative_path or "\\" in relative_path)
+            and relative_path not in allowed_nested_assets
+        ):
             return self.send_not_found()
         target = FRONTEND_DIR / relative_path
         if not target.is_file():

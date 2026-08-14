@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="WestoryVisa 帮助签证顾问先读客户材料、补齐缺失信息，并生成来源可追踪、可集中核查的 DS-160 初稿。">
+  <meta name="description" content="WestoryVisa 连接 DeepSeek 与 Gemini，帮助签证顾问从客户材料整理、字段核查一路推进到 DS-160 逐页填写。">
   <meta name="theme-color" content="#111310">
-  <title>WestoryVisa Agent｜签证资料核查与逐页填写</title>
-  <link rel="stylesheet" href="/product.css?v=20260812-landing-page-route-v1">
+  <meta property="og:title" content="WestoryVisa｜DS-160 顾问自动化工作流">
+  <meta property="og:description" content="内部测试约 8 分钟跑通 DS-160 演示流程，DeepSeek 与 Gemini 双模型协同。">
+  <title>WestoryVisa｜DS-160 顾问自动化工作流</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23caff35'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='23' font-family='Arial' font-weight='700' fill='%231d1d1f'%3EWV%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/product.css?v=20260814-product-home-v1">
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -21,9 +24,9 @@
     </a>
     <nav class="desktop-nav" aria-label="Product navigation">
       <a href="#capabilities" data-track="Nav capabilities">产品能力</a>
+      <a href="#technology" data-track="Nav technology">效率与模型</a>
       <a href="#workflow" data-track="Nav workflow">工作流程</a>
       <a href="#security" data-track="Nav security">数据安全</a>
-      <a href="#pricing" data-track="Nav pricing">会员定价</a>
       <a href="#questions" data-track="Nav questions">常见问题</a>
     </nav>
     <div class="header-actions">
@@ -37,9 +40,9 @@
 
   <nav class="mobile-nav" id="mobileNav" aria-label="Mobile product navigation" hidden>
     <a href="#capabilities">产品能力</a>
+    <a href="#technology">效率与模型</a>
     <a href="#workflow">工作流程</a>
     <a href="#security">数据安全</a>
-    <a href="#pricing">会员定价</a>
     <a href="#questions">常见问题</a>
     <a href="/workspace">登录机构工作台</a>
   </nav>
@@ -48,26 +51,45 @@
     <section class="hero" id="top" data-section="Hero">
       <div class="hero-copy">
         <p class="eyebrow"><strong lang="en">WestoryVisa Agent</strong><span>为签证顾问打造</span></p>
-        <h1>先理清材料，再让 Gemini 逐页填写</h1>
-        <p class="hero-description">真实前端直接展示材料整理、字段核查与 Gemini Computer Use 执行状态。顾问负责判断，Agent 负责重复操作。</p>
+        <div class="model-stack" aria-label="DeepSeek 与 Gemini 接口能力">
+          <span><i>D</i><b>DeepSeek</b><small>材料理解与复核</small></span>
+          <em>×</em>
+          <span><i>G</i><b>Gemini</b><small>Computer Use 执行</small></span>
+        </div>
+        <h1>从客户材料到 DS-160，<br>让完整流程真正跑起来</h1>
+        <p class="hero-description">DeepSeek 负责资料理解、翻译与字段复核，Gemini Computer Use 负责可见页面逐页执行。顾问保留最终判断，并可随时接管。</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#demo" data-track="Hero view sample case">查看模拟案件</a>
+          <a class="button button-primary" href="#technology" data-track="Hero view evidence">查看效率与模型</a>
           <button class="button button-secondary" type="button" data-wjx-open data-track="Hero book demo" hidden>预约产品演示</button>
         </div>
         <div class="hero-boundaries" aria-label="Product trust principles">
-          <span>字段来源可追踪</span>
-          <span>敏感项人工确认</span>
-          <span>机构数据隔离</span>
+          <span>内部测试约 8 分钟</span>
+          <span>DeepSeek × Gemini</span>
+          <span>关键步骤人工确认</span>
         </div>
       </div>
 
       <div class="workspace-visual source-workspace-visual" id="product-preview" aria-label="WestoryVisa Agent source-code preview">
-        <div class="preview-demo-label"><strong>源代码实时页面</strong><span>来自 Gemini Agent 的 HTML、CSS 与 JavaScript</span></div>
+        <div class="preview-demo-label"><strong>真实产品流程</strong><span>从资料整理到 Gemini 逐页执行</span></div>
         <div class="source-demo-frame">
-          <iframe src="/workspace?demo=prefill" title="WestoryVisa Gemini Computer Use 源代码运行页面"></iframe>
+          <iframe src="/promo/promo-video.html?live=website-home-v1" title="WestoryVisa 产品流程演示"></iframe>
         </div>
       </div>
       <a class="hero-next" href="#outcomes" aria-label="Continue exploring the product" data-track="Hero continue"><span></span></a>
+    </section>
+
+    <section class="proof-section" id="technology" data-section="Efficiency and models">
+      <div class="section-intro">
+        <p class="eyebrow">效率与模型</p>
+        <h2>不是一句“AI 自动化”，而是一条跑通过的工作链路</h2>
+        <p class="section-lead">把材料理解、字段核查和页面执行交给更合适的模型，顾问只在需要判断的地方介入。</p>
+      </div>
+      <div class="proof-grid">
+        <article class="proof-card proof-card-accent"><span>08:00</span><h3>约 8 分钟跑通</h3><p>内部演示流程测试，从已整理字段进入 DS-160 正式表格，到主要页面逐页填写完成。</p><small>测试口径：不含验证码、签名和最终提交；实际时间受页面与网络状态影响。</small></article>
+        <article class="proof-card"><span>DEEPSEEK API</span><h3>先把资料读懂</h3><p>用于中文资料理解、翻译、结构化字段抽取与证据约束复核，让已有信息不再重复询问。</p></article>
+        <article class="proof-card proof-card-dark"><span>GEMINI API</span><h3>再把页面跑完</h3><p>Gemini Computer Use 查看可见页面、执行逐页填写并在异常时暂停，把控制权交还顾问。</p></article>
+        <article class="proof-card"><span>HUMAN IN CONTROL</span><h3>顾问始终在环</h3><p>拒签史、安全背景、验证码、签名和最终提交都不会被自动越过，关键事实必须人工确认。</p></article>
+      </div>
     </section>
 
     <section class="outcome-band" id="outcomes" data-section="Core outcome">
@@ -92,7 +114,7 @@
       </div>
 
       <div class="source-video-player" aria-label="WestoryVisa Agent source-code product film">
-        <iframe src="../../docflow-gemini-private-working/frontend/promo-gemini/promo-video.html?live=source-components-v2" title="WestoryVisa Agent HTML 与 CSS 动画演示"></iframe>
+        <iframe src="/promo/promo-video.html?live=website-home-demo-v1" title="WestoryVisa Agent 产品流程动画演示"></iframe>
       </div>
       <div class="demo-player source-demo-fallback" data-demo-player aria-label="Continuous WestoryVisa product demo" hidden>
         <div class="demo-player-top">
@@ -248,59 +270,6 @@
       </div>
     </section>
 
-    <section class="pricing-section" id="pricing" data-section="Membership pricing">
-      <div class="pricing-intro">
-        <p class="eyebrow">会员制订阅</p>
-        <h2>按每月案件量付费，不按顾问人数增加负担</h2>
-        <p>和按访问量计费的产品一样，WestoryVisa 根据每月新建客户档案数调整订阅价格。团队可以先从较小额度开始，案件量增长后再升级。</p>
-      </div>
-
-      <div class="pricing-controls" aria-label="Membership billing options">
-        <div class="billing-toggle" aria-label="Billing period">
-          <button type="button" data-billing="monthly" aria-pressed="false">月付</button>
-          <button class="is-active" type="button" data-billing="yearly" aria-pressed="true">年付 <span>免两个月</span></button>
-        </div>
-        <label class="volume-control" for="caseVolumeRange">
-          <span>每月最多新建 <strong id="pricingVolume">20</strong> 份客户档案</span>
-          <input id="caseVolumeRange" type="range" min="0" max="4" step="1" value="0" aria-valuetext="Up to 20 new client profiles per month">
-          <span class="volume-marks" aria-hidden="true"><i>20</i><i>50</i><i>100</i><i>250</i><i>500+</i></span>
-        </label>
-      </div>
-
-      <div class="pricing-grid">
-        <article class="pricing-card">
-          <p>Starter</p><h3>独立顾问</h3><p class="pricing-summary">从材料整理到初稿核查的完整基础流程</p>
-          <div class="plan-price"><span>¥</span><strong data-plan-price="starter">166</strong><small>/ 月</small></div>
-          <p class="billing-note" data-plan-note="starter">按年支付 ¥1,990</p>
-          <a class="button pricing-button" href="/workspace" data-track="Pricing starter open workspace">进入工作台</a>
-          <ul><li>材料识别与字段整理</li><li>客户补充问卷</li><li>DS-160 初稿与字段来源</li><li>基础核查清单</li></ul>
-        </article>
-        <article class="pricing-card featured">
-          <p>Growth</p><h3>顾问团队</h3><p class="pricing-summary">让多人在同一套案件结构里分工与复核</p>
-          <div class="plan-price"><span>¥</span><strong data-plan-price="growth">333</strong><small>/ 月</small></div>
-          <p class="billing-note" data-plan-note="growth">按年支付 ¥3,990</p>
-          <a class="button button-primary pricing-button" href="/workspace" data-track="Pricing growth open workspace">进入工作台</a>
-          <ul><li>包含独立顾问版全部功能</li><li>不限顾问席位</li><li>案件分配与团队状态</li><li>共享核查记录与导出</li></ul>
-        </article>
-        <article class="pricing-card">
-          <p>Business</p><h3>签证机构</h3><p class="pricing-summary">为稳定业务量提供权限、记录与管理能力</p>
-          <div class="plan-price"><span>¥</span><strong data-plan-price="business">666</strong><small>/ 月</small></div>
-          <p class="billing-note" data-plan-note="business">按年支付 ¥7,990</p>
-          <a class="button pricing-button" href="/workspace" data-track="Pricing business open workspace">进入工作台</a>
-          <ul><li>包含团队版全部功能</li><li>角色与数据访问权限</li><li>完整修改与操作记录</li><li>优先支持与数据导出</li></ul>
-        </article>
-        <article class="pricing-card enterprise">
-          <p>Enterprise</p><h3>大型机构</h3><p class="pricing-summary">更高案件量、定制部署和组织级支持</p>
-          <div class="plan-price custom-price"><strong>定制</strong></div>
-          <p class="billing-note">根据案件量与部署需求报价</p>
-          <button class="button pricing-button" type="button" data-wjx-open data-track="Pricing enterprise contact" hidden>联系开通</button>
-          <a class="pricing-fallback" href="#demo">先看产品演示</a>
-          <ul><li>包含机构版全部功能</li><li>单点登录与定制权限</li><li>专属迁移与培训</li><li>服务等级与优先响应</li></ul>
-        </article>
-      </div>
-      <p class="pricing-footnote">建议方案：30 天免费试用，无需信用卡。每月案件量按新建客户档案计算，超出前会先提醒，不自动产生额外费用。</p>
-    </section>
-
     <section class="faq-section" id="questions" data-section="Frequently asked questions">
       <div class="section-intro compact-intro">
         <p class="eyebrow">常见问题</p>
@@ -309,7 +278,7 @@
       <div class="faq-list">
         <details>
           <summary>这个工具会直接提交 DS-160 吗？<span></span></summary>
-          <p>不会。WestoryVisa 用于资料整理、初稿生成和字段核查，不处理支付、电子签名、法律声明或最终提交。</p>
+          <p>不会。WestoryVisa 用于资料整理、初稿生成、字段核查与逐页填写，不处理电子签名、法律声明或最终提交。</p>
         </details>
         <details>
           <summary>系统会替客户回答拒签或安全背景问题吗？<span></span></summary>
@@ -324,8 +293,12 @@
           <p>可以。机构工作台集中展示每个客户的资料收集、初稿生成、待核查和已完成状态。</p>
         </details>
         <details>
-          <summary>会员如何计费？<span></span></summary>
-          <p>按每月新建客户档案数选择额度，不按顾问席位重复收费。可以月付，也可以年付；建议的年付方案相当于免两个月，达到额度前会先提醒。</p>
+          <summary>约 8 分钟是怎么测试的？<span></span></summary>
+          <p>这是内部演示流程测试：从已整理字段进入 DS-160 正式表格，到主要页面逐页填写完成。验证码、电子签名和最终提交不在自动化范围内，实际时间会受页面与网络状态影响。</p>
+        </details>
+        <details>
+          <summary>DeepSeek 和 Gemini 分别做什么？<span></span></summary>
+          <p>DeepSeek 接口用于资料理解、翻译和字段复核；Gemini 接口用于 Computer Use 可见页面执行。两者都不能越过需要顾问或客户确认的关键步骤。</p>
         </details>
       </div>
     </section>
@@ -333,9 +306,10 @@
     <section class="final-section" data-section="Final call to action">
       <p class="eyebrow">从下一份客户档案开始</p>
       <h2>下一份客户资料，可以从一开始就更清楚</h2>
-      <p>先看一个模拟案件，再决定是否安排产品演示。</p>
+      <p>先看完整流程，再进入工作台体验真实的案件结构。</p>
       <div class="hero-actions centered-actions">
-        <a class="button button-primary" href="#demo" data-track="Footer view sample case">查看模拟案件</a>
+        <a class="button button-primary" href="/workspace" data-track="Footer enter workspace">进入工作台</a>
+        <a class="button button-secondary light" href="#demo" data-track="Footer view workflow">查看产品流程</a>
         <button class="button button-secondary light" type="button" data-wjx-open data-track="Footer book demo" hidden>预约产品演示</button>
       </div>
     </section>
@@ -343,7 +317,7 @@
 
   <footer class="site-footer">
     <div><strong lang="en">WestoryVisa</strong><span>签证资料核查工作台</span></div>
-    <p>本工具不提供法律建议，不预测签证结果，不处理真实支付或最终提交。</p>
+    <p>本工具不提供法律建议，不预测签证结果；验证码、电子签名和最终提交必须由人工完成。</p>
   </footer>
 
   <div class="modal-layer" id="wjxModal" aria-hidden="true">
@@ -371,6 +345,6 @@
 
   <script src="/runtime-config.js?v=20260727-frontend-backend-split-v1"></script>
   <script src="/api-client.js?v=20260727-frontend-boundary-v1"></script>
-  <script src="/product.js?v=20260812-landing-page-route-v1"></script>
+  <script src="/product.js?v=20260814-product-home-v1"></script>
 </body>
 </html>
