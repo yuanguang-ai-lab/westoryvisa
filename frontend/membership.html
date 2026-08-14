@@ -4,36 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>WestoryVisa｜会员中心</title>
+  <title>WestoryVisa｜购买会员</title>
   <link rel="stylesheet" href="styles.css?v=20260813-membership-gate-v1">
 </head>
 <body data-billing-page="membership">
   <div class="organization-shell">
-    <header class="organization-header">
+    <header class="organization-header home-header">
       <a class="organization-brand" href="/" aria-label="返回 WestoryVisa 机构接入首页"><span class="brand-mark">WV</span><span><strong>WestoryVisa</strong><small>开始客户流程之前</small></span></a>
-      <nav class="organization-nav" aria-label="机构接入导航">
-        <a href="/">机构接入</a><a class="active" href="/membership">会员中心</a><a href="/workspace">进入工作台</a>
-      </nav>
       <a class="organization-logout" href="/workspace">登录账号</a>
     </header>
     <main class="content organization-content portal-subpage">
       <div class="topbar membership-topbar">
-        <div><div class="page-kicker">机构订阅</div><h1>会员中心</h1><p class="muted">选择适合当前机构的会员周期，订阅开通后绑定机构账号。</p></div>
-        <div class="topbar-actions"><a class="btn secondary" href="/">返回机构接入</a></div>
+        <div><div class="page-kicker">会员购买</div><h1>购买会员</h1><p class="muted">直接在本页选择月付或年付并完成购买，支付确认后自动开通当前机构账号。</p></div>
       </div>
       <section class="membership-status-card observe"><div><span class="page-kicker">当前状态</span><h2 id="membershipStatusTitle">正在读取会员状态</h2><p id="membershipStatusDetail">会员有效期、权益和订单与机构账号关联。</p></div><div class="membership-status-actions"><div class="membership-mode-badge" id="membershipStatusBadge">机构级会员</div><a class="btn" id="membershipWorkspaceLink" href="/workspace" hidden>进入工作台</a></div></section>
       <div class="billing-notice" id="billingNotice" role="status" hidden></div>
       <section class="membership-section">
-        <div class="section-heading"><span class="page-kicker">会员方案</span><h2>选择月付或年付</h2></div>
+        <div class="section-heading"><span class="page-kicker">会员方案</span><h2>在本页选择月付或年付</h2></div>
         <div class="membership-plan-grid">
-          <article class="membership-plan-card"><div><span class="membership-plan-cycle">30 天</span><h3>月度会员</h3><p>一次支付开通 30 天完整签证顾问工作流。</p></div><div class="membership-price"><strong>¥199</strong><span>/ 30 天</span></div><ul><li>材料识别、翻译与字段映射</li><li>客户补充链接与重点核查</li><li>DS-160 初稿与核查清单</li><li>浏览器辅助逐页填写</li></ul><button class="btn billing-checkout" type="button" data-product-id="membership-monthly">购买月度会员</button></article>
-          <article class="membership-plan-card"><div><span class="membership-plan-cycle">365 天 · 推荐</span><h3>年度会员</h3><p>一次支付开通 365 天，按十个月计费。</p></div><div class="membership-price"><strong>¥1,990</strong><span>/ 365 天</span></div><ul><li>包含月度会员全部功能</li><li>全年机构工作台使用权</li><li>团队协作与数据导出</li><li>相当于免两个月费用</li></ul><button class="btn billing-checkout" type="button" data-product-id="membership-yearly">购买年度会员</button></article>
+          <article class="membership-plan-card"><div><span class="membership-plan-cycle">30 天</span><h3>月度会员</h3><p>一次支付开通 30 天完整签证顾问工作流。</p></div><div class="membership-price"><strong>¥199</strong><span>/ 30 天</span></div><ul><li>材料识别、翻译与字段映射</li><li>客户补充链接与重点核查</li><li>DS-160 初稿与核查清单</li><li>浏览器辅助逐页填写</li></ul><button class="btn billing-checkout" type="button" data-product-id="membership-monthly">立即购买月度会员</button></article>
+          <article class="membership-plan-card"><div><span class="membership-plan-cycle">365 天 · 推荐</span><h3>年度会员</h3><p>一次支付开通 365 天，按十个月计费。</p></div><div class="membership-price"><strong>¥1,990</strong><span>/ 365 天</span></div><ul><li>包含月度会员全部功能</li><li>全年机构工作台使用权</li><li>团队协作与数据导出</li><li>相当于免两个月费用</li></ul><button class="btn billing-checkout" type="button" data-product-id="membership-yearly">立即购买年度会员</button></article>
         </div>
       </section>
     </main>
   </div>
   <script src="runtime-config.js?v=20260813-billing-v1"></script>
   <script src="api-client.js?v=20260813-membership-gate-v1"></script>
-  <script src="billing.js?v=20260813-membership-gate-v1"></script>
+  <script src="billing.js?v=20260814-membership-purchase-v1"></script>
 </body>
 </html>

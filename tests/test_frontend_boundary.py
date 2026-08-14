@@ -110,6 +110,20 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn('request("/admin/billing")', billing_js)
         self.assertIn("session.user.platformAdmin", billing_js)
 
+    def test_membership_page_is_the_focused_purchase_page(self):
+        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
+            encoding="utf-8"
+        )
+        billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
+        self.assertIn("立即购买会员", home_html)
+        self.assertIn("直接在本页选择月付或年付并完成购买", membership_html)
+        self.assertIn("立即购买月度会员", membership_html)
+        self.assertIn("立即购买年度会员", membership_html)
+        self.assertNotIn('<nav class="organization-nav"', membership_html)
+        self.assertNotIn("托管收银台", billing_js)
+        self.assertIn("支付通道接入中", billing_js)
+
     def test_login_and_workspace_enforce_membership_purchase(self):
         app_js = (server.FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(

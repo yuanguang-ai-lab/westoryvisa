@@ -83,14 +83,18 @@
         document.querySelector("#membershipWorkspaceLink").hidden = false;
       } else {
         title.textContent = "当前未开通有效会员";
-        detail.textContent = "选择方案后进入支付公司托管收银台；只有验签回调确认到账后才开通权益。";
+        detail.textContent = "请直接在下方选择月度或年度会员并购买；支付确认到账后自动开通工作台。";
         badge.textContent = "未开通";
       }
       if (!billing.gateway.configured) {
-        showNotice(billing.gateway.message, "warning");
+        showNotice("四方聚合支付正在接入。接通后直接点击本页的购买按钮即可付款。", "warning");
       }
       document.querySelectorAll(".billing-checkout").forEach((button) => {
         button.disabled = !billing.gateway.configured;
+        if (!billing.gateway.configured) {
+          button.textContent = "支付通道接入中";
+          button.title = "四方聚合支付接通后可直接在本页购买";
+        }
         button.addEventListener("click", async () => {
           button.disabled = true;
           const original = button.textContent;
@@ -110,18 +114,18 @@
       });
       const params = new URLSearchParams(global.location.search);
       if (params.get("auth") === "registered") {
-        showNotice("账号已创建。请先购买会员，支付到账后才能进入工作台。", "success");
+        showNotice("账号已创建。请直接在本页选择方案并购买，支付到账后即可进入工作台。", "success");
       } else if (params.get("auth") === "logged-in" || params.get("access") === "required") {
         showNotice(
           membership.active
             ? "登录成功，你的会员有效，可以进入工作台。"
-            : "登录成功。当前没有有效会员，请先完成购买后再进入工作台。",
+            : "登录成功。请直接在本页选择月付或年付并完成购买。",
           membership.active ? "success" : "warning"
         );
       } else if (params.get("checkout") === "success") {
-        showNotice("支付页面已返回。会员状态以支付公司验签回调为准，到账后会自动更新。", "success");
+        showNotice("购买已提交。支付确认到账后，会员状态会在本页自动更新。", "success");
       } else if (params.get("checkout") === "cancelled") {
-        showNotice("本次支付已取消，订单不会开通会员权益。", "warning");
+        showNotice("本次支付未完成，可以继续在本页重新选择方案。", "warning");
       }
     } catch (error) {
       title.textContent = "暂时无法读取会员状态";
