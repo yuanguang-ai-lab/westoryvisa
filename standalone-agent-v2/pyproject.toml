@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docflow-computer-use-v2"
+version = "0.1.0"
+description = "Fast, bounded Computer Use execution layer for DocFlow"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+docflow-agent-v2 = "visa_agent_v2.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["visa_agent_v2*"]

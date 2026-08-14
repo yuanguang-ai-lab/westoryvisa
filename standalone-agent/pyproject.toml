@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docflow-standalone-agent"
+version = "0.4.0"
+description = "Standalone document-recognition and computer-use agent for DocFlow"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+secure = ["cryptography>=42,<47"]
+providers = ["paddleocr>=3.7,<4", "playwright>=1.55,<2"]
+all = [
+    "cryptography>=42,<47",
+    "paddleocr>=3.7,<4",
+    "playwright>=1.55,<2",
+]
+
+[project.scripts]
+docflow-agent = "visa_agent.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["visa_agent*"]

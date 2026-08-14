@@ -26,6 +26,8 @@ test-results/
 # Re-creatable dependencies and build caches.
 .venv-docling/
 .venv-browser-use/
+.venv/
+*.egg-info/
 node_modules/
 __pycache__/
 *.pyc

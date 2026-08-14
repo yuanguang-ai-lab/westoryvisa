@@ -1,0 +1,13 @@
+.env
+*.log
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+build/
+dist/
+*.egg-info/
+
+# Agent checkpoints may contain confirmed customer fields.
+agent-data/
+demo-agent-data/
