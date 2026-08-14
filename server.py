@@ -12,7 +12,7 @@ from backend import application as _application
 ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT / "frontend"
 PUBLIC_FILES = {
-    "index.html", "workspace.html", "membership.html", "payment-console.html",
+    "index.html", "workspace.html", "membership.html", "admin-payments.html",
     "styles.css", "runtime-config.js", "api-client.js", "app.js", "billing.js",
     "mockData.js", "product.html", "product.css", "product.js",
     "analytics.html", "analytics.css", "analytics.js",
@@ -38,8 +38,8 @@ class CombinedHandler(_application.ApiHandler):
             "/workspace/": "workspace.html",
             "/membership": "membership.html",
             "/membership/": "membership.html",
-            "/payment-console": "payment-console.html",
-            "/payment-console/": "payment-console.html",
+            "/admin/payments": "admin-payments.html",
+            "/admin/payments/": "admin-payments.html",
             "/landing-page": "product.html",
             "/landing-page/": "product.html",
             "/landingpage": "product.html",

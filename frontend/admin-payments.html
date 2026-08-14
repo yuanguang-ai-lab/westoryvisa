@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <base href="/">
+  <title>WestoryVisa｜平台支付后台</title>
+  <link rel="stylesheet" href="styles.css?v=20260814-admin-payments-v1">
+</head>
+<body data-billing-page="console">
+  <div class="organization-shell">
+    <header class="organization-header home-header">
+      <a class="organization-brand" href="/" aria-label="返回 WestoryVisa 首页"><span class="brand-mark">WV</span><span><strong>WestoryVisa</strong><small>平台运营后台</small></span></a>
+      <a class="organization-logout" href="/workspace">管理员登录</a>
+    </header>
+    <main class="content organization-content portal-subpage">
+      <div class="topbar payment-console-topbar">
+        <div><div class="page-kicker">仅限平台管理员</div><h1>支付运营后台</h1><p class="muted">集中查看全部机构的会员商品、支付通道、订单、回调与退款记录。</p></div>
+        <div class="topbar-actions"><a class="btn secondary" href="/">返回网站首页</a></div>
+      </div>
+      <div class="payment-observe-banner"><span id="billingGatewayBadge">检查中</span><strong id="billingGatewayMessage">正在读取支付通道与回调状态。</strong></div>
+      <div class="billing-notice" id="billingNotice" role="status" hidden></div>
+      <nav class="payment-console-nav" aria-label="真实支付工程板块"><button class="active" type="button"><span>1</span>全流程</button><button type="button"><span>2</span>商户与密钥</button><button type="button"><span>3</span>商品与金额</button><button type="button"><span>4</span>真实下单</button><button type="button"><span>5</span>回调与验签</button><button type="button"><span>6</span>查单与退款</button></nav>
+      <section class="payment-console-block payment-overview" id="paymentConsoleContent" hidden>
+        <div class="section-heading"><span class="page-kicker">平台支付总览</span><h2>所有机构的交易集中管理</h2><p class="muted">顾问账号无法读取此处数据；这里只显示给 WestoryVisa 平台管理员。</p></div>
+        <div class="payment-workflow-grid"><div class="payment-workflow-step"><span>1</span><div><strong>商户资质</strong><small>机构准备</small></div></div><div class="payment-workflow-step"><span>2</span><div><strong>通道配置</strong><small>密钥检查</small></div></div><div class="payment-workflow-step"><span>3</span><div><strong>订单与回调</strong><small>交易核验</small></div></div><div class="payment-workflow-step"><span>4</span><div><strong>退款与记录</strong><small>可审计</small></div></div></div>
+        <div class="payment-overview-stats"><div><strong id="billingOrganizationCount">0</strong><span>注册机构</span></div><div><strong id="billingActiveMembershipCount">0</strong><span>有效会员</span></div><div><strong id="billingOrderCount">0</strong><span>全部订单</span></div><div><strong id="billingRefundCount">0</strong><span>退款记录</span></div></div>
+        <section class="billing-console-section"><div class="section-heading"><span class="page-kicker">商品与金额</span><h2>当前可售会员商品</h2></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>商品</th><th>金额</th><th>有效期</th><th>状态</th></tr></thead><tbody id="billingProductRows"><tr><td colspan="4">正在读取</td></tr></tbody></table></div></section>
+        <section class="billing-console-section"><div class="section-heading"><span class="page-kicker">订单与查单</span><h2>全部机构订单</h2></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>机构</th><th>订单</th><th>金额</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="billingOrderRows"><tr><td colspan="6">请先登录管理员账号</td></tr></tbody></table></div></section>
+        <section class="billing-console-section"><div class="section-heading"><span class="page-kicker">退款记录</span><h2>支付网关退款结果</h2></div><div class="billing-table-wrap"><table class="billing-table"><thead><tr><th>机构</th><th>退款</th><th>关联订单</th><th>金额</th><th>状态</th><th>时间</th></tr></thead><tbody id="billingRefundRows"><tr><td colspan="6">暂无退款记录</td></tr></tbody></table></div></section>
+      </section>
+    </main>
+  </div>
+  <script src="runtime-config.js?v=20260813-billing-v1"></script>
+  <script src="api-client.js?v=20260813-membership-gate-v1"></script>
+  <script src="billing.js?v=20260814-admin-payments-v1"></script>
+</body>
+</html>

@@ -493,6 +493,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_iterations INTEGER NOT NULL DEFAULT 240000,
   user_key TEXT,
   role TEXT,
+  is_platform_admin INTEGER NOT NULL DEFAULT 0,
   email_verified_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -793,6 +794,7 @@ def init_db():
             "password_salt": "TEXT",
             "password_iterations": "INTEGER NOT NULL DEFAULT 120000",
             "user_key": "TEXT",
+            "is_platform_admin": "INTEGER NOT NULL DEFAULT 0",
             "email_verified_at": "TEXT",
         })
         ensure_columns(conn, "clients", {
@@ -3916,6 +3918,7 @@ def public_user(row):
         "email": row["email"],
         "phone": row["phone"],
         "role": row["role"] or "copywriter",
+        "platformAdmin": bool(row["is_platform_admin"]),
         "accountKeyId": key_fingerprint(row["user_key"]),
         "emailVerified": bool(row["email_verified_at"]),
     }
@@ -4254,6 +4257,64 @@ def billing_summary(user):
     }
 
 
+def admin_billing_summary():
+    with connect() as conn:
+        product_rows = conn.execute(
+            "SELECT * FROM billing_products ORDER BY amount"
+        ).fetchall()
+        order_rows = conn.execute(
+            """
+            SELECT billing_orders.*, organizations.name AS organization_name,
+                   users.email AS user_email
+            FROM billing_orders
+            JOIN organizations ON organizations.id = billing_orders.organization_id
+            LEFT JOIN users ON users.id = billing_orders.user_id
+            ORDER BY billing_orders.created_at DESC
+            LIMIT 200
+            """
+        ).fetchall()
+        refund_rows = conn.execute(
+            """
+            SELECT billing_refunds.*, organizations.name AS organization_name
+            FROM billing_refunds
+            JOIN organizations ON organizations.id = billing_refunds.organization_id
+            ORDER BY billing_refunds.created_at DESC
+            LIMIT 200
+            """
+        ).fetchall()
+        organization_count = conn.execute(
+            "SELECT COUNT(*) AS count FROM organizations"
+        ).fetchone()["count"]
+        active_membership_count = conn.execute(
+            """
+            SELECT COUNT(*) AS count FROM billing_subscriptions
+            WHERE status = 'active' AND current_period_end > ?
+            """,
+            (now_iso(),),
+        ).fetchone()["count"]
+    orders = []
+    for row in order_rows:
+        item = public_billing_order(row)
+        item["organizationName"] = row["organization_name"]
+        item["userEmail"] = row["user_email"] or ""
+        orders.append(item)
+    refunds = []
+    for row in refund_rows:
+        item = public_billing_refund(row)
+        item["organizationName"] = row["organization_name"]
+        refunds.append(item)
+    return {
+        "gateway": billing_settings(),
+        "products": [public_billing_product(row) for row in product_rows],
+        "orders": orders,
+        "refunds": refunds,
+        "totals": {
+            "organizations": int(organization_count or 0),
+            "activeMemberships": int(active_membership_count or 0),
+        },
+    }
+
+
 def stripe_request(method, path, fields=None, *, idempotency_key=""):
     secret_key = os.environ.get("STRIPE_SECRET_KEY", "").strip()
     if not secret_key:
@@ -4446,12 +4507,17 @@ def mark_order_paid(conn, order, payment_id, stamped, source_reference):
     recalculate_membership(conn, order["organization_id"], stamped)
 
 
-def refresh_checkout_order(order_id, user):
+def refresh_checkout_order(order_id, user, *, platform_scope=False):
     with connect() as conn:
-        order = conn.execute(
-            "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
-            (order_id, user["organizationId"]),
-        ).fetchone()
+        if platform_scope:
+            order = conn.execute(
+                "SELECT * FROM billing_orders WHERE id = ?", (order_id,)
+            ).fetchone()
+        else:
+            order = conn.execute(
+                "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
+                (order_id, user["organizationId"]),
+            ).fetchone()
     if not order:
         raise FileNotFoundError("订单不存在")
     if not order["provider_checkout_id"]:
@@ -4599,15 +4665,20 @@ def process_stripe_webhook(raw_body, signature_header):
     return {"received": True, "duplicate": False}
 
 
-def create_refund(order_id, payload, user):
+def create_refund(order_id, payload, user, *, platform_scope=False):
     refund_id = f"refund-{secrets.token_hex(12)}"
     stamped = now_iso()
     with connect() as conn:
         conn.execute("BEGIN IMMEDIATE")
-        order = conn.execute(
-            "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
-            (order_id, user["organizationId"]),
-        ).fetchone()
+        if platform_scope:
+            order = conn.execute(
+                "SELECT * FROM billing_orders WHERE id = ?", (order_id,)
+            ).fetchone()
+        else:
+            order = conn.execute(
+                "SELECT * FROM billing_orders WHERE id = ? AND organization_id = ?",
+                (order_id, user["organizationId"]),
+            ).fetchone()
         if not order:
             raise FileNotFoundError("订单不存在")
         if order["status"] not in {"paid", "partially_refunded"} or not order["provider_payment_id"]:
@@ -5639,6 +5710,11 @@ class Handler(BaseHTTPRequestHandler):
             if not user:
                 return None
             return self.json_response(billing_summary(user))
+        if parsed.path == "/api/admin/billing":
+            user = self.require_platform_admin()
+            if not user:
+                return None
+            return self.json_response(admin_billing_summary())
         billing_order_match = re.fullmatch(r"/api/billing/orders/([^/]+)", parsed.path)
         if billing_order_match:
             user = self.require_user()
@@ -5770,6 +5846,46 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response(
                     {"order": create_checkout_order(self.read_json(), user)}, status=201
                 )
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except BillingProviderError as error:
+                return self.json_response({"error": str(error)}, status=502)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
+        admin_billing_refresh_match = re.fullmatch(
+            r"/api/admin/billing/orders/([^/]+)/refresh", parsed.path
+        )
+        if admin_billing_refresh_match:
+            user = self.require_platform_admin()
+            if not user:
+                return None
+            try:
+                return self.json_response({"order": refresh_checkout_order(
+                    unquote(admin_billing_refresh_match.group(1)), user,
+                    platform_scope=True,
+                )})
+            except FileNotFoundError as error:
+                return self.json_response({"error": str(error)}, status=404)
+            except BillingConfigurationError as error:
+                return self.json_response({"error": str(error)}, status=503)
+            except BillingProviderError as error:
+                return self.json_response({"error": str(error)}, status=502)
+            except (ValueError, TypeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
+        admin_billing_refund_match = re.fullmatch(
+            r"/api/admin/billing/orders/([^/]+)/refunds", parsed.path
+        )
+        if admin_billing_refund_match:
+            user = self.require_platform_admin()
+            if not user:
+                return None
+            try:
+                return self.json_response({"refund": create_refund(
+                    unquote(admin_billing_refund_match.group(1)),
+                    self.read_json(), user, platform_scope=True,
+                )}, status=201)
+            except FileNotFoundError as error:
+                return self.json_response({"error": str(error)}, status=404)
             except BillingConfigurationError as error:
                 return self.json_response({"error": str(error)}, status=503)
             except BillingProviderError as error:
@@ -6155,6 +6271,18 @@ class Handler(BaseHTTPRequestHandler):
         user = self.current_user()
         if not user:
             self.json_response({"error": "登录已失效，请重新登录"}, status=401, clear_auth=True)
+        return user
+
+    def require_platform_admin(self):
+        user = self.require_user()
+        if not user:
+            return None
+        if not user.get("platformAdmin"):
+            self.json_response({
+                "error": "此页面仅限 WestoryVisa 平台管理员访问",
+                "code": "platform_admin_required",
+            }, status=403)
+            return None
         return user
 
     def require_member(self):

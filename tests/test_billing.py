@@ -280,6 +280,26 @@ class BillingTests(unittest.TestCase):
         self.assertEqual(expired_status, 402)
         self.assertEqual(expired_payload["code"], "membership_required")
 
+    def test_payment_admin_api_rejects_consultants_and_accepts_platform_admin(self):
+        token = server.create_auth_session(self.user["id"])
+        denied_status, denied = self.authenticated_request(
+            "GET", "/api/admin/billing", token
+        )
+        self.assertEqual(denied_status, 403)
+        self.assertEqual(denied["code"], "platform_admin_required")
+
+        with server.connect() as connection:
+            connection.execute(
+                "UPDATE users SET is_platform_admin = 1 WHERE id = ?",
+                (self.user["id"],),
+            )
+        allowed_status, allowed = self.authenticated_request(
+            "GET", "/api/admin/billing", token
+        )
+        self.assertEqual(allowed_status, 200)
+        self.assertEqual(allowed["totals"]["organizations"], 1)
+        self.assertEqual(len(allowed["products"]), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

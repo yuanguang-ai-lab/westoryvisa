@@ -133,28 +133,29 @@
 
   function renderConsole(billing) {
     const gateway = billing.gateway || {};
+    document.querySelector("#paymentConsoleContent").hidden = false;
     document.querySelector("#billingGatewayBadge").textContent = gateway.configured ? "已接通" : "未接通";
     document.querySelector("#billingGatewayMessage").textContent = gateway.message || "支付通道状态未知";
-    document.querySelector("#billingGatewayCount").textContent = gateway.configured ? "1" : "0";
+    document.querySelector("#billingOrganizationCount").textContent = String(billing.totals?.organizations || 0);
+    document.querySelector("#billingActiveMembershipCount").textContent = String(billing.totals?.activeMemberships || 0);
     document.querySelector("#billingOrderCount").textContent = String(billing.orders.length);
-    document.querySelector("#billingPaidCount").textContent = String(billing.orders.filter((item) => item.status === "paid").length);
     document.querySelector("#billingRefundCount").textContent = String(billing.refunds.length);
     document.querySelector("#billingProductRows").innerHTML = billing.products.map((product) => `
       <tr><td><strong>${escapeHtml(product.name)}</strong><small>${escapeHtml(product.id)}</small></td><td>${money(product.amount, product.currency)}</td><td>${product.durationDays} 天</td><td>${product.active ? "可售" : "下架"}</td></tr>
     `).join("") || '<tr><td colspan="4">暂无商品</td></tr>';
     document.querySelector("#billingOrderRows").innerHTML = billing.orders.map((order) => `
-      <tr><td><strong>${escapeHtml(order.id)}</strong><small>${escapeHtml(order.providerCheckoutId || "尚未生成网关单号")}</small></td><td>${money(order.amount, order.currency)}</td><td><span class="billing-status" data-status="${escapeHtml(order.status)}">${statusLabel(order.status)}</span></td><td>${dateTime(order.createdAt)}</td><td>${order.status === "paid" || order.status === "partially_refunded" ? `<button class="btn secondary billing-refund" type="button" data-order-id="${escapeHtml(order.id)}">申请退款</button>` : order.status === "pending" ? `<button class="btn secondary billing-refresh" type="button" data-order-id="${escapeHtml(order.id)}">向网关查单</button>` : "—"}</td></tr>
-    `).join("") || '<tr><td colspan="5">暂无订单</td></tr>';
+      <tr><td><strong>${escapeHtml(order.organizationName || "未知机构")}</strong><small>${escapeHtml(order.userEmail || "")}</small></td><td><strong>${escapeHtml(order.id)}</strong><small>${escapeHtml(order.providerCheckoutId || "尚未生成网关单号")}</small></td><td>${money(order.amount, order.currency)}</td><td><span class="billing-status" data-status="${escapeHtml(order.status)}">${statusLabel(order.status)}</span></td><td>${dateTime(order.createdAt)}</td><td>${order.status === "paid" || order.status === "partially_refunded" ? `<button class="btn secondary billing-refund" type="button" data-order-id="${escapeHtml(order.id)}">申请退款</button>` : order.status === "pending" ? `<button class="btn secondary billing-refresh" type="button" data-order-id="${escapeHtml(order.id)}">向网关查单</button>` : "—"}</td></tr>
+    `).join("") || '<tr><td colspan="6">暂无订单</td></tr>';
     document.querySelector("#billingRefundRows").innerHTML = billing.refunds.map((refund) => `
-      <tr><td><strong>${escapeHtml(refund.id)}</strong><small>${escapeHtml(refund.providerRefundId || "处理中")}</small></td><td>${escapeHtml(refund.orderId)}</td><td>${money(refund.amount, refund.currency)}</td><td>${statusLabel(refund.status)}</td><td>${dateTime(refund.createdAt)}</td></tr>
-    `).join("") || '<tr><td colspan="5">暂无退款记录</td></tr>';
+      <tr><td><strong>${escapeHtml(refund.organizationName || "未知机构")}</strong></td><td><strong>${escapeHtml(refund.id)}</strong><small>${escapeHtml(refund.providerRefundId || "处理中")}</small></td><td>${escapeHtml(refund.orderId)}</td><td>${money(refund.amount, refund.currency)}</td><td>${statusLabel(refund.status)}</td><td>${dateTime(refund.createdAt)}</td></tr>
+    `).join("") || '<tr><td colspan="6">暂无退款记录</td></tr>';
     document.querySelectorAll(".billing-refund").forEach((button) => {
       button.addEventListener("click", async () => {
         if (!global.confirm("确认向支付网关申请该订单的全额退款？")) return;
         button.disabled = true;
         button.textContent = "退款处理中…";
         try {
-          await request(`/billing/orders/${encodeURIComponent(button.dataset.orderId)}/refunds`, {
+          await request(`/admin/billing/orders/${encodeURIComponent(button.dataset.orderId)}/refunds`, {
             method: "POST", body: JSON.stringify({ reason: "requested_by_customer" }),
           });
           await loadConsole();
@@ -171,7 +172,7 @@
         button.disabled = true;
         button.textContent = "查单中…";
         try {
-          await request(`/billing/orders/${encodeURIComponent(button.dataset.orderId)}/refresh`, {
+          await request(`/admin/billing/orders/${encodeURIComponent(button.dataset.orderId)}/refresh`, {
             method: "POST", body: "{}",
           });
           await loadConsole();
@@ -189,12 +190,18 @@
     try {
       const session = await request("/session");
       if (!session.user) {
-        showNotice("请先登录机构账号后查看真实订单、支付状态和退款记录。", "warning");
+        showNotice("请先登录平台管理员账号。", "warning");
         document.querySelector("#billingGatewayBadge").textContent = "未登录";
-        document.querySelector("#billingGatewayMessage").textContent = "订单和会员数据按机构隔离。";
+        document.querySelector("#billingGatewayMessage").textContent = "支付后台不会向顾问账号开放。";
         return;
       }
-      const billing = await request("/billing");
+      if (!session.user.platformAdmin) {
+        showNotice("当前账号不是平台管理员，不能查看支付后台。", "error");
+        document.querySelector("#billingGatewayBadge").textContent = "无权限";
+        document.querySelector("#billingGatewayMessage").textContent = "顾问账号只能使用会员中心和工作台。";
+        return;
+      }
+      const billing = await request("/admin/billing");
       renderConsole(billing);
       if (!billing.gateway.configured) showNotice(billing.gateway.message, "warning");
     } catch (error) {

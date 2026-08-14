@@ -38,7 +38,8 @@ class FrontendBoundaryTests(unittest.TestCase):
         landing_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
         self.assertIn('href="/workspace"', home_html)
         self.assertIn('href="/membership"', home_html)
-        self.assertIn('href="/payment-console"', home_html)
+        self.assertNotIn('href="/payment-console"', home_html)
+        self.assertNotIn('href="/admin/payments"', home_html)
         self.assertNotIn('href="/landing-page', home_html)
         self.assertIn('href="/workspace"', landing_html)
 
@@ -76,7 +77,7 @@ class FrontendBoundaryTests(unittest.TestCase):
         membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
             encoding="utf-8"
         )
-        console_html = (server.FRONTEND_DIR / "payment-console.html").read_text(
+        console_html = (server.FRONTEND_DIR / "admin-payments.html").read_text(
             encoding="utf-8"
         )
         billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
@@ -90,6 +91,24 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn('/refresh`', billing_js)
         self.assertIn('/refunds`', billing_js)
         self.assertIn("billing.js", server.PUBLIC_FILES)
+
+    def test_payment_operations_are_separate_from_consultant_pages(self):
+        home_html = (server.FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(
+            encoding="utf-8"
+        )
+        admin_html = (server.FRONTEND_DIR / "admin-payments.html").read_text(
+            encoding="utf-8"
+        )
+        billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
+        for public_html in (home_html, membership_html):
+            self.assertNotIn("真实支付工程", public_html)
+            self.assertNotIn("/admin/payments", public_html)
+            self.assertNotIn("/payment-console", public_html)
+        self.assertIn("仅限平台管理员", admin_html)
+        self.assertIn('id="paymentConsoleContent" hidden', admin_html)
+        self.assertIn('request("/admin/billing")', billing_js)
+        self.assertIn("session.user.platformAdmin", billing_js)
 
     def test_login_and_workspace_enforce_membership_purchase(self):
         app_js = (server.FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
