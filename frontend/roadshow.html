@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="WestoryVisa 机构合作路演演示页">
+  <title>WestoryVisa｜机构合作路演</title>
+  <style>
+    :root {
+      --ink: #101827;
+      --ink-soft: #344054;
+      --paper: #f3f1e9;
+      --paper-2: #ebe7dc;
+      --card: rgba(255,255,255,.76);
+      --line: rgba(16,24,39,.14);
+      --lime: #caff35;
+      --lime-soft: #e8ff9f;
+      --blue: #295cff;
+      --orange: #ff7a3d;
+      --red: #c63d36;
+      --shadow: 0 26px 80px rgba(18, 24, 35, .13);
+      --sans: Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #0b1120; color: var(--ink); font-family: var(--sans); }
+    body { overflow: hidden; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    ::selection { background: var(--lime); color: var(--ink); }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    .deck::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: .28;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E");
+    }
+
+    .topbar {
+      position: fixed;
+      z-index: 30;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 clamp(18px, 3vw, 46px);
+      color: var(--ink);
+      pointer-events: none;
+    }
+
+    .brand, .top-actions { display: flex; align-items: center; gap: 11px; pointer-events: auto; }
+    .mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--ink); color: var(--lime); font-weight: 900; letter-spacing: -.04em; }
+    .brand strong { font-size: 14px; letter-spacing: -.01em; }
+    .brand small { color: #667085; font-size: 11px; }
+    .brand-copy { display: grid; gap: 2px; }
+
+    .tool-button {
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .tool-button:hover { background: #fff; }
+
+    .slides { position: relative; z-index: 1; width: 100%; height: 100%; }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-items: center;
+      padding: clamp(82px, 9vh, 108px) clamp(28px, 7vw, 112px) clamp(72px, 8vh, 96px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(42px, 0, 0);
+      transition: opacity .38s ease, transform .55s cubic-bezier(.2,.8,.2,1), visibility .38s;
+    }
+    .slide.active { opacity: 1; visibility: visible; transform: translate3d(0,0,0); }
+    .slide.before { transform: translate3d(-42px, 0, 0); }
+    .slide-inner { width: min(1280px, 100%); margin: 0 auto; }
+    .slide.dark { background: var(--ink); color: white; }
+    .slide.dark .kicker, .slide.dark .muted { color: #aeb8ca; }
+    .slide.dark .outline-card { border-color: rgba(255,255,255,.16); }
+
+    .kicker { margin: 0 0 18px; color: #5b6575; font-size: 12px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    .kicker::before { content: ""; display: inline-block; width: 26px; height: 3px; margin: 0 10px 3px 0; background: var(--lime); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2 { font-family: var(--serif); font-weight: 780; letter-spacing: -.055em; }
+    h1 { max-width: 970px; margin-bottom: 22px; font-size: clamp(52px, 5.4vw, 84px); line-height: 1.02; }
+    h2 { max-width: 940px; margin-bottom: clamp(26px, 4vh, 46px); font-size: clamp(40px, 5.2vw, 76px); line-height: 1.04; }
+    h3 { font-size: clamp(18px, 1.7vw, 27px); line-height: 1.22; letter-spacing: -.025em; }
+    .lead { max-width: 850px; color: var(--ink-soft); font-size: clamp(18px, 1.9vw, 28px); line-height: 1.6; }
+    .dark .lead { color: #cad2df; }
+    .lime { color: var(--lime); }
+    .blue { color: var(--blue); }
+    .muted { color: #667085; }
+    .tiny { font-size: 11px; color: #7b8492; line-height: 1.55; }
+
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: clamp(34px, 6vw, 84px); align-items: end; }
+    .hero-grid h1 > span { white-space: nowrap; }
+    .hero-note { padding: 24px; border: 1px solid rgba(255,255,255,.16); border-radius: 22px; }
+    .hero-note > span { display: block; margin-bottom: 28px; color: #aeb8ca; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+    .hero-note strong { display: block; margin-bottom: 8px; font-family: var(--serif); font-size: clamp(26px, 2.8vw, 42px); }
+    .hero-note p { margin: 0; color: #aeb8ca; font-size: 14px; line-height: 1.7; }
+    .hero-pill { display: inline-flex; align-items: center; gap: 9px; margin-top: 30px; padding: 11px 15px; border-radius: 999px; background: var(--lime); color: var(--ink); font-size: 12px; font-weight: 850; }
+    .hero-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 50% { opacity: .25; } }
+
+    .three-grid, .four-grid { display: grid; gap: 16px; }
+    .three-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .four-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .problem-card, .outline-card, .metric-card, .prep-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: clamp(20px, 2.3vw, 34px);
+      background: var(--card);
+      backdrop-filter: blur(12px);
+    }
+    .problem-card { min-height: 252px; }
+    .problem-card .num { display: block; margin-bottom: 42px; color: var(--blue); font-size: 12px; font-weight: 900; }
+    .problem-card p, .outline-card p { margin-bottom: 0; color: #5c6675; font-size: 14px; line-height: 1.65; }
+    .problem-card::after { content: ""; position: absolute; width: 88px; height: 88px; right: -28px; bottom: -28px; border-radius: 50%; background: var(--lime-soft); }
+
+    .workflow-rail { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 9px; margin: 12px 0 34px; }
+    .workflow-step { min-height: 148px; padding: 17px 14px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.66); }
+    .workflow-step b { display: block; margin-bottom: 38px; color: var(--blue); font-size: 11px; }
+    .workflow-step strong { display: block; margin-bottom: 6px; font-size: 15px; }
+    .workflow-step small { color: #77808f; font-size: 11px; line-height: 1.4; }
+    .workflow-step:nth-child(7) { background: var(--lime); border-color: transparent; }
+    .workflow-step:nth-child(7) b, .workflow-step:nth-child(7) small { color: var(--ink); }
+    .workflow-caption { display: grid; grid-template-columns: 1.1fr .9fr; gap: 30px; align-items: center; }
+    .workflow-caption p { margin: 0; font-size: clamp(17px, 1.7vw, 24px); line-height: 1.55; }
+    .workflow-caption aside { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+    .chip { padding: 10px 13px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 11px; font-weight: 800; }
+
+    .demo-layout { display: grid; grid-template-columns: .75fr 1.25fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+    .demo-sequence { counter-reset: demo; display: grid; gap: 13px; margin-top: 28px; }
+    .demo-sequence div { counter-increment: demo; display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .demo-sequence div::before { content: counter(demo, decimal-leading-zero); color: var(--blue); font-size: 11px; font-weight: 900; }
+    .demo-sequence strong { font-size: 14px; }
+    .demo-sequence span { color: #7b8492; font-size: 11px; }
+    .browser-mock { padding: 11px; border-radius: 23px; background: #111827; box-shadow: var(--shadow); transform: rotate(1deg); }
+    .browser-bar { display: flex; align-items: center; gap: 6px; height: 31px; padding: 0 5px; }
+    .browser-bar i { width: 8px; height: 8px; border-radius: 50%; background: #536075; }
+    .browser-bar span { flex: 1; margin-left: 7px; color: #8d98ab; font-size: 9px; text-align: center; }
+    .browser-mock img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 14px; }
+
+    .evidence-layout { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 72px); align-items: center; }
+    .evidence-card { position: relative; min-height: 400px; padding: 34px; border-radius: 28px; background: #fff; box-shadow: var(--shadow); }
+    .evidence-card::before, .evidence-card::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: #ded9cd; transform: rotate(-4deg); }
+    .evidence-card::after { background: #eae6dc; transform: rotate(3deg); }
+    .field-label { display: flex; justify-content: space-between; margin-bottom: 10px; color: #6b7280; font-size: 11px; font-weight: 800; }
+    .field-value { margin-bottom: 22px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 12px; font-size: 15px; font-weight: 750; }
+    .source-box { padding: 18px; border-left: 4px solid var(--lime); background: #f5f7f0; }
+    .source-box strong { display: block; margin-bottom: 8px; font-size: 12px; }
+    .source-box p { margin: 0; color: #5c6675; font-family: var(--serif); font-size: 14px; line-height: 1.7; }
+    .confidence { display: inline-flex; margin-top: 22px; padding: 8px 11px; border-radius: 999px; background: #eaf7ee; color: #247249; font-size: 11px; font-weight: 850; }
+    .benefit-list { display: grid; gap: 18px; }
+    .benefit-list article { padding-left: 18px; border-left: 3px solid var(--lime); }
+    .benefit-list h3 { margin-bottom: 7px; }
+    .benefit-list p { margin: 0; color: #667085; font-size: 14px; line-height: 1.6; }
+
+    .boundary { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: stretch; }
+    .boundary-card { padding: clamp(24px, 3vw, 42px); border-radius: 26px; }
+    .boundary-card.auto { background: var(--lime); color: var(--ink); }
+    .boundary-card.human { background: #fff; border: 1px solid rgba(255,255,255,.2); color: var(--ink); }
+    .boundary-card span { font-size: 11px; font-weight: 900; letter-spacing: .12em; }
+    .boundary-card h3 { margin: 28px 0 18px; font-family: var(--serif); font-size: clamp(26px, 3vw, 44px); }
+    .boundary-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 11px; }
+    .boundary-card li { padding-bottom: 11px; border-bottom: 1px solid rgba(16,24,39,.12); font-size: 13px; }
+    .boundary-mid { display: grid; place-items: center; color: #9ca8bb; font-size: 11px; font-weight: 900; writing-mode: vertical-rl; letter-spacing: .14em; }
+
+    .metric-card { min-height: 196px; }
+    .metric-card strong { display: block; margin-bottom: 12px; font-size: clamp(32px, 4vw, 56px); letter-spacing: -.055em; }
+    .metric-card span { display: block; margin-bottom: 24px; font-size: 12px; font-weight: 850; }
+    .metric-card p { margin: 0; color: #667085; font-size: 11px; line-height: 1.55; }
+    .metric-card.verified { background: var(--lime); border-color: transparent; }
+    .metric-card.placeholder { border-style: dashed; background: rgba(255,255,255,.42); }
+    [data-editable] { border-radius: 6px; outline: none; }
+    body.editing [data-editable] { background: rgba(41,92,255,.09); box-shadow: 0 0 0 4px rgba(41,92,255,.09); cursor: text; }
+    body.editing [data-editable]:focus { background: #fff; box-shadow: 0 0 0 4px rgba(41,92,255,.18); }
+    .data-warning { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: #fff4df; color: #7c5113; font-size: 12px; line-height: 1.55; }
+
+    .pricing-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(30px, 6vw, 84px); align-items: center; }
+    .price-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .price-card { min-height: 310px; padding: 28px; border: 1px solid var(--line); border-radius: 24px; background: rgba(255,255,255,.72); }
+    .price-card.recommended { background: var(--ink); color: white; transform: translateY(-15px); }
+    .price-card small { display: block; color: #7b8492; font-size: 11px; font-weight: 850; }
+    .price-card strong { display: block; margin: 58px 0 4px; font-size: clamp(35px, 4vw, 56px); letter-spacing: -.06em; }
+    .price-card span { color: #7b8492; font-size: 12px; }
+    .price-card p { margin: 28px 0 0; color: #7b8492; font-size: 12px; line-height: 1.65; }
+    .price-card.recommended small, .price-card.recommended span, .price-card.recommended p { color: #aeb8ca; }
+    .commercial-list { display: grid; gap: 15px; margin-top: 30px; }
+    .commercial-list div { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
+    .commercial-list b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--lime); font-size: 10px; }
+    .commercial-list strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .commercial-list span { color: #667085; font-size: 12px; line-height: 1.55; }
+
+    .ask-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(30px, 6vw, 90px); align-items: center; }
+    .ask-list { display: grid; gap: 12px; }
+    .ask-item { display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,.16); }
+    .ask-item b { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: var(--lime); color: var(--ink); font-size: 12px; }
+    .ask-item strong { display: block; margin-bottom: 3px; }
+    .ask-item span { color: #aeb8ca; font-size: 12px; }
+    .cta-box { padding: clamp(28px, 4vw, 50px); border-radius: 30px; background: var(--lime); color: var(--ink); }
+    .cta-box span { display: block; margin-bottom: 50px; font-size: 11px; font-weight: 900; letter-spacing: .12em; }
+    .cta-box strong { display: block; font-family: var(--serif); font-size: clamp(32px, 4.2vw, 62px); line-height: 1.05; letter-spacing: -.05em; }
+    .cta-box p { margin: 16px 0 0; color: #36410f; font-size: 14px; line-height: 1.6; }
+
+    .prep-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 13px; }
+    .prep-card { min-height: 186px; padding: 21px; }
+    .prep-card b { display: block; margin-bottom: 28px; color: var(--blue); font-size: 11px; }
+    .prep-card h3 { margin-bottom: 9px; font-size: 17px; }
+    .prep-card p { margin: 0; color: #667085; font-size: 11px; line-height: 1.55; }
+    .prep-card.urgent { border-color: rgba(198,61,54,.35); background: #fff7f5; }
+    .prep-card.urgent b { color: var(--red); }
+
+    .progress-shell { position: fixed; z-index: 31; left: clamp(18px, 3vw, 46px); right: clamp(18px, 3vw, 46px); bottom: 20px; display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; pointer-events: none; }
+    .progress { height: 3px; overflow: hidden; border-radius: 99px; background: rgba(16,24,39,.14); }
+    .progress span { display: block; width: 10%; height: 100%; background: var(--blue); transition: width .35s ease; }
+    .slide.dark ~ .progress-shell .progress { background: rgba(255,255,255,.18); }
+    .counter { min-width: 42px; color: #667085; font-size: 11px; font-weight: 800; text-align: right; }
+    .dark-active .topbar { color: white; }
+    .dark-active .brand small, .dark-active .counter { color: #aeb8ca; }
+    .dark-active .mark { background: var(--lime); color: var(--ink); }
+    .dark-active .tool-button { border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.08); color: white; }
+    .dark-active .progress { background: rgba(255,255,255,.2); }
+    .dark-active .progress span { background: var(--lime); }
+
+    .drawer {
+      position: fixed;
+      z-index: 50;
+      top: 0;
+      right: 0;
+      width: min(460px, 100vw);
+      height: 100dvh;
+      padding: 28px;
+      overflow: auto;
+      background: #fff;
+      box-shadow: -30px 0 90px rgba(10,20,30,.24);
+      transform: translateX(105%);
+      transition: transform .35s cubic-bezier(.2,.8,.2,1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+    .drawer-header h3 { margin: 0; font-size: 20px; }
+    .close { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: white; cursor: pointer; }
+    .checklist { display: grid; gap: 10px; }
+    .check-row { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 14px; border: 1px solid var(--line); border-radius: 14px; }
+    .check-row input { width: 18px; height: 18px; accent-color: var(--blue); }
+    .check-row strong { display: block; margin-bottom: 4px; font-size: 13px; }
+    .check-row span { color: #667085; font-size: 11px; line-height: 1.55; }
+    .note-content { color: #475467; font-size: 14px; line-height: 1.8; white-space: pre-line; }
+    .drawer-tip { margin-top: 22px; padding: 14px; border-radius: 12px; background: #eff3ff; color: #304a9a; font-size: 11px; line-height: 1.55; }
+
+    .help {
+      position: fixed;
+      z-index: 70;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(7,12,22,.68);
+      backdrop-filter: blur(10px);
+    }
+    .help.open { display: grid; }
+    .help-card { width: min(560px, 100%); padding: 30px; border-radius: 24px; background: white; box-shadow: var(--shadow); }
+    .help-card h3 { margin-bottom: 20px; }
+    .shortcut-grid { display: grid; grid-template-columns: auto 1fr; gap: 12px 20px; color: #667085; font-size: 13px; }
+    kbd { display: inline-grid; place-items: center; min-width: 30px; height: 28px; padding: 0 8px; border: 1px solid #d0d5dd; border-bottom-width: 3px; border-radius: 7px; background: #f8fafc; color: var(--ink); font-size: 11px; font-weight: 850; }
+
+    @media (max-width: 900px) {
+      .hero-grid, .demo-layout, .evidence-layout, .pricing-layout, .ask-grid, .workflow-caption { grid-template-columns: 1fr; }
+      .three-grid { grid-template-columns: 1fr; }
+      .four-grid, .prep-grid { grid-template-columns: 1fr 1fr; }
+      .workflow-rail { grid-template-columns: repeat(4, 1fr); }
+      .problem-card { min-height: 150px; }
+      .problem-card .num { margin-bottom: 18px; }
+      .hero-note { display: none; }
+      .demo-layout .browser-mock { max-width: 620px; }
+      .slide { overflow: auto; align-items: start; }
+      .hero-grid h1 > span { white-space: normal; }
+    }
+
+    @media (max-width: 600px) {
+      .brand small, .tool-button:nth-child(1), .tool-button:nth-child(2) { display: none; }
+      .slide { padding-left: 20px; padding-right: 20px; }
+      .four-grid, .prep-grid, .price-stack, .boundary { grid-template-columns: 1fr; }
+      .workflow-rail { grid-template-columns: repeat(2, 1fr); }
+      .boundary-mid { display: none; }
+      .prep-card { min-height: auto; }
+    }
+
+    @media print {
+      @page { size: 16in 9in; margin: 0; }
+      html, body { background: white; overflow: visible; }
+      .deck { width: auto; height: auto; overflow: visible; }
+      .deck::before, .topbar, .progress-shell, .drawer, .help { display: none !important; }
+      .slides { height: auto; }
+      .slide, .slide.active, .slide.before {
+        position: relative;
+        width: 16in;
+        height: 9in;
+        padding: .72in .9in;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        page-break-after: always;
+        overflow: hidden;
+      }
+      .slide-inner { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck" aria-label="WestoryVisa 路演幻灯片">
+    <header class="topbar">
+      <div class="brand"><span class="mark">WV</span><span class="brand-copy"><strong>WestoryVisa</strong><small>机构合作路演 · 2026</small></span></div>
+      <div class="top-actions">
+        <button class="tool-button" type="button" id="editButton">编辑资料</button>
+        <button class="tool-button" type="button" id="checklistButton">准备清单</button>
+        <button class="tool-button" type="button" id="notesButton">演讲备注</button>
+        <button class="tool-button" type="button" id="fullscreenButton">全屏</button>
+      </div>
+    </header>
+
+    <section class="slides" id="slides">
+      <article class="slide dark active" data-title="封面" data-notes="开场不要先讲 AI。先讲顾问每天面对的真实工作：材料散落、重复录入、进度无法交接。\n\n一句话版本：WestoryVisa 把客户材料变成一份有来源、可复核、可继续填写的 DS-160 工作流。">
+        <div class="slide-inner hero-grid">
+          <div>
+            <p class="kicker">From documents to a reviewable workflow</p>
+            <h1><span>让每一份客户材料，</span><span class="lime">都能清楚推进。</span></h1>
+            <p class="lead">WestoryVisa 为签证顾问与机构打造：材料读取、字段整理、缺失归集、风险复核，到 DS‑160 页面辅助填写。</p>
+            <span class="hero-pill"><i></i> 路演演示版 · 全程保留人工控制</span>
+          </div>
+          <aside class="hero-note">
+            <span>ONE-LINE PITCH</span>
+            <strong>一套可核查的<br>签证案件工作台</strong>
+            <p>不是替顾问做判断，而是把重复工作自动化，把判断依据留给人。</p>
+          </aside>
+        </div>
+      </article>
+
+      <article class="slide" data-title="问题" data-notes="这里讲三个具体场景，最好每个都配一个你亲眼见过的案例。不要说“行业效率低”，要说顾问具体在哪一步浪费时间。">
+        <div class="slide-inner">
+          <p class="kicker">The workflow is fragmented</p>
+          <h2>顾问真正缺的，不是又一个表格工具。</h2>
+          <div class="three-grid">
+            <article class="problem-card"><span class="num">01 / MATERIALS</span><h3>材料散在多个地方</h3><p>护照、学校文件、行程、聊天记录各自独立，已有答案仍被重复追问。</p></article>
+            <article class="problem-card"><span class="num">02 / RE-ENTRY</span><h3>同一信息反复录入</h3><p>从文件到内部表，再到 DS‑160 页面，复制、核对、回查都依赖人工记忆。</p></article>
+            <article class="problem-card"><span class="num">03 / HANDOFF</span><h3>交接时重新理解案件</h3><p>字段来自哪里、为什么修改、还有什么没确认，往往不在同一个地方。</p></article>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-title="方案" data-notes="这一页是产品全景。强调：每一步都在同一案件内留痕；系统推进客观字段，顾问负责事实核对和敏感判断。">
+        <div class="slide-inner">
+          <p class="kicker">One case, one continuous workflow</p>
+          <h2>从客户档案，到提交前核查。</h2>
+          <div class="workflow-rail" aria-label="WestoryVisa 八步工作流">
+            <div class="workflow-step"><b>01</b><strong>档案</strong><small>客户基础信息</small></div>
+            <div class="workflow-step"><b>02</b><strong>资料</strong><small>上传与识别</small></div>
+            <div class="workflow-step"><b>03</b><strong>整理</strong><small>自动结构化</small></div>
+            <div class="workflow-step"><b>04</b><strong>字段核查</strong><small>来源与置信度</small></div>
+            <div class="workflow-step"><b>05</b><strong>待确认项</strong><small>只问缺失内容</small></div>
+            <div class="workflow-step"><b>06</b><strong>风险复核</strong><small>冲突集中判断</small></div>
+            <div class="workflow-step"><b>07</b><strong>DS‑160 初稿</strong><small>页面结构映射</small></div>
+            <div class="workflow-step"><b>08</b><strong>核查清单</strong><small>提交前检查</small></div>
+          </div>
+          <div class="workflow-caption"><p>自动化负责持续推进，<strong>顾问把时间留给判断、沟通与服务。</strong></p><aside><span class="chip">案件内留痕</span><span class="chip">团队可交接</span><span class="chip">人工最终确认</span></aside></div>
+        </div>
+      </article>
+
+      <article class="slide" data-title="现场 Demo" data-notes="现场 Demo 控制在 4 分钟内。提前准备脱敏案件，不要上传真实护照。演示顺序：资料识别 → 字段证据 → 待确认项 → DS-160 初稿/执行台。\n\n若网络或第三方页面不可用，立即切换到这页的静态界面和录屏。">
+        <div class="slide-inner demo-layout">
+          <div>
+            <p class="kicker">A four-minute live demo</p>
+            <h2>不讲抽象能力，直接跑一个案件。</h2>
+            <div class="demo-sequence">
+              <div><strong>导入脱敏材料</strong><span>45 秒</span></div>
+              <div><strong>查看字段与原文证据</strong><span>60 秒</span></div>
+              <div><strong>处理缺失与冲突</strong><span>60 秒</span></div>
+              <div><strong>生成初稿并进入执行台</strong><span>75 秒</span></div>
+            </div>
+          </div>
+          <div class="browser-mock" aria-label="WestoryVisa 工作台截图">
+            <div class="browser-bar"><i></i><i></i><i></i><span>westoryvisa.com / workspace / demo-case</span></div>
+            <img src="assets/ds160-preview-ui-v1.png" alt="WestoryVisa DS-160 初稿预览界面">
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-title="可核查" data-notes="把“有证据”讲成产品差异，而不是技术细节。核心是顾问可以快速回答：这个答案从哪来？谁改过？还需不需要确认？">
+        <div class="slide-inner evidence-layout">
+          <div class="evidence-card" aria-label="字段证据示例">
+            <div class="field-label"><span>FIELD / SCHOOL NAME</span><span>已识别</span></div>
+            <div class="field-value">University of California, Berkeley</div>
+            <div class="field-label"><span>SOURCE</span><span>I‑20 · 第 1 页</span></div>
+            <div class="source-box"><strong>原文证据</strong><p>“This school has been approved by the Student and Exchange Visitor Program…”</p></div>
+            <span class="confidence">高置信度 · 等待人工核对</span>
+          </div>
+          <div>
+            <p class="kicker">Evidence travels with every field</p>
+            <h2>答案不是猜出来，<span class="blue">是找得到。</span></h2>
+            <div class="benefit-list">
+              <article><h3>字段绑定来源</h3><p>文件、页码与原文证据跟着字段保留。</p></article>
+              <article><h3>系统结果与人工修改分开</h3><p>二审只关注真正变化，不必重做全部工作。</p></article>
+              <article><h3>只追问缺失或冲突</h3><p>客户已有的信息不再重复询问。</p></article>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide dark" data-title="安全边界" data-notes="这一页要主动讲，不等观众质疑。不要承诺“全自动提交”。你的可信度来自清楚知道哪些事不能自动做。">
+        <div class="slide-inner">
+          <p class="kicker">Human-in-the-loop by design</p>
+          <h2>自动化有边界，责任才清楚。</h2>
+          <div class="boundary">
+            <section class="boundary-card auto"><span>SYSTEM ASSISTS</span><h3>系统可以辅助</h3><ul><li>材料识别、翻译与字段整理</li><li>来源绑定、缺失归集与冲突提示</li><li>DS‑160 初稿与可见页面白名单填写</li><li>过程记录与提交前核查清单</li></ul></section>
+            <div class="boundary-mid">CLEAR CONTROL LINE</div>
+            <section class="boundary-card human"><span>HUMAN DECIDES</span><h3>必须人工处理</h3><ul><li>验证码、账户凭证与登录</li><li>拒签、逾期、犯罪及安全背景判断</li><li>事实确认、法律声明与电子签名</li><li>政府费用、最终提交与结果责任</li></ul></section>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-title="证据与数据" data-notes="只有“约 8 分钟”是当前产品页明确披露的内部实测数据。其余三个位置必须在路演前用真实数据补上。\n\n点击右上角“编辑资料”，可直接修改并保存在这台电脑浏览器里。">
+        <div class="slide-inner">
+          <p class="kicker">Proof, not adjectives</p>
+          <h2>路演要用数据回答：<span class="blue">是否真的更快、更稳。</span></h2>
+          <div class="four-grid">
+            <article class="metric-card verified"><strong>约 8 分钟</strong><span>自动填写一份 DS‑160</span><p>内部实测参考；不含验证码、人工复核、电子签名与最终提交。</p></article>
+            <article class="metric-card placeholder"><strong data-editable="pilotCount">[待填写]</strong><span>试点机构 / 顾问数</span><p>建议口径：实际进入试点且有明确反馈的机构。</p></article>
+            <article class="metric-card placeholder"><strong data-editable="caseCount">[待填写]</strong><span>已跑通脱敏 / 真实案件</span><p>真实案件必须确认授权、隐私与处理边界。</p></article>
+            <article class="metric-card placeholder"><strong data-editable="timeSaved">[待填写]</strong><span>单案平均节省时间</span><p>建议用 10–30 个案件的前后对照，不使用主观估计。</p></article>
+          </div>
+          <p class="data-warning"><strong>不要临场编数字：</strong>没有留存、转化、准确率或客户评价证据时，直接说“正在试点验证”，可信度更高。</p>
+        </div>
+      </article>
+
+      <article class="slide" data-title="商业模式" data-notes="这是当前网站公开方案，不自动续费。路演时需要进一步解释：按机构还是按账号、是否限案件量、试点价与正式价如何衔接、服务成本是否可覆盖。">
+        <div class="slide-inner pricing-layout">
+          <div>
+            <p class="kicker">Simple starting model</p>
+            <h2>从机构订阅开始，先验证持续使用。</h2>
+            <div class="commercial-list">
+              <div><b>1</b><span><strong>机构级工作台</strong><span>案件、团队、订单与权限围绕机构组织。</span></span></div>
+              <div><b>2</b><span><strong>固定服务期限</strong><span>月度与年度均为一次性购买，不自动续费。</span></span></div>
+              <div><b>3</b><span><strong>试点验证价值</strong><span>先证明使用频率、节省时长与续费意愿，再扩展套餐。</span></span></div>
+            </div>
+          </div>
+          <div class="price-stack">
+            <article class="price-card"><small>30 DAYS</small><strong>¥199</strong><span>/ 30 天</span><p>材料识别、字段映射、客户补充、DS‑160 初稿与浏览器辅助。</p></article>
+            <article class="price-card recommended"><small>365 DAYS · CURRENT LISTING</small><strong>¥1,990</strong><span>/ 365 天</span><p>包含完整工作流、团队协作与数据导出；按当前页面为十个月价格。</p></article>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide dark" data-title="合作诉求" data-notes="把这一页改成你本次路演唯一、具体、能在会后推进的诉求。不要同时要投资、客户、渠道、技术合作和媒体曝光。\n\n推荐首次机构路演只要：3–5 家试点机构，4 周，每周一次反馈。">
+        <div class="slide-inner ask-grid">
+          <div>
+            <p class="kicker">A concrete next step</p>
+            <h2>这次路演，我们希望换来<span class="lime">可验证的合作。</span></h2>
+            <div class="ask-list">
+              <div class="ask-item"><b>01</b><span><strong data-editable="askTarget">3–5 家试点机构</strong><span>有稳定美签案件量、愿意提供流程反馈</span></span></div>
+              <div class="ask-item"><b>02</b><span><strong data-editable="pilotLength">4 周联合试点</strong><span>约定数据边界、反馈节奏与成功指标</span></span></div>
+              <div class="ask-item"><b>03</b><span><strong data-editable="successMetric">共同验证 3 个指标</strong><span>单案耗时、字段返工率、顾问持续使用率</span></span></div>
+            </div>
+          </div>
+          <div class="cta-box"><span>NEXT STEP</span><strong>现场约一次<br>30 分钟试点会。</strong><p data-editable="contact">联系人 / 微信 / 邮箱：[请填写]</p></div>
+        </div>
+      </article>
+
+      <article class="slide" data-title="上台前准备" data-notes="这页不用对外展示，可作为内部附录。真正上台前，应完成红色项，并至少彩排一次“网络断开、第三方页面打不开”的降级方案。">
+        <div class="slide-inner">
+          <p class="kicker">Internal appendix</p>
+          <h2>上台前，补齐这 8 件事。</h2>
+          <div class="prep-grid">
+            <article class="prep-card urgent"><b>01 · MUST</b><h3>明确听众与唯一诉求</h3><p>机构客户、渠道伙伴或投资人只能选一个主版本；最后一页只放一个下一步。</p></article>
+            <article class="prep-card urgent"><b>02 · MUST</b><h3>补真实牵引数据</h3><p>试点机构、案件数、节省时间、返工率与客户原话，全部保留计算口径。</p></article>
+            <article class="prep-card urgent"><b>03 · MUST</b><h3>完成运营主体资料</h3><p>法定名称、登记号、地址、客服联系方式尚未完成生产配置，真实支付当前关闭。</p></article>
+            <article class="prep-card urgent"><b>04 · MUST</b><h3>确认隐私与跨境处理</h3><p>真实材料试跑前，完成客户授权、供应商数据保留与敏感信息处理评审。</p></article>
+            <article class="prep-card"><b>05 · DEMO</b><h3>准备脱敏演示案件</h3><p>包含护照、学校/工作、行程等样本，同时准备已处理完的备用状态。</p></article>
+            <article class="prep-card"><b>06 · BACKUP</b><h3>准备录屏与离线版</h3><p>现场网络、模型或政府页面不可用时，30 秒内切换，不现场排障。</p></article>
+            <article class="prep-card"><b>07 · Q&amp;A</b><h3>预演 10 个尖锐问题</h3><p>准确率、数据安全、责任边界、竞品、定价、成本、部署和政府页面变化。</p></article>
+            <article class="prep-card"><b>08 · FOLLOW-UP</b><h3>会后 24 小时跟进</h3><p>准备试点方案、一页介绍、二维码/联系方式和下一次会议日程。</p></article>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="progress-shell" aria-label="演示进度"><div class="progress"><span id="progressBar"></span></div><span class="counter" id="counter">01 / 10</span></footer>
+  </main>
+
+  <aside class="drawer" id="checklistDrawer" aria-hidden="true">
+    <header class="drawer-header"><h3>路演准备清单</h3><button class="close" type="button" data-close-drawer aria-label="关闭">×</button></header>
+    <div class="checklist" id="checklist">
+      <label class="check-row"><input type="checkbox" data-check="audience"><span><strong>听众与目标已明确</strong><span>知道台下是谁，以及希望他们会后做什么。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="metrics"><span><strong>真实数据已补齐</strong><span>试点、案件、耗时与返工都有口径和证据。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="demo"><span><strong>脱敏 Demo 案件已跑通</strong><span>从材料到初稿全链路，敏感内容均为模拟数据。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="backup"><span><strong>录屏与离线备份已就绪</strong><span>第三方服务不可用时能立即切换。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="legal"><span><strong>运营主体与联系方式已确认</strong><span>公司资料、客服、条款、隐私与支付口径一致。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="privacy"><span><strong>隐私与数据处理口径已确认</strong><span>授权、跨境、数据保留、删除与供应商边界讲得清楚。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="qa"><span><strong>尖锐问答已彩排</strong><span>至少覆盖准确率、安全、责任、竞品、定价与部署。</span></span></label>
+      <label class="check-row"><input type="checkbox" data-check="followup"><span><strong>会后资料与预约入口已准备</strong><span>一页介绍、试点方案、联系方式和可预约时间。</span></span></label>
+    </div>
+    <p class="drawer-tip">勾选状态会保存在当前浏览器，不会上传到服务器。</p>
+  </aside>
+
+  <aside class="drawer" id="notesDrawer" aria-hidden="true">
+    <header class="drawer-header"><h3 id="noteTitle">演讲备注</h3><button class="close" type="button" data-close-drawer aria-label="关闭">×</button></header>
+    <div class="note-content" id="noteContent"></div>
+    <p class="drawer-tip">建议节奏：总时长 10–12 分钟；产品 Demo 不超过 4 分钟；最后留 10 分钟问答。</p>
+  </aside>
+
+  <div class="help" id="help" aria-hidden="true">
+    <section class="help-card">
+      <div class="drawer-header"><h3>演示快捷键</h3><button class="close" id="helpClose" type="button" aria-label="关闭">×</button></div>
+      <div class="shortcut-grid"><kbd>→ / Space</kbd><span>下一页</span><kbd>←</kbd><span>上一页</span><kbd>F</kbd><span>进入 / 退出全屏</span><kbd>N</kbd><span>演讲备注</span><kbd>E</kbd><span>编辑待补资料</span><kbd>P</kbd><span>打印或导出 PDF</span><kbd>?</kbd><span>打开快捷键帮助</span></div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const body = document.body;
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      const progressBar = document.getElementById('progressBar');
+      const deck = document.getElementById('deck');
+      const notesDrawer = document.getElementById('notesDrawer');
+      const checklistDrawer = document.getElementById('checklistDrawer');
+      const noteTitle = document.getElementById('noteTitle');
+      const noteContent = document.getElementById('noteContent');
+      const help = document.getElementById('help');
+      let current = Math.max(0, Math.min(slides.length - 1, Number(new URLSearchParams(location.search).get('slide') || 1) - 1));
+
+      function show(index, push = true) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === current);
+          slide.classList.toggle('before', i < current);
+          slide.setAttribute('aria-hidden', i === current ? 'false' : 'true');
+        });
+        const active = slides[current];
+        body.classList.toggle('dark-active', active.classList.contains('dark'));
+        counter.textContent = `${String(current + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+        progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+        noteTitle.textContent = `${String(current + 1).padStart(2, '0')} · ${active.dataset.title}`;
+        noteContent.textContent = (active.dataset.notes || '本页暂无备注。').replace(/\\n/g, '\n');
+        document.title = `WestoryVisa｜${active.dataset.title}`;
+        if (push) history.replaceState(null, '', `${location.pathname}?slide=${current + 1}`);
+      }
+
+      function closeDrawers() {
+        [notesDrawer, checklistDrawer].forEach(drawer => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); });
+      }
+      function toggleDrawer(drawer) {
+        const opening = !drawer.classList.contains('open');
+        closeDrawers();
+        if (opening) { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); }
+      }
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) deck.requestFullscreen?.(); else document.exitFullscreen?.();
+      }
+      function toggleEditing() {
+        const on = body.classList.toggle('editing');
+        document.getElementById('editButton').textContent = on ? '完成编辑' : '编辑资料';
+        document.querySelectorAll('[data-editable]').forEach(el => el.contentEditable = on ? 'true' : 'false');
+        if (on) {
+          const editableSlide = slides.findIndex(s => s.querySelector('[data-editable]'));
+          if (!slides[current].querySelector('[data-editable]')) show(editableSlide);
+        }
+      }
+
+      document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+      document.getElementById('notesButton').addEventListener('click', () => toggleDrawer(notesDrawer));
+      document.getElementById('checklistButton').addEventListener('click', () => toggleDrawer(checklistDrawer));
+      document.getElementById('editButton').addEventListener('click', toggleEditing);
+      document.querySelectorAll('[data-close-drawer]').forEach(btn => btn.addEventListener('click', closeDrawers));
+      document.getElementById('helpClose').addEventListener('click', () => { help.classList.remove('open'); help.setAttribute('aria-hidden', 'true'); });
+      help.addEventListener('click', event => { if (event.target === help) document.getElementById('helpClose').click(); });
+
+      document.addEventListener('keydown', event => {
+        const editing = body.classList.contains('editing') && event.target.matches('[contenteditable="true"]');
+        if (editing) return;
+        if (event.key === 'Escape') { closeDrawers(); help.classList.remove('open'); return; }
+        if (event.key === 'ArrowRight' || event.key === 'PageDown' || event.key === ' ') { event.preventDefault(); show(current + 1); }
+        if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); show(current - 1); }
+        if (event.key.toLowerCase() === 'f') toggleFullscreen();
+        if (event.key.toLowerCase() === 'n') toggleDrawer(notesDrawer);
+        if (event.key.toLowerCase() === 'e') toggleEditing();
+        if (event.key.toLowerCase() === 'p') window.print();
+        if (event.key === '?') { help.classList.add('open'); help.setAttribute('aria-hidden', 'false'); }
+        if (/^[0-9]$/.test(event.key)) { const n = Number(event.key); if (n > 0) show(n - 1); }
+      });
+
+      let touchStartX = 0;
+      deck.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, { passive: true });
+      deck.addEventListener('touchend', e => { const dx = e.changedTouches[0].screenX - touchStartX; if (Math.abs(dx) > 55) show(current + (dx < 0 ? 1 : -1)); }, { passive: true });
+
+      document.querySelectorAll('[data-editable]').forEach(el => {
+        const key = `wv-roadshow-edit-${el.dataset.editable}`;
+        const saved = localStorage.getItem(key);
+        if (saved) el.textContent = saved;
+        el.addEventListener('input', () => localStorage.setItem(key, el.textContent.trim()));
+      });
+
+      document.querySelectorAll('[data-check]').forEach(input => {
+        const key = `wv-roadshow-check-${input.dataset.check}`;
+        input.checked = localStorage.getItem(key) === 'true';
+        input.addEventListener('change', () => localStorage.setItem(key, String(input.checked)));
+      });
+
+      show(current, false);
+    })();
+  </script>
+</body>
+</html>
