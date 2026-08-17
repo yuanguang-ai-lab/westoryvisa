@@ -111,7 +111,7 @@
         detail.textContent = "请直接在下方选择月度或年度会员并购买；支付确认到账后自动开通工作台。";
         badge.textContent = "未开通";
       }
-      if (!billing.gateway.configured) {
+      if (!membership.active && !billing.gateway.configured) {
         showNotice(billing.gateway.message || "支付通道正在接入。", "warning");
       }
       syncCheckoutAvailability();
@@ -147,12 +147,9 @@
       if (params.get("auth") === "registered") {
         showNotice("账号已创建。请直接在本页选择方案并购买，支付到账后即可进入工作台。", "success");
       } else if (params.get("auth") === "logged-in" || params.get("access") === "required") {
-        showNotice(
-          membership.active
-            ? "登录成功，你的会员有效，可以进入工作台。"
-            : "登录成功。请直接在本页选择月付或年付并完成购买。",
-          membership.active ? "success" : "warning"
-        );
+        if (!membership.active) {
+          showNotice("当前账号尚未开通会员，请选择月付或年付方案。", "warning");
+        }
       } else if (params.get("checkout") === "success") {
         showNotice("购买已提交。支付确认到账后，会员状态会在本页自动更新。", "success");
       } else if (params.get("checkout") === "cancelled") {

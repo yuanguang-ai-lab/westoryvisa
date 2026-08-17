@@ -1,80 +1,107 @@
-const PRODUCT_API = globalThis.DocFlowApi?.apiBaseUrl || "/api";
-
 const DEMO_STAGES = [
   {
-    title: "客户档案", eyebrow: "01 · 档案", description: "建立客户基本档案，签证类型、时间节点和所有后续材料沿同一案件持续流转。",
-    stats: [["3", "进行中案件"], ["72%", "当前案件进度"], ["F-1", "签证类型"], ["10", "完整流程阶段"]],
-    mainTitle: "客户案件", badge: "档案已建立",
-    rows: [["林然 · F-1", "创建于 7 月 12 日", "资料整理中", "进行中"], ["周文 · B1/B2", "创建于 7 月 10 日", "待确认项", "等待客户"], ["陈屿 · J-1", "创建于 7 月 8 日", "上传资料", "进行中"]],
-    sideTitle: "当前案件", side: [["01", "客户身份", "基本信息已建立"], ["02", "签证路径", "F-1 学生签证"], ["03", "目标进度", "DS-160 与预约资料"]]
+    title: "客户档案", eyebrow: "01 · 档案", description: "建立客户档案后，签证类型、负责人、时间节点和后续材料始终沿同一案件流转。", status: "3 个进行中案件",
+    rows: [["客户 A-1024 · F-1", "近期建立", "资料整理中", "进行中"], ["客户 B-2086 · B1/B2", "等待补充", "等待客户补充", "待确认"], ["客户 C-3168 · J-1", "字段处理中", "字段核查", "进行中"]],
+    side: [["负责人", "顾问 01"], ["签证路径", "F-1 学生签证"], ["目标日期", "2027-06-18"], ["当前进度", "72%"]]
   },
   {
-    title: "客户资料", eyebrow: "02 · 资料", description: "先读取客户已经提供的材料，护照、I-20、身份证和行程资料自动进入案件。",
-    stats: [["3", "已上传文件"], ["42", "已提取字段"], ["100%", "识别完成"], ["0", "重复询问"]],
-    mainTitle: "材料识别", badge: "全部完成",
-    rows: [["Passport_sample.pdf", "护照 · 12 个字段", "DeepSeek 结构化", "完成"], ["I-20_sample.pdf", "学校与 SEVIS · 17 个字段", "版面识别", "完成"], ["National_ID_sample.jpg", "身份与地址 · 8 个字段", "图像识别", "完成"]],
-    sideTitle: "自动处理", side: [["AI", "材料理解", "识别文件内容与证据"], ["译", "中英整理", "统一字段表达"], ["源", "保留来源", "可回看文件与页码"]]
+    title: "客户资料", eyebrow: "02 · 资料", description: "护照、I-20、身份证和行程资料进入同一案件，系统保留文件、页码和原文证据。", status: "3 / 3 已读取",
+    rows: [["Passport_A1024_masked.pdf", "护照 · 12 个字段", "DeepSeek 结构化", "完成"], ["I-20_A1024_masked.pdf", "学校与 SEVIS · 17 个字段", "版面识别", "完成"], ["National_ID_A1024_masked.jpg", "身份与地址 · 8 个字段", "图像识别", "完成"]],
+    side: [["已提取字段", "42"], ["识别失败", "0"], ["重复材料", "0"], ["最新处理", "刚刚"]]
   },
   {
-    title: "材料整理", eyebrow: "03 · 整理", description: "DeepSeek 自动理解、翻译和结构化材料内容，再把结果合并到统一字段体系。",
-    stats: [["42", "已整理字段"], ["3", "来源文件"], ["6", "发现缺失项"], ["1", "处理流程"]],
-    mainTitle: "自动整理队列", badge: "RPA 运行中",
+    title: "材料整理", eyebrow: "03 · 整理", description: "DeepSeek 理解并翻译材料内容，RPA 把结果合并到统一的 DS-160 字段体系。", status: "自动整理中",
     rows: [["身份与护照", "12 个字段", "来源证据已绑定", "完成"], ["学校与 SEVIS", "17 个字段", "英文原文已保留", "完成"], ["旅行与联系方式", "13 个字段", "正在合并", "处理中"]],
-    sideTitle: "模型分工", side: [["D", "DeepSeek", "理解与结构化字段"], ["R", "RPA", "推进重复操作"], ["G", "Gemini", "观察可见页面"]]
+    side: [["DeepSeek", "材料理解"], ["RPA", "重复操作"], ["Gemini", "页面观察"], ["异常处理", "自动暂停"]]
   },
   {
-    title: "字段核查", eyebrow: "04 · 字段核查", description: "字段、来源、置信状态和差异集中展示，已确认内容保持安静。",
-    stats: [["42", "整理字段"], ["39", "无需处理"], ["2", "待核查"], ["1", "信息冲突"]],
-    mainTitle: "重点字段", badge: "仅 3 项待处理",
-    rows: [["预计抵达日期", "行程单 / 客户补充", "18 JUL / 20 JUL", "信息冲突", "danger"], ["曾用名拼写", "护照第 1 页", "需要核对", "待确认", "warn"], ["美国联系人", "I-20 第 1 页", "学校联系人", "置信度高"]],
-    sideTitle: "核查依据", side: [["源", "字段来源", "文件、页码与原文"], ["信", "置信状态", "高、中、待确认"], ["史", "修改记录", "保留人工更正"]]
+    title: "字段核查", eyebrow: "04 · 字段核查", description: "只把有冲突、低置信度或缺少来源的字段交给顾问处理，已确认内容保持安静。", status: "3 项需要处理",
+    rows: [["预计抵达日期", "行程单 / 客户补充", "18 JUL / 20 JUL", "信息冲突", "danger"], ["曾用名拼写", "护照第 1 页", "需要核对", "待确认", "warn"], ["美国联系人", "I-20 第 1 页", "学校联系人", "已确认"]],
+    side: [["整理字段", "42"], ["无需处理", "39"], ["待核查", "2"], ["信息冲突", "1"]]
   },
   {
-    title: "待确认项", eyebrow: "05 · 待确认项", description: "系统只生成真正缺失或需要澄清的问题，已有信息不再向客户重复询问。",
-    stats: [["6", "需要补充"], ["42", "无需再问"], ["4", "客户已回答"], ["2", "等待回答"]],
-    mainTitle: "客户补充问题", badge: "只问缺失内容",
-    rows: [["过去五年出境记录", "材料未提供", "等待客户回答", "待补充", "warn"], ["美国联系人电话", "I-20 缺少号码", "已生成问题", "待补充", "warn"], ["预计停留时间", "行程信息", "客户已确认 120 天", "已完成"]],
-    sideTitle: "自动问卷", side: [["少", "减少问题", "已有字段自动跳过"], ["合", "合并追问", "同类问题集中发送"], ["回", "答案回流", "自动进入字段核查"]]
+    title: "待确认项", eyebrow: "05 · 待确认项", description: "系统只生成真正缺失或需要澄清的问题，客户已经提供过的信息不会重复询问。", status: "2 项等待回答",
+    rows: [["过去五年出境记录", "材料未提供", "等待客户回答", "待补充", "warn"], ["美国联系人电话", "I-20 缺少号码", "已生成问题", "待补充", "warn"], ["预计停留时间", "行程信息", "120 天", "已完成"]],
+    side: [["需要补充", "6"], ["客户已回答", "4"], ["无需再问", "42"], ["链接有效期", "48 小时"]]
   },
   {
-    title: "风险复核", eyebrow: "06 · 风险复核", description: "冲突、敏感背景和异常字段提前归集，真正需要专业判断的内容留给顾问。",
-    stats: [["3", "复核项目"], ["1", "日期冲突"], ["1", "敏感问题"], ["39", "稳定字段"]],
-    mainTitle: "风险与冲突", badge: "顾问复核",
-    rows: [["旅行日期不一致", "行程单 / 补充答案", "差异 2 天", "需要判断", "danger"], ["安全背景问题", "客户本人陈述", "必须逐项确认", "敏感内容", "warn"], ["曾用名英文拼写", "护照 / 旧材料", "差异已解释", "已解决"]],
-    sideTitle: "人工边界", side: [["停", "异常即暂停", "不会带错继续"], ["核", "敏感项确认", "由顾问逐项判断"], ["接", "随时接管", "控制权始终可收回"]]
+    title: "风险复核", eyebrow: "06 · 风险复核", description: "冲突、敏感背景和异常字段提前归集；需要专业判断的内容始终留给顾问。", status: "顾问复核",
+    rows: [["旅行日期不一致", "行程单 / 补充答案", "相差 2 天", "需要判断", "danger"], ["安全背景问题", "客户本人陈述", "必须逐项确认", "敏感内容", "warn"], ["曾用名英文拼写", "护照 / 旧材料", "差异已解释", "已解决"]],
+    side: [["复核项目", "3"], ["日期冲突", "1"], ["敏感问题", "1"], ["稳定字段", "39"]]
   },
   {
-    title: "DS-160 初稿", eyebrow: "07 · DS-160 初稿", description: "确认后的结果直接进入 DS-160 页面结构，不停留在孤立的 OCR、表格或问卷中。",
-    stats: [["42", "已确认字段"], ["8", "页面模块"], ["6", "待确认项"], ["86%", "初稿完成度"]],
-    mainTitle: "DS-160 页面结构", badge: "初稿已生成",
-    rows: [["Personal Information", "12 / 12 字段", "来源已核对", "完成"], ["Travel Information", "8 / 10 字段", "2 项待确认", "进行中", "warn"], ["Work / Education", "11 / 13 字段", "学校信息已整理", "进行中"]],
-    sideTitle: "填写准备", side: [["页", "按页面组织", "对应 DS-160 结构"], ["源", "字段可追溯", "填写前仍可回看"], ["核", "确认后推进", "不跳过未决问题"]]
+    title: "DS-160 初稿", eyebrow: "07 · DS-160 初稿", description: "按 DS-160 模块形成可复核初稿，并从同一案件进入 Computer Use 逐页填写执行台。", status: "初稿已生成"
   },
   {
-    title: "核查清单", eyebrow: "08 · 核查清单", description: "在进入页面辅助前形成完整核查清单，让顾问一次看清未决问题和关键操作。",
-    stats: [["28", "检查项目"], ["24", "已经通过"], ["3", "需要确认"], ["1", "人工操作"]],
-    mainTitle: "提交前核查", badge: "24 / 28 通过",
+    title: "核查清单", eyebrow: "08 · 核查清单", description: "在离开系统前集中核对来源、未决问题与人工操作边界，形成可导出的审计清单。", status: "24 / 28 已通过",
     rows: [["身份与护照一致性", "12 项检查", "全部匹配", "通过"], ["旅行信息完整性", "8 项检查", "2 项待确认", "核查中", "warn"], ["安全背景逐项确认", "顾问负责", "尚未最终确认", "人工确认", "danger"]],
-    sideTitle: "必须人工", side: [["码", "验证码", "不绕过"], ["签", "电子签名", "不替客户完成"], ["交", "最终提交", "由顾问决定"]]
-  },
-  {
-    title: "预约开户", eyebrow: "09 · 预约开户", description: "DS-160 流程完成后，继续准备预约系统所需账户资料，不必重新搬运同一批信息。",
-    stats: [["1", "预约档案"], ["9", "可复用字段"], ["2", "待确认项"], ["0", "重复录入"]],
-    mainTitle: "预约账户准备", badge: "资料可复用",
-    rows: [["账户邮箱", "客户确认", "linran@example.test", "就绪"], ["护照身份", "沿用已核查字段", "姓名与号码一致", "就绪"], ["安全验证方式", "需要顾问选择", "尚未设置", "待确认", "warn"]],
-    sideTitle: "连续推进", side: [["复", "复用字段", "不再手工搬运"], ["验", "关键验证", "保留人工完成"], ["停", "页面异常", "识别后自动暂停"]]
-  },
-  {
-    title: "预约资料", eyebrow: "10 · 预约资料", description: "把预约所需信息整理在同一案件中，形成从材料到后续预约准备的完整闭环。",
-    stats: [["9", "预约字段"], ["7", "已经就绪"], ["2", "顾问确认"], ["100%", "来源可追溯"]],
-    mainTitle: "预约资料包", badge: "最后准备阶段",
-    rows: [["申请人与护照信息", "沿用案件档案", "已核查", "就绪"], ["DS-160 确认信息", "初稿流程结果", "等待确认页", "待确认", "warn"], ["预约地点与时间", "顾问选择", "尚未决定", "人工处理", "danger"]],
-    sideTitle: "流程结果", side: [["10", "十阶段贯通", "同一案件持续推进"], ["8m", "内部模拟测试", "约 8 分钟跑通"], ["人", "顾问最终掌控", "关键步骤不越过"]]
+    side: [["检查项目", "28"], ["已经通过", "24"], ["需要确认", "3"], ["人工操作", "1"]]
   }
 ];
 
-function renderRows(rows) {
-  return rows.map((row) => `<div class="data-row"><div><strong>${row[0]}</strong><small>${row[1]}</small></div><span>${row[2]}</span><em class="${row[4] || ""}">${row[3]}</em></div>`).join("");
+let demoStageMode = "preview";
+
+function escapeDemo(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character]);
+}
+
+function renderModeSwitch(active) {
+  return `<div class="demo-mode-switch" aria-label="DS-160 视图切换">
+    <button type="button" class="${active === "preview" ? "active" : ""}" data-demo-mode="preview">初稿预览</button>
+    <button type="button" class="${active === "computer" ? "active" : ""}" data-demo-mode="computer">Computer Use 执行台</button>
+  </div>`;
+}
+
+function renderDraftPreview() {
+  return `
+    <div class="real-screen-toolbar"><div><span>⌂</span> 工作台</div><i>/</i><div>← 上一步</div>${renderModeSwitch("preview")}</div>
+    <div class="draft-hero">
+      <span>B1/B2 访问签证</span>
+      <h3>DS-160 初稿预览</h3>
+      <p>按 DS-160 模块展示可复核的填写初稿。敏感背景问题仅显示提醒，不自动代填。</p>
+      <div>客户 A-1024　负责人：顾问 01　初稿已生成　B1/B2 访问签证　更新于 2026年8月16日 14:30</div>
+    </div>
+    <div class="draft-boundary">初稿仅供中介人员核查。Computer Use 可以在可见 Chrome 中辅助写入 CEAC，但验证码、敏感背景判断、电子签名和最终提交必须由人工完成。</div>
+    <div class="draft-grid">
+      <section class="draft-card draft-card-wide"><header><h4>申请信息</h4><span>8 个模块</span></header><div class="draft-field"><span>计划申请的使领馆国家 / 地区</span><strong>CHINA</strong><em>待人工核查</em></div><div class="draft-field"><span>签证类型 / 访问目的</span><strong>B1/B2 访问签证</strong><em class="ok">已确认</em></div><div class="draft-field"><span>预计抵达美国日期</span><strong>2027-06-18</strong><em class="ok">已确认</em></div></section>
+      <section class="draft-card"><header><h4>基础信息</h4><span>来源可追溯</span></header><div class="draft-field stacked"><span>姓（Surname）</span><strong>W***</strong></div><div class="draft-field stacked"><span>名（Given Names）</span><strong>A***</strong></div><div class="draft-field stacked"><span>出生日期</span><strong>2001-08-19</strong></div><div class="draft-field stacked"><span>性别</span><strong>MALE</strong></div></section>
+    </div>
+    <button class="demo-primary-action" type="button" data-demo-mode="computer">查看 Computer Use 逐页填写界面 →</button>`;
+}
+
+function renderComputerUse() {
+  const fields = [["基础信息 · 姓（Surname）", "W***"], ["基础信息 · 名（Given Names）", "A***"], ["基础信息 · 出生日期", "2001-08-19"], ["护照信息 · 护照号码", "P•••••••1"], ["护照信息 · 护照有效期至", "2031-05-26"], ["旅行信息 · 签证类型 / 访问目的", "B1/B2 访问签证"], ["旅行信息 · 预计抵达日期", "2027-06-18"], ["美国联系人 · 地址", "Seattle, WA 98***"]];
+  return `
+    <div class="real-screen-toolbar"><div><span>⌂</span> 工作台</div><i>/</i><div>← DS-160 初稿</div>${renderModeSwitch("computer")}</div>
+    <section class="computer-banner"><div><i></i><strong>Codex Computer Use</strong><span>系统级可见操作 · 无需 Chrome 扩展</span></div><div><em>任务已准备</em><span>0%</span></div></section>
+    <section class="computer-ready"><strong>Computer Use 执行通道已就绪</strong><span>WestoryVisa 只准备短时字段任务并打开 CEAC；实际点击、输入、下拉选择与页面复读由 Codex Desktop 的 Computer Use 完成。</span></section>
+    <div class="computer-workspace">
+      <main class="computer-main">
+        <header><div><span>CURRENT SCOPE</span><h3>当前客户的逐页字段计划</h3></div><em>60 分钟本机任务</em></header>
+        <div class="computer-flow">${[["整理字段", "生成当前档案白名单"], ["准备任务", "打开官方起始页"], ["人工进入", "验证码与初始步骤"], ["可见填写", "逐项复读并受控 Next"], ["人工核查", "敏感或未映射页暂停"]].map(([title, copy], index) => `<div class="${index === 0 ? "active" : ""}"><i>${index + 1}</i><strong>${title}</strong><span>${copy}</span></div>`).join("")}</div>
+        <section class="computer-field-plan"><header><div><span>FIELD PLAN</span><h3>可交接信息预览</h3></div><strong>24 项预览</strong></header>${fields.map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join("")}</section>
+      </main>
+      <aside class="computer-console">
+        <header><div><span>LOCAL COMPUTER</span><h3>当前执行状态</h3></div><em>WORKFLOW V4</em></header>
+        <div class="console-progress"><div><span>字段进度</span><strong>0%</strong></div><i><b></b></i><p>准备好后从这里打开 CEAC</p></div>
+        <div class="console-grid"><div><span>Agent</span><strong>Computer Use</strong></div><div><span>Browser</span><strong>当前 Chrome</strong></div><div><span>节奏</span><strong>0.9–1.5s</strong></div><div><span>Next</span><strong>核验后</strong></div></div>
+        <div class="console-line"><span>目标网站</span><strong>ceac.state.gov/GenNIV</strong></div>
+        <div class="console-line console-route"><span>已记录页面路径</span><strong>0</strong><small>已映射 0 · 当前尚未捕获表格路径</small></div>
+        <div class="console-note"><strong>尚未准备本机任务</strong><span>一次性令牌只保存在当前页面内存中，任务关闭后服务器会擦除字段值。</span></div>
+        <div class="console-toggle"><span><strong>普通页面连续填写</strong><small>全部复读无误后才点击 Next</small></span><i></i></div>
+        <button type="button" disabled aria-disabled="true">准备任务并打开 CEAC</button>
+      </aside>
+    </div>`;
+}
+
+function renderStandardStage(stage, index) {
+  return `
+    <div class="real-screen-toolbar"><div><span>⌂</span> 工作台</div><i>/</i><div>← 上一步</div></div>
+    <div class="screen-top real-screen-top"><div class="screen-title"><span>${escapeDemo(stage.eyebrow)}</span><h3>${escapeDemo(stage.title)}</h3><p>${escapeDemo(stage.description)}</p></div><div class="screen-meta"><span>客户 A-1024 · B1/B2</span><strong>${escapeDemo(stage.status)}</strong><small>自动保存 · 刚刚</small></div></div>
+    <div class="screen-grid real-screen-grid">
+      <section class="screen-card real-data-card"><header class="card-head"><strong>${index === 7 ? "提交前核查" : "当前工作区"}</strong><span>${escapeDemo(stage.status)}</span></header><div class="data-rows">${stage.rows.map((row) => `<div class="data-row"><div><strong>${escapeDemo(row[0])}</strong><small>${escapeDemo(row[1])}</small></div><span>${escapeDemo(row[2])}</span><em class="${escapeDemo(row[4] || "")}">${escapeDemo(row[3])}</em></div>`).join("")}</div></section>
+      <section class="screen-card real-summary-card"><header class="card-head"><strong>案件摘要</strong><span>${index + 1} / ${DEMO_STAGES.length}</span></header><div class="summary-list">${stage.side.map(([label, value]) => `<div><span>${escapeDemo(label)}</span><strong>${escapeDemo(value)}</strong></div>`).join("")}</div></section>
+    </div>`;
 }
 
 function renderStage(stage, index) {
@@ -82,17 +109,10 @@ function renderStage(stage, index) {
   if (!screen) return;
   screen.setAttribute("aria-labelledby", `flowTab${index}`);
   screen.dataset.demoStage = String(index);
-  screen.innerHTML = `
-    <div class="screen-top">
-      <div class="screen-title"><span>${stage.eyebrow}</span><h3>${stage.title}</h3><p>${stage.description}</p></div>
-      <div class="screen-meta"><span>模拟案件</span><strong>林然 · F-1</strong><small>自动保存 · 刚刚</small></div>
-    </div>
-    <div class="screen-stats">${stage.stats.map((item) => `<div><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("")}</div>
-    <div class="screen-grid">
-      <section class="screen-card"><header class="card-head"><strong>${stage.mainTitle}</strong><span>${stage.badge}</span></header><div class="data-rows">${renderRows(stage.rows)}</div></section>
-      <section class="screen-card"><header class="card-head"><strong>${stage.sideTitle}</strong><span>自动同步</span></header><div class="side-list">${stage.side.map((item) => `<div class="side-item"><i>${item[0]}</i><div><strong>${item[1]}</strong><small>${item[2]}</small></div></div>`).join("")}</div></section>
-      <section class="screen-card wide-card"><header class="card-head"><strong>案件完整进度</strong><span>${index + 1} / ${DEMO_STAGES.length}</span></header><div class="timeline">${DEMO_STAGES.slice(Math.max(0, Math.min(index - 2, 5)), Math.max(0, Math.min(index - 2, 5)) + 5).map((item, visibleIndex) => { const absolute = Math.max(0, Math.min(index - 2, 5)) + visibleIndex; return `<div class="${absolute === index ? "active" : ""}"><strong>${String(absolute + 1).padStart(2, "0")} · ${item.title}</strong><small>${absolute < index ? "已完成" : absolute === index ? "当前阶段" : "等待推进"}</small></div>`; }).join("")}</div></section>
-    </div>`;
+  if (index !== 6) demoStageMode = "preview";
+  screen.innerHTML = index === 6
+    ? (demoStageMode === "computer" ? renderComputerUse() : renderDraftPreview())
+    : renderStandardStage(stage, index);
 }
 
 function initializeDemo() {
@@ -102,14 +122,39 @@ function initializeDemo() {
   const toggle = player.querySelector("#demoToggle");
   const progress = player.querySelector("#demoProgress");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const duration = 5200;
+  const duration = 6200;
   let current = 0;
   let elapsed = 0;
   let previousTime = 0;
   let visible = false;
   let wantsPlay = !reducedMotion.matches;
 
+  player.addEventListener("click", (event) => {
+    const allowedControl = event.target.closest("[data-demo-chapter], [data-demo-mode], #demoToggle");
+    if (allowedControl) return;
+    if (event.target.closest("a, button")) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
   const isPlaying = () => wantsPlay && visible && !reducedMotion.matches;
+  const wireModeButtons = () => {
+    player.querySelectorAll("[data-demo-mode]").forEach((button) => button.addEventListener("click", () => {
+      demoStageMode = button.dataset.demoMode;
+      wantsPlay = false;
+      elapsed = 0;
+      renderStage(DEMO_STAGES[6], 6);
+      wireModeButtons();
+      updatePlayback();
+    }));
+  };
+  const updatePlayback = () => {
+    progress.style.width = `${Math.min(100, ((current * duration + elapsed) / (DEMO_STAGES.length * duration)) * 100)}%`;
+    toggle.classList.toggle("paused", !isPlaying());
+    toggle.querySelector("span").textContent = isPlaying() ? "暂停自动播放" : "继续自动播放";
+    toggle.setAttribute("aria-label", isPlaying() ? "暂停自动播放" : "继续自动播放");
+  };
   const update = () => {
     tabs.forEach((tab, index) => {
       const active = index === current;
@@ -118,37 +163,36 @@ function initializeDemo() {
       tab.tabIndex = active ? 0 : -1;
     });
     renderStage(DEMO_STAGES[current], current);
-    progress.style.width = `${Math.min(100, ((current * duration + elapsed) / (DEMO_STAGES.length * duration)) * 100)}%`;
-    toggle.classList.toggle("paused", !isPlaying());
-    toggle.querySelector("span").textContent = isPlaying() ? "暂停自动播放" : "继续自动播放";
-    toggle.setAttribute("aria-label", isPlaying() ? "暂停自动播放" : "继续自动播放");
+    wireModeButtons();
+    updatePlayback();
   };
   const select = (index, focus = false) => {
     current = (index + DEMO_STAGES.length) % DEMO_STAGES.length;
     elapsed = 0;
     update();
-    tabs[current].scrollIntoView({ block: "nearest", inline: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
+    tabs[current].scrollIntoView({ block: "nearest", inline: "nearest", behavior: reducedMotion.matches ? "auto" : "smooth" });
     if (focus) tabs[current].focus();
   };
   tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => select(index));
+    tab.addEventListener("click", () => { wantsPlay = false; select(index); });
     tab.addEventListener("keydown", (event) => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
+      wantsPlay = false;
       if (event.key === "Home") select(0, true);
       else if (event.key === "End") select(tabs.length - 1, true);
-      else select(index + (event.key === "ArrowRight" ? 1 : -1), true);
+      else select(index + (["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1), true);
     });
   });
-  toggle.addEventListener("click", () => { wantsPlay = !wantsPlay; update(); });
-  reducedMotion.addEventListener?.("change", (event) => { if (event.matches) wantsPlay = false; update(); });
-  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting && entry.intersectionRatio > .15; update(); }, { threshold: [0, .15, .5] }).observe(player);
+  toggle.addEventListener("click", () => { wantsPlay = !wantsPlay; updatePlayback(); });
+  reducedMotion.addEventListener?.("change", (event) => { if (event.matches) wantsPlay = false; updatePlayback(); });
+  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting && entry.intersectionRatio > .15; updatePlayback(); }, { threshold: [0, .15, .5] }).observe(player);
   const tick = (time) => {
     if (!previousTime) previousTime = time;
     if (isPlaying()) {
       elapsed += time - previousTime;
       if (elapsed >= duration) select(current + 1);
-      else progress.style.width = `${Math.min(100, ((current * duration + elapsed) / (DEMO_STAGES.length * duration)) * 100)}%`;
+      else updatePlayback();
     }
     previousTime = time;
     requestAnimationFrame(tick);
@@ -172,17 +216,50 @@ function initializeNavigation() {
   document.addEventListener("keydown", (event) => { if (event.key === "Escape") setOpen(false); });
 }
 
-async function loadPublicConfiguration() {
-  if (!globalThis.DocFlowApi || window.location.protocol === "file:") return;
-  try {
-    const response = await DocFlowApi.request(`${PRODUCT_API}/product/config`, { cache: "no-store" });
-    if (!response.ok) throw new Error("Public configuration unavailable");
-    await response.json();
-  } catch (_error) {
-    // The public demonstration remains fully usable without server configuration.
-  }
+function initializeFeatureCarousel() {
+  const track = document.querySelector("#featureCarousel");
+  const previous = document.querySelector("#detailPrev");
+  const next = document.querySelector("#detailNext");
+  if (!track || !previous || !next) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const card = track.querySelector(".feature-card");
+  const step = () => Math.max(280, Math.min(track.clientWidth * .82, (card?.getBoundingClientRect().width || 360) + 22));
+  const update = () => {
+    previous.disabled = track.scrollLeft < 8;
+    next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
+  };
+  const move = (direction) => track.scrollBy({ left: direction * step(), behavior: reducedMotion.matches ? "auto" : "smooth" });
+
+  previous.addEventListener("click", () => move(-1));
+  next.addEventListener("click", () => move(1));
+  track.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", update, { passive: true });
+
+  let dragging = false;
+  let startX = 0;
+  let startScroll = 0;
+  track.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch") return;
+    dragging = true;
+    startX = event.clientX;
+    startScroll = track.scrollLeft;
+    track.classList.add("dragging");
+    track.setPointerCapture(event.pointerId);
+  });
+  track.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+    track.scrollLeft = startScroll - (event.clientX - startX);
+  });
+  const stopDragging = () => {
+    dragging = false;
+    track.classList.remove("dragging");
+  };
+  track.addEventListener("pointerup", stopDragging);
+  track.addEventListener("pointercancel", stopDragging);
+  update();
 }
 
 initializeNavigation();
 initializeDemo();
-loadPublicConfiguration();
+initializeFeatureCarousel();
