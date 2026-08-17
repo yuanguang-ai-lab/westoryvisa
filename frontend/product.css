@@ -533,7 +533,12 @@ button { cursor: pointer; }
   .computer-workspace, .draft-grid { grid-template-columns: 1fr; }
   .computer-console { min-height: 520px; }
   .real-screen-grid { grid-template-columns: 1fr; }
-  .feature-card { flex-basis: clamp(320px, 43vw, 410px); }
+  .feature-card {
+    flex-basis: clamp(300px, 37vw, 350px);
+    height: clamp(455px, 49vw, 500px);
+    padding: 32px 28px 26px;
+    border-radius: 28px;
+  }
   .brand-story { grid-template-columns: 1fr; }
   .product-shot-stack { min-height: 620px; }
   .global-story h3 { width: auto; }
