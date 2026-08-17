@@ -6,9 +6,7 @@ const STEP_LABELS = [
   "待确认项",
   "风险复核",
   "DS-160 初稿",
-  "核查清单",
-  "预约开户",
-  "预约资料"
+  "核查清单"
 ];
 
 const UPLOAD_SLOTS = [
