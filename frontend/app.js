@@ -63,6 +63,7 @@ const state = {
   mailService: null,
   screenAgentRuntime: null,
   membership: null,
+  membershipBypass: false,
   registrationVerification: { mode: "none", required: false },
   emailCodeTimer: null,
   emailCodeCooldownUntil: 0,
@@ -330,6 +331,7 @@ async function loadState() {
     state.mailService = healthData.emailVerification || null;
     state.translationService = healthData.translation || null;
     state.screenAgentRuntime = healthData.screenAgent || null;
+    state.membershipBypass = healthData.membershipBypass === true;
     state.registrationVerification = healthData.registrationVerification || { mode: "none", required: false };
     if (state.apiAvailable) {
       const sessionResponse = await DocFlowApi.request(`${API_BASE}/session`);
@@ -485,6 +487,7 @@ function normalizeApplicationForVisa(application) {
 }
 
 function route(view, applicationId) {
+  if (["appointment-account", "appointment"].includes(view)) view = "report";
   const viewChanged = state.currentView !== view || Boolean(applicationId && applicationId !== state.activeId);
   if (state.currentView === "prefill") stopScreenAgentRuntime();
   clearDesktopAgentPolling();
@@ -568,9 +571,7 @@ function goBack() {
     validation: "questions",
     preview: "validation",
     prefill: "preview",
-    report: "preview",
-    "appointment-account": "report",
-    appointment: "appointment-account"
+    report: "preview"
   };
   const target = map[current] || fallback;
   route(target, application?.id);
@@ -587,15 +588,14 @@ function stepIndexForView(view) {
     validation: 5,
     preview: 6,
     prefill: 6,
-    report: 7,
-    "appointment-account": 8,
-    appointment: 9
+    report: 7
   };
   return map[view] ?? 0;
 }
 
 function progressForApplication(application) {
-  return Math.round(((application.currentStep || 0) + 1) / STEP_LABELS.length * 100);
+  const step = Math.min(Math.max(application.currentStep || 0, 0), STEP_LABELS.length - 1);
+  return Math.round((step + 1) / STEP_LABELS.length * 100);
 }
 
 function renderWorkspacePortalHeader() {
@@ -648,12 +648,11 @@ function render(view = "login") {
     validation: renderValidation,
     preview: renderPreview,
     prefill: renderPrefill,
-    report: renderReport,
-    "appointment-account": renderAppointmentAccount,
-    appointment: renderAppointmentPreparation
+    report: renderReport
   };
   views[view](content);
   content.insertAdjacentHTML("afterbegin", renderMobileTopNav(view));
+  content.insertAdjacentHTML("beforeend", renderWorkspaceDisclosures());
   content.insertAdjacentHTML("beforeend", renderFlowDock(view));
   wireModalEvents();
 }
@@ -681,6 +680,20 @@ function renderFlowDock(view) {
       </div>
       <button class="icon-text-btn" type="button" onclick="route('dashboard')">${iconHome()} 工作台</button>
     </nav>
+  `;
+}
+
+function renderWorkspaceDisclosures() {
+  return `
+    <footer class="page-disclosures workspace-disclosures" id="workspace-disclosures" aria-label="工作台使用说明">
+      <ol>
+        <li>WestoryVisa 是签证顾问及机构客户使用的软件辅助工具，并非美国政府、美国国务院、任何使领馆或签证签发机构的官方网站或授权代表；不提供法律意见，也不保证签证申请获批。</li>
+        <li>材料识别、翻译、字段整理、信息核查、DS‑160 初稿和可见页面填写结果均须由申请人或其授权顾问人工核对。申请人应对最终提交信息的真实性、准确性、完整性和时效性承担责任。</li>
+        <li>验证码、账户凭证、拒签或移民历史判断、安全与背景问题、电子签名、法律声明、政府费用支付及最终提交必须由申请人或经授权的顾问人工处理。<a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application/ds-160-faqs.html" target="_blank" rel="noopener noreferrer">查看美国国务院 DS‑160 填写说明</a>。</li>
+        <li>案件中可能包含身份、护照、联系方式、旅行、教育、工作和签证申请材料；相关信息仅用于账户管理、材料整理、字段核查、服务安全及履行合同。第三方处理及跨境传输说明见<a href="/privacy">隐私政策</a>。</li>
+        <li>我们采用传输加密、权限隔离、访问日志和最小权限等合理安全措施，但任何网络系统均无法保证绝对安全。请妥善保管登录凭证、限制团队权限，并及时删除不再需要的导出文件。</li>
+      </ol>
+    </footer>
   `;
 }
 
@@ -995,8 +1008,8 @@ function renderLogin(container) {
             </div>
             <div id="authError" class="auth-error ${state.authError ? "visible" : ""}" role="alert">${escapeHtml(state.authError)}</div>
             <div class="actions">
-              <button class="btn auth-submit" id="authSubmit" type="submit">${isRegister ? "创建账号并选择会员" : "登录并查看会员"}</button>
-              <a class="auth-product-link" href="/landing-page">查看产品详情 <span aria-hidden="true">→</span></a>
+              <button class="btn auth-submit" id="authSubmit" type="submit">${isRegister ? "创建账号并选择会员" : "登录并进入工作台"}</button>
+              <a class="auth-product-link" href="product.html">查看产品详情 <span aria-hidden="true">→</span></a>
             </div>
             ${isRegister ? `<p class="auth-helper">当前测试阶段暂不进行验证码校验；手机号会作为后续账号验证与找回信息保存，请妥善保管账号密码。</p>` : ""}
           </form>
@@ -1031,6 +1044,7 @@ function renderLogin(container) {
       </section>
       ${renderProductSections()}
     </div>
+    ${renderWorkspaceDisclosures()}
     ${renderModal()}
   `;
 
@@ -1199,132 +1213,44 @@ async function submitAuthForm(event) {
     state.draftCase = {};
     state.authDraft = { ...state.authDraft, emailCode: "", password: "", confirmPassword: "" };
     persistLocal();
-    window.location.replace(`/membership?auth=${isRegister ? "registered" : "logged-in"}`);
+    if (isRegister) {
+      window.location.replace("/membership?auth=registered");
+      return;
+    }
+
+    const billingResponse = await DocFlowApi.request(`${API_BASE}/billing`);
+    if (billingResponse.ok) {
+      const billingData = await billingResponse.json();
+      state.membership = billingData.membership || null;
+    }
+    if (!state.membership?.active && !state.membershipBypass) {
+      window.location.replace("/membership?auth=logged-in");
+      return;
+    }
+    await loadApplicationsForCurrentOrganization();
+    route("dashboard");
   } catch (error) {
     showAuthError(error.message || "账号操作失败，请稍后重试。");
     submitButton.disabled = false;
-    submitButton.textContent = isRegister ? "创建账号并选择会员" : "登录并查看会员";
+    submitButton.textContent = isRegister ? "创建账号并选择会员" : "登录并进入工作台";
   }
 }
 
 function renderProductSections() {
-  const advantages = [
-    ["DS-160 字段引导", "按 Personal Information、Passport、Travel、Family、Work/Education、Security 等真实结构拆分流程。"],
-    ["待确认项提醒", "对缺失、冲突、不确定或敏感字段自动标记，让顾问把时间放在真正需要判断的地方。"],
-    ["初稿生成与重点复核", "系统先校验来源、格式与一致性，只把关键、冲突和低置信度内容交给文案老师复核。"]
-  ];
-  const scopes = ["基础信息", "护照信息", "旅行计划", "同行人", "以往赴美记录", "美国联系人", "家庭信息", "工作 / 教育 / 培训", "安全与背景问题", "SEVIS / 学生信息"];
-  const process = ["创建客户档案", "收集客户资料", "按 DS-160 模块整理", "生成 DS-160 初稿", "重点复核与导出清单"];
-  const faq = [
-    ["会不会替代顾问判断？", "不会。系统负责自动整理和校验，关键字段、冲突项与敏感问题仍由文案老师或签证顾问最终确认。"],
-    ["敏感背景问题如何处理？", "拒签、逾期停留、犯罪、移民违规、安全相关问题只做结构化提醒，不自动代答。"],
-    ["适合哪些团队？", "适合签证中介、留学/移民机构文案团队、签证顾问和负责二审质检的机构人员。"],
-    ["客户信息如何保护？", "账号密码采用单向哈希保存，客户档案按机构账号隔离，并保留访问控制和操作记录。正式部署还需启用 HTTPS 与数据库加密。"]
-  ];
-
   return `
-    <section class="product-sections">
-      <div class="product-section intro-band">
-        <div>
-          <span class="page-kicker">产品定位</span>
-          <h2>更快整理客户资料，更高效完成 DS-160 初稿。</h2>
-        </div>
-        <p>WestoryVisa 是给签证中介内部使用的资料整理与初稿生成工具。它帮助团队把客户材料整理成可复核的 DS-160 填写建议，而不是替客户提交申请。</p>
+    <section class="workspace-brief">
+      <div>
+        <span class="page-kicker">开始使用</span>
+        <h2>登录后，直接处理客户档案。</h2>
+        <p>整理材料、核查待确认项并生成 DS-160 初稿，全部在同一工作台完成。</p>
       </div>
-
-      <div class="product-section">
-        <div class="section-heading">
-          <span class="page-kicker">核心能力</span>
-          <h2>把重复录入变成有结构的字段核查</h2>
-        </div>
-        <div class="grid three">
-          ${advantages.map(([title, body]) => `
-            <article class="card feature-card">
-              <h3>${title}</h3>
-              <p class="muted">${body}</p>
-            </article>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="product-section split-section">
-        <div>
-          <span class="page-kicker">DS-160 模块</span>
-          <h2>围绕真实表格结构组织客户资料</h2>
-          <p class="muted">文案老师可以按模块核查身份、护照、旅行、家庭、教育工作和背景问题，避免在长表单中反复定位字段。</p>
-        </div>
-        <div class="scope-list">
-          ${scopes.map((item) => `<span>${item}</span>`).join("")}
-        </div>
-      </div>
-
-      <div class="product-section">
-        <div class="section-heading">
-          <span class="page-kicker">工作流程</span>
-          <h2>从客户档案到核查清单，适合批量处理</h2>
-        </div>
-        <div class="process-rail">
-          ${process.map((item, index) => `
-            <div>
-              <strong>${String(index + 1).padStart(2, "0")}</strong>
-              <span>${item}</span>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="product-section split-section dark-band">
-        <div>
-          <span class="page-kicker">人工复核</span>
-          <h2>关键判断留给顾问，系统负责减少遗漏</h2>
-        </div>
-        <ul class="trust-list">
-          <li>缺失信息标记为待客户补充，不自动猜测</li>
-          <li>冲突字段保留来源和置信度，方便二审</li>
-          <li>安全与背景问题突出提醒人工确认</li>
-          <li>生成核查清单，方便交接、二审和归档</li>
-        </ul>
-      </div>
-
-      <div class="product-section">
-        <div class="section-heading">
-          <span class="page-kicker">机构工作台</span>
-          <h2>清楚看到每个客户档案的处理状态</h2>
-        </div>
-        <section class="overview-strip">
-          <div><strong>10</strong><span>个 DS-160 模块</span></div>
-          <div><strong>5</strong><span>类核查状态</span></div>
-          <div><strong>100%</strong><span>人工最终确认</span></div>
-        </section>
-      </div>
-
-      <div class="product-section">
-        <div class="section-heading">
-          <span class="page-kicker">常见问题</span>
-          <h2>文案团队最关心的使用边界</h2>
-        </div>
-        <div class="grid two">
-          ${faq.map(([question, answer]) => `
-            <article class="panel faq-item">
-              <h3>${question}</h3>
-              <p class="muted">${answer}</p>
-            </article>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="product-section final-cta">
-        <span class="page-kicker">开始处理</span>
-        <h2>进入机构工作台，创建第一个客户档案。</h2>
-        <p class="muted">把客户资料整理成 DS-160 初稿，再由顾问集中复核关键项并导出清单。</p>
-        <button class="btn" type="button" onclick="document.querySelector('#authEmail')?.focus()">登录 / 注册机构账号</button>
-      </div>
+      <a class="btn secondary" href="product.html">查看产品介绍</a>
     </section>
   `;
 }
 
 function viewForStep(step) {
-  return ["create", "documents", "processing", "fields", "questions", "validation", "preview", "report", "appointment-account", "appointment"][step] || "dashboard";
+  return ["create", "documents", "processing", "fields", "questions", "validation", "preview", "report"][step] || "dashboard";
 }
 
 function renderDashboard(container) {
@@ -1820,7 +1746,9 @@ function renderKnownInformationPanel(application) {
   const warnings = Array.isArray(known.warnings) ? known.warnings : [];
   const translatedCount = parsedFields.filter((field) => field.originalValue).length;
   const hasResults = recognizedGroupCount > 0 || recognizedSourceCount > 0;
+  const deepSeekReady = Boolean(state.translationService?.deepSeek);
   const libreTranslateReady = Boolean(state.translationService?.libreTranslate);
+  const translationReady = deepSeekReady || libreTranslateReady;
   const sourceLabel = (provider) => ({
     ollama_structured: "本地语义补漏",
     ollama: "本地模型翻译",
@@ -1829,6 +1757,7 @@ function renderKnownInformationPanel(application) {
     local_glossary_transliteration: "词典与拼音",
     local_transliteration: "拼音转写",
     libretranslate: "LibreTranslate 中译英",
+    deepseek: "DeepSeek 中译英",
     original: "原文可直接使用",
     normalizer: "格式规范化",
     address_parser: "地址结构化"
@@ -1844,12 +1773,12 @@ function renderKnownInformationPanel(application) {
         ${hasResults ? `<span class="badge completed">${recognizedSourceCount || recognizedGroupCount} 条资料已读取</span>` : ""}
       </header>
       <textarea id="consultantKnownInformation" rows="5" placeholder="例如：姓名张明，身份证号……，家庭住址山东省青岛市市南区香港中路 10 号，邮编 266071，手机号……">${escapeHtml(known.text || "")}</textarea>
-      ${!libreTranslateReady ? `
+      ${!translationReady ? `
         <div class="known-information-warning" id="translationServiceStatus">
-          LibreTranslate 中译英尚未连接。规则仍会识别证件号、日期和固定选项，但中文地址、学校、公司及职责暂不能保证为正常英文语序。请双击“安装LibreTranslate.command”，随后重启完整版本。
+          DeepSeek 中译英尚未连接。规则仍会识别证件号、日期和固定选项，但中文地址、学校、公司及职责暂不能保证为正常英文语序。请联系管理员检查 DeepSeek 服务配置。
         </div>
       ` : `
-        <div class="known-information-service-ready" id="translationServiceStatus">LibreTranslate 中译英已连接 · 中文原文会保留用于核对</div>
+        <div class="known-information-service-ready" id="translationServiceStatus">${deepSeekReady ? "DeepSeek" : "LibreTranslate"} 中译英已连接 · 中文原文会保留用于核对</div>
       `}
       <div class="known-information-actions">
         <span>系统会先区分题目与回答，再整理直接字段、条件问答和重复记录；原文与识别证据始终保留。</span>
@@ -2128,13 +2057,16 @@ async function refreshOcrServiceStatus() {
 function updateTranslationServiceUI() {
   const status = document.querySelector("#translationServiceStatus");
   if (!status) return;
-  const ready = Boolean(state.translationService?.libreTranslate);
+  const providerName = state.translationService?.deepSeek ? "DeepSeek" : "LibreTranslate";
+  const ready = Boolean(
+    state.translationService?.deepSeek || state.translationService?.libreTranslate
+  );
   status.className = ready
     ? "known-information-service-ready"
     : "known-information-warning";
   status.textContent = ready
-    ? "LibreTranslate 中译英已连接 · 中文原文会保留用于核对"
-    : "LibreTranslate 中译英尚未连接。规则仍会识别证件号、日期和固定选项，但中文地址、学校、公司及职责暂不能保证为正常英文语序。请确认 LibreTranslate 已启动，再点击重试。";
+    ? `${providerName} 中译英已连接 · 中文原文会保留用于核对`
+    : "DeepSeek 中译英尚未连接。规则仍会识别证件号、日期和固定选项，但中文地址、学校、公司及职责暂不能保证为正常英文语序。请联系管理员检查 DeepSeek 服务配置。";
 }
 
 async function refreshTranslationServiceStatus() {
@@ -3421,7 +3353,7 @@ function renderPreview(container) {
       </div>
     ` : ""}
     <div class="actions" style="margin-top:18px">
-      <button class="btn" id="prefillForm">${screenAgentReady ? "进入 Travel 页自动填写" : "查看正确启动方式"}</button>
+      <button class="btn" id="prefillForm">进入 Computer Use 执行台</button>
       <button class="btn secondary" id="generateReport">导出核查清单</button>
     </div>
   `;
@@ -4824,7 +4756,6 @@ function renderReport(container) {
       ${renderReportList("安全与使用边界", report.safetyBoundaries)}
     </section>
     <div class="actions" style="margin-top:18px">
-      <button class="btn" id="openAppointmentPreparation">继续办理签证预约</button>
       <button class="btn secondary" id="saveProgress">保存客户档案</button>
       <button class="btn secondary" id="exportPdf">导出 PDF</button>
       <button class="btn secondary" id="downloadJson">下载 JSON</button>
@@ -4832,11 +4763,6 @@ function renderReport(container) {
     </div>
     <div class="inline-notice" id="reportNotice" role="status"></div>
   `;
-  document.querySelector("#openAppointmentPreparation").addEventListener("click", async () => {
-    application.currentStep = Math.max(application.currentStep || 0, 8);
-    await saveApplication(application);
-    route("appointment-account");
-  });
   document.querySelector("#saveProgress").addEventListener("click", () => {
     saveApplication(application);
     const button = document.querySelector("#saveProgress");
@@ -7152,23 +7078,29 @@ async function boot() {
     return;
   }
   await loadState();
-  if (state.user && !state.membership?.active) {
+  if (state.user && !state.membership?.active && !state.membershipBypass) {
     window.location.replace("/membership?access=required");
     return;
   }
   const savedNavigation = readSavedNavigation();
   const restorableViews = new Set([
     "dashboard", "create", "documents", "processing", "fields", "questions",
-    "validation", "preview", "prefill", "report", "appointment-account", "appointment"
+    "validation", "preview", "prefill", "report"
   ]);
-  if (state.user && savedNavigation && restorableViews.has(savedNavigation.view)) {
+  if (state.user) {
     await loadApplicationsForCurrentOrganization();
+  }
+  if (state.user && savedNavigation && restorableViews.has(savedNavigation.view)) {
     const applicationId = savedNavigation.applicationId || "";
     const needsApplication = !["dashboard", "create"].includes(savedNavigation.view);
     if (!needsApplication || state.applications.some((item) => item.id === applicationId)) {
       route(savedNavigation.view, applicationId || undefined);
       return;
     }
+    route("dashboard");
+    return;
+  }
+  if (state.user) {
     route("dashboard");
     return;
   }

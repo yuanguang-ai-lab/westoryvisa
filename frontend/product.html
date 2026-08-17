@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="description" content="WestoryVisa 为签证顾问自动整理客户材料，并持续推进至 DS-160 逐页辅助填写。">
   <meta name="theme-color" content="#f4f4ef">
   <title>WestoryVisa｜签证顾问的自动化工作流</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23caff35'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='23' font-family='Arial' font-weight='700' fill='%23111111'%3EWV%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="product.css?v=20260814-simple-workflow-v2">
+  <link rel="stylesheet" href="product.css?v=20260817-airy-stories-v9">
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -16,18 +19,18 @@
     <a class="brand" href="#top" aria-label="WestoryVisa 首页"><span>WV</span><strong>WestoryVisa</strong></a>
     <nav class="desktop-nav" aria-label="页面导航">
       <a href="#automation">自动化亮点</a>
-      <a href="#workflow">完整工作流</a>
-      <a href="#pricing">会员方案</a>
+      <a href="#workflow">操作台预览</a>
+      <a href="membership.html">会员中心</a>
     </nav>
     <div class="header-actions">
-      <a class="login-link desktop-only" href="/workspace">登录</a>
-      <a class="button button-dark desktop-only" href="/membership">进入工作台</a>
+      <a class="login-link desktop-only" href="workspace.html">登录</a>
+      <a class="button button-dark desktop-only" href="workspace.html">注册/登录账号</a>
       <button class="menu-button" id="menuButton" type="button" aria-label="打开导航" aria-controls="mobileNav" aria-expanded="false"><span></span><span></span></button>
     </div>
   </header>
   <nav class="mobile-nav" id="mobileNav" aria-label="移动端页面导航" hidden>
-    <a href="#automation">自动化亮点</a><a href="#workflow">完整工作流</a><a href="#pricing">会员方案</a>
-    <a href="/workspace">登录</a><a class="button button-dark" href="/membership">进入工作台</a>
+    <a href="#automation">自动化亮点</a><a href="#workflow">操作台预览</a><a href="membership.html">会员中心</a>
+    <a href="workspace.html">登录</a><a class="button button-dark" href="workspace.html">注册/登录账号</a>
   </nav>
 
   <main id="main">
@@ -37,54 +40,46 @@
       <p class="hero-title">把一整套 DS-160 流程<br>交给自动化持续推进</p>
       <p class="hero-copy">材料自动读取、缺失信息自动归集、字段自动整理、页面逐步辅助填写。<br>顾问无需在文件、聊天记录和多个工具之间反复切换。</p>
       <div class="hero-actions">
-        <a class="button button-accent" href="#workflow">查看完整工作流</a>
-        <a class="button button-ghost" href="/membership">进入工作台</a>
+        <a class="button button-accent" href="#workflow">查看完整操作台</a>
+        <a class="button button-ghost" href="workspace.html">注册/登录账号</a>
       </div>
 
       <div class="automation-strip" id="automation" aria-label="自动化技术亮点">
-        <article><strong>约 8 分钟</strong><span>内部模拟流程跑通</span></article>
+        <article><strong>约 8 分钟</strong><span>实测自动填写一份 DS‑160 所需时间</span></article>
         <article><strong>RPA</strong><span>重复页面操作自动推进</span></article>
         <article><strong>DeepSeek</strong><span>材料理解与字段结构化</span></article>
         <article><strong>Gemini</strong><span>查看页面并辅助逐页执行</span></article>
       </div>
-      <p class="test-note">8 分钟为内部模拟测试结果，不含验证码、电子签名及最终提交；实际耗时受材料完整度、页面状态和网络环境影响。</p>
+      <p class="test-note">约 8 分钟为自动填写一份 DS‑160 的内部实测参考时间，不含验证码、电子签名及最终提交；实际耗时受材料完整度、页面状态和网络环境影响。</p>
     </section>
 
     <section class="workflow-section" id="workflow" data-section="Full workflow" aria-labelledby="workflowTitle">
       <div class="section-intro">
-        <div><p class="eyebrow">完整产品演示</p><h2 id="workflowTitle">从客户档案，到预约资料</h2></div>
-        <p>下面是一套完整的模拟操作界面。点击十个流程阶段，可以看到每一步在工作台中的实际位置和处理结果。</p>
+        <div><p class="eyebrow">操作系统预览</p><h2 id="workflowTitle">操作台，一目了然。</h2></div>
+        <p>这里按真实工作台比例还原八步流程。点击左侧步骤查看对应页面；在 DS-160 初稿中还可以切换到 Computer Use 执行台。</p>
       </div>
 
       <div class="demo-shell" data-demo-player>
         <header class="demo-global-header">
-          <div class="demo-brand"><span>WV</span><div><strong>WestoryVisa</strong><small>产品演示 · 固定模拟数据</small></div></div>
-          <nav aria-label="模拟工作台功能导航"><a class="active" href="#workflow">操作台</a><a href="/membership">会员中心</a><a href="/membership#account">个人中心</a><a href="/membership#help">帮助中心</a></nav>
-          <div class="demo-account"><i>L</i><span>林顾问</span></div>
+          <div class="demo-brand"><span>WV</span><div><strong>WestoryVisa</strong><small>完整操作台 · 模拟案件</small></div></div>
+          <nav aria-label="模拟工作台界面标签"><span class="active">操作台</span><span>会员中心</span><span>个人中心</span><span>帮助中心</span></nav>
+          <div class="demo-account"><i>W</i><span>机构账号</span></div>
         </header>
 
-        <div class="workflow-tabs-wrap">
-          <div class="workflow-tabs" role="tablist" aria-label="完整产品流程">
-            <button class="active" id="flowTab0" role="tab" aria-selected="true" aria-controls="demoScreen" tabindex="0" data-demo-chapter="0"><span>01</span>档案</button>
-            <button id="flowTab1" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="1"><span>02</span>资料</button>
-            <button id="flowTab2" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="2"><span>03</span>整理</button>
-            <button id="flowTab3" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="3"><span>04</span>字段核查</button>
-            <button id="flowTab4" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="4"><span>05</span>待确认项</button>
-            <button id="flowTab5" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="5"><span>06</span>风险复核</button>
-            <button id="flowTab6" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="6"><span>07</span>DS-160 初稿</button>
-            <button id="flowTab7" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="7"><span>08</span>核查清单</button>
-            <button id="flowTab8" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="8"><span>09</span>预约开户</button>
-            <button id="flowTab9" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="9"><span>10</span>预约资料</button>
-          </div>
-        </div>
-
         <div class="demo-body">
-          <aside class="demo-sidebar" aria-label="模拟案件列表">
-            <button class="new-case" type="button" tabindex="-1">＋ 新建客户</button>
-            <div class="sidebar-label">进行中的案件</div>
-            <button class="case-card active" type="button" tabindex="-1"><span>LR</span><div><strong>林然</strong><small>F-1 · 模拟案件</small></div><i>72%</i></button>
-            <button class="case-card" type="button" tabindex="-1"><span>ZW</span><div><strong>周文</strong><small>B1/B2 · 模拟案件</small></div><i>38%</i></button>
-            <button class="case-card" type="button" tabindex="-1"><span>CY</span><div><strong>陈屿</strong><small>J-1 · 模拟案件</small></div><i>16%</i></button>
+          <aside class="demo-sidebar" aria-label="完整操作流程">
+            <div class="sidebar-case"><span>A1</span><div><strong>客户 A-1024 · F-1</strong><small>资料整理中</small></div><i>72%</i></div>
+            <div class="sidebar-label">完整工作流程</div>
+            <div class="workflow-tabs" role="tablist" aria-label="完整产品流程" aria-orientation="vertical">
+              <button type="button" class="active" id="flowTab0" role="tab" aria-selected="true" aria-controls="demoScreen" tabindex="0" data-demo-chapter="0"><span>01</span><strong>档案</strong><small>客户基础信息</small></button>
+              <button type="button" id="flowTab1" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="1"><span>02</span><strong>资料</strong><small>上传与识别</small></button>
+              <button type="button" id="flowTab2" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="2"><span>03</span><strong>整理</strong><small>自动结构化</small></button>
+              <button type="button" id="flowTab3" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="3"><span>04</span><strong>字段核查</strong><small>来源与置信度</small></button>
+              <button type="button" id="flowTab4" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="4"><span>05</span><strong>待确认项</strong><small>只问缺失内容</small></button>
+              <button type="button" id="flowTab5" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="5"><span>06</span><strong>风险复核</strong><small>冲突集中判断</small></button>
+              <button type="button" id="flowTab6" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="6"><span>07</span><strong>DS-160 初稿</strong><small>页面结构映射</small></button>
+              <button type="button" id="flowTab7" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="7"><span>08</span><strong>核查清单</strong><small>提交前检查</small></button>
+            </div>
             <div class="automation-status"><i></i><div><strong>自动化服务运行中</strong><small>RPA · DeepSeek · Gemini</small></div></div>
           </aside>
 
@@ -94,36 +89,83 @@
         </div>
 
         <footer class="demo-footer">
-          <div><span>模拟案件</span><p>姓名、材料和字段均为虚构内容；不读取真实客户数据，不调用案件 API。</p></div>
+          <div><span>产品预览</span><p>页面数据已经过脱敏处理。</p></div>
           <div class="playback"><button id="demoToggle" type="button" aria-label="暂停自动播放"><i></i><span>暂停自动播放</span></button><div class="demo-progress" aria-hidden="true"><span id="demoProgress"></span></div></div>
         </footer>
       </div>
     </section>
 
-    <section class="pricing-section" id="pricing" data-section="Membership plans">
-      <div class="pricing-copy"><p class="eyebrow">会员方案</p><h2>选好期限，即可进入完整工作台</h2><p>会员包含材料整理、字段核查、DS-160 初稿、核查清单及浏览器辅助填写。购买、订单和会员有效期继续由现有会员系统处理。</p></div>
-      <div class="plans">
-        <a href="/membership" data-product-id="membership-monthly"><span>月度会员 · 30 天</span><strong>¥199</strong><em>选择月度方案 →</em></a>
-        <a class="featured" href="/membership" data-product-id="membership-yearly"><span>年度会员 · 365 天</span><strong>¥1,990</strong><em>选择年度方案 →</em></a>
+    <section class="feature-story-section" id="product-details" data-section="Product details" aria-labelledby="productDetailTitle">
+      <header class="feature-story-header">
+        <p class="eyebrow">产品细节</p>
+        <h2 id="productDetailTitle">再了解一下 WestoryVisa</h2>
+      </header>
+      <div class="feature-carousel-shell">
+        <div class="feature-carousel-track" id="featureCarousel" tabindex="0" aria-label="WestoryVisa 产品特点，可左右滑动">
+          <article class="feature-card feature-card-evidence">
+            <div class="feature-card-copy"><span>字段证据</span><h3>不是猜出来，<br>是找得到。</h3></div>
+            <div class="feature-card-art evidence-art" aria-hidden="true"><i class="paper paper-back"></i><i class="paper paper-middle"></i><i class="paper paper-front"><b></b><b></b><b></b><em>来源已绑定</em></i></div>
+            <p>文件、页码和原文证据，始终跟着字段一起保留。</p>
+          </article>
+          <article class="feature-card feature-card-handoff">
+            <div class="feature-card-copy"><span>团队交接</span><h3>换个人接手，<br>不用从头来。</h3></div>
+            <div class="feature-card-art handoff-art" aria-hidden="true"><i class="case-node">CASE</i><i class="person-node person-one">林</i><i class="person-node person-two">周</i><i class="person-node person-three">陈</i><b class="link-one"></b><b class="link-two"></b><b class="link-three"></b></div>
+            <p>进度、待确认原因和人工修改，都留在同一个案件中。</p>
+          </article>
+          <article class="feature-card feature-card-review">
+            <div class="feature-card-copy"><span>二审复核</span><h3>改了哪里，<br>一眼看清。</h3></div>
+            <div class="feature-card-art review-art" aria-hidden="true"><div><span>系统整理</span><i></i><i></i><i></i><i></i></div><div><span>人工更正</span><i></i><i class="changed"></i><i></i><i class="changed"></i></div><b>2 处变化</b></div>
+            <p>系统结果与人工更正分开记录，复核只关注真正的变化。</p>
+          </article>
+          <article class="feature-card feature-card-questions">
+            <div class="feature-card-copy"><span>客户补充</span><h3>只问缺的，<br>不问已有的。</h3></div>
+            <div class="feature-card-art questions-art" aria-hidden="true"><i class="answer-one">✓ 护照信息</i><i class="answer-two">✓ 学校信息</i><i class="question-one">美国联系人电话？</i><b>1 个待补充</b></div>
+            <p>已有资料自动跳过，只把缺失或冲突的问题发给客户。</p>
+          </article>
+        </div>
+        <div class="feature-carousel-controls" aria-label="产品特点翻页">
+          <button id="detailPrev" type="button" aria-label="查看上一项" disabled>←</button>
+          <button id="detailNext" type="button" aria-label="查看下一项">→</button>
+        </div>
       </div>
-    </section>
 
-    <section class="final-cta" data-section="Final call to action">
-      <p class="eyebrow">从下一份客户材料开始</p>
-      <h2>不再费力搬运信息。<br>让工作流自己向前走。</h2>
-      <div class="hero-actions"><a class="button button-accent" href="#workflow">再看一遍完整流程</a><a class="button button-ghost light" href="/membership">开始使用 WestoryVisa</a></div>
-      <p class="boundary">验证码、电子签名、敏感背景和最终提交保留人工控制；异常时暂停，顾问可以随时接管。</p>
+      <div class="brand-story-stack" id="global-stories">
+        <article class="brand-story global-story">
+          <div class="brand-story-copy">
+            <span class="brand-story-kicker">CLEARER WORKFLOW</span>
+            <h3 lang="en">A clearer<br>way to work.</h3>
+            <p><strong>复杂流程，也能清楚推进。</strong>材料、来源、进度和待确认项始终保持清楚，团队交接不必从头开始。</p>
+            <a class="story-button" href="#workflow">查看完整工作流</a>
+          </div>
+          <div class="product-shot-stack" aria-label="WestoryVisa 产品界面预览">
+            <figure class="product-shot shot-draft"><img src="assets/ds160-preview-ui-v1.png" alt="WestoryVisa DS-160 初稿预览界面"></figure>
+            <figure class="product-shot shot-computer"><img src="assets/computer-use-ui-v1.png" alt="WestoryVisa Computer Use 执行台界面"></figure>
+          </div>
+        </article>
+
+      </div>
     </section>
   </main>
 
+  <section class="site-disclosures" id="site-disclosures" aria-label="产品与服务说明">
+    <ol>
+      <li>WestoryVisa 是面向签证顾问及机构客户的软件辅助工具，并非美国政府、美国国务院、任何使领馆或签证签发机构的官方网站或授权代表。WestoryVisa 不提供法律意见，也不保证签证申请获批。</li>
+      <li>WestoryVisa 可辅助进行材料识别、翻译、字段整理、信息核查、DS‑160 初稿生成及可见页面填写。所有自动生成或填写的内容均须由申请人或其授权顾问人工核对。申请人应对提交信息的真实性、准确性、完整性和时效性承担责任。</li>
+      <li>验证码、账户凭证、拒签或移民历史判断、安全与背景问题、电子签名、法律声明、政府费用支付及最终提交不由本服务自动完成，必须由申请人或经授权的顾问人工处理。美国国务院也要求 DS‑160 信息准确、完整，并要求第三方协助者在相应页面如实披露，最终签署应由申请人本人完成。<a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application/ds-160-faqs.html" target="_blank" rel="noopener noreferrer">查看美国国务院 DS‑160 填写说明</a>。</li>
+      <li>页面所示处理时间为内部模拟环境下的参考结果，不包含验证码、人工复核、电子签名、付款及最终提交。实际处理时间可能因材料完整程度、目标网站状态、网络环境及第三方服务可用性而有所不同。</li>
+      <li>为提供服务，WestoryVisa 可能处理机构账户信息，以及申请人主动提供或由获授权机构上传的身份、护照、联系方式、旅行、教育、工作和签证申请材料。相关信息仅用于账户管理、材料整理、字段核查、服务安全及履行合同，不用于广告画像或与签证服务无关的用途。详情请参阅<a href="privacy.html">隐私政策</a>。</li>
+      <li>材料可能由云托管、文档识别、翻译、人工智能、邮件或技术支持服务商按照约定进行必要处理，部分处理可能涉及跨境传输。机构客户上传材料前，应依法向申请人履行告知义务，并取得处理敏感个人信息及跨境提供所需的授权或单独同意。</li>
+      <li>我们采用传输加密、权限隔离、访问日志、最小权限及其他合理安全措施保护数据，但任何网络系统均无法保证绝对安全。用户应妥善保管登录凭证、限制团队权限，并及时删除不再需要的导出文件。</li>
+      <li>月度和年度会员均为一次性购买的固定服务期限，不自动续费。功能、价格、币种、税费、实际扣款金额及退款条件，以购买页面和<a href="refund-policy.html">退款与取消政策</a>为准。</li>
+    </ol>
+    <p>某些功能可能因政府网站、浏览器、地区、语言或第三方服务调整而暂时不可用。产品功能和界面可能随版本更新发生变化。</p>
+  </section>
+
   <footer class="site-footer">
-    <div><strong>WestoryVisa</strong><span>签证顾问的自动化工作流</span></div>
-    <nav aria-label="法律与公司信息"><a href="/terms">服务条款</a><a href="/privacy">隐私政策</a><a href="/refund-policy">退款政策</a><a href="/contact">联系我们</a></nav>
+    <div><strong>WestoryVisa</strong><span>验证码、电子签名和最终提交保留人工控制</span></div>
+    <nav aria-label="法律与公司信息"><a href="terms.html">服务条款</a><a href="privacy.html">隐私政策</a><a href="refund-policy.html">退款政策</a><a href="contact.html">联系我们</a></nav>
   </footer>
 
-  <script src="runtime-config.js?v=20260727-frontend-backend-split-v1"></script>
-  <script src="api-client.js?v=20260727-frontend-boundary-v1"></script>
-  <script src="legal.js?v=20260814-legal-v1"></script>
-  <script src="product.js?v=20260814-simple-workflow-v2"></script>
+  <script src="product.js?v=20260817-static-demo-v3"></script>
 </body>
 </html>

@@ -76,7 +76,12 @@ class FrontendHandler(BaseHTTPRequestHandler):
         relative_path = STATIC_ALIASES.get(
             parsed.path, unquote(parsed.path.lstrip("/"))
         )
-        allowed_nested_assets = {"promo/promo-video.html", "promo/promo-video.css"}
+        allowed_nested_assets = {
+            "promo/promo-video.html",
+            "promo/promo-video.css",
+            "assets/ds160-preview-ui-v1.png",
+            "assets/computer-use-ui-v1.png",
+        }
         if not relative_path or (
             ("/" in relative_path or "\\" in relative_path)
             and relative_path not in allowed_nested_assets
