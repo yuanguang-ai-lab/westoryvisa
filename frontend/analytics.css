@@ -37,7 +37,7 @@ button { color: inherit; }
 }
 
 .analytics-brand { display: flex; align-items: center; gap: 12px; }
-.analytics-brand > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; background: var(--accent); font: 750 13px/1 var(--font-en); }
+.analytics-brand > img { width: 38px; height: 38px; display: block; border-radius: 50%; }
 .analytics-brand div { display: flex; flex-direction: column; gap: 2px; }
 .analytics-brand strong { font: 650 14px/1.2 var(--font-en); }
 .analytics-brand small { color: var(--muted); font-size: 10px; }

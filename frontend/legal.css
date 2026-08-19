@@ -17,7 +17,7 @@ body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(
 a { color: inherit; }
 .legal-header { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 max(24px, calc((100vw - 1040px) / 2)); border-bottom: 1px solid var(--line); background: rgba(244,244,241,.96); }
 .legal-brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
-.legal-brand span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: var(--accent); font: 750 12px/1 var(--font-en); }
+.legal-brand img { width: 36px; height: 36px; display: block; border-radius: 50%; }
 .legal-brand strong { font: 680 15px/1 var(--font-en); }
 .legal-header nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 18px; color: var(--muted); font-size: 12px; }
 .legal-header nav a { text-decoration: none; }

@@ -25,7 +25,7 @@ body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 
 .film-header { position: absolute; inset: 34px 48px auto; z-index: 30; display: flex; justify-content: space-between; align-items: center; }
 .mini-brand { display: flex; align-items: center; gap: 12px; }
-.mini-brand span, .final-brand span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: var(--ink); background: var(--accent); font: 750 12px/1 Arial, sans-serif; }
+.mini-brand img, .final-brand img { display: block; width: 36px; height: 36px; border-radius: 50%; }
 .mini-brand strong { font: 650 12px/1 Arial, sans-serif; letter-spacing: .06em; }
 .timecode { display: flex; align-items: center; gap: 9px; color: var(--muted); font: 600 9px/1 Arial, sans-serif; letter-spacing: .12em; }
 .timecode i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-deep); }
@@ -40,7 +40,7 @@ body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 
 .scene-intro { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; background: var(--ink); }
 .scene-intro::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 55%, rgba(202,255,53,.11), transparent 34%), linear-gradient(120deg, rgba(255,255,255,.025), transparent 45%); }
-.intro-mark { position: relative; display: grid; place-items: center; width: 82px; height: 82px; margin-bottom: 35px; border-radius: 25px; color: var(--ink); background: var(--accent); font: 800 25px/1 Arial, sans-serif; box-shadow: 0 0 80px rgba(202,255,53,.22); }
+.intro-mark { position: relative; display: block; width: 82px; height: 82px; margin-bottom: 35px; border-radius: 50%; box-shadow: 0 0 80px rgba(202,255,53,.22); }
 .scene-intro .overline { position: relative; color: rgba(255,255,255,.48); font-family: Arial, sans-serif; }
 .scene-intro h1 { position: relative; margin-bottom: 24px; font-family: var(--serif); font-size: clamp(66px, 7vw, 106px); font-weight: 600; line-height: 1.15; letter-spacing: .08em; }
 .intro-subtitle { position: relative; color: rgba(255,255,255,.58); font-size: 20px; letter-spacing: .09em; }
@@ -117,7 +117,7 @@ body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 
 .scene-final { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .final-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 42px; }
-.final-brand span { width: 48px; height: 48px; border-radius: 15px; font-size: 15px; }
+.final-brand img { width: 48px; height: 48px; }
 .final-brand strong { font: 650 15px/1 Arial, sans-serif; letter-spacing: .05em; }
 .scene-final h2 { margin-bottom: 28px; font-family: var(--serif); font-size: clamp(56px, 6.2vw, 90px); font-weight: 600; line-height: 1.25; letter-spacing: .075em; }
 .scene-final > p { color: var(--muted); font-size: 16px; letter-spacing: .06em; }

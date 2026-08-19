@@ -487,7 +487,7 @@ function normalizeApplicationForVisa(application) {
 }
 
 function route(view, applicationId) {
-  if (["appointment-account", "appointment"].includes(view)) view = "report";
+  if (["report", "appointment-account", "appointment"].includes(view)) view = "preview";
   const viewChanged = state.currentView !== view || Boolean(applicationId && applicationId !== state.activeId);
   if (state.currentView === "prefill") stopScreenAgentRuntime();
   clearDesktopAgentPolling();
@@ -570,8 +570,7 @@ function goBack() {
     questions: "fields",
     validation: "questions",
     preview: "validation",
-    prefill: "preview",
-    report: "preview"
+    prefill: "preview"
   };
   const target = map[current] || fallback;
   route(target, application?.id);
@@ -587,8 +586,7 @@ function stepIndexForView(view) {
     questions: 4,
     validation: 5,
     preview: 6,
-    prefill: 6,
-    report: 7
+    prefill: 6
   };
   return map[view] ?? 0;
 }
@@ -601,7 +599,7 @@ function progressForApplication(application) {
 function renderWorkspacePortalHeader() {
   return `
     <header class="workspace-portal-header">
-      <button class="workspace-portal-brand" type="button" onclick="route('dashboard')" aria-label="返回操作台首页"><span>WV</span><strong>WestoryVisa</strong></button>
+      <button class="workspace-portal-brand" type="button" onclick="route('dashboard')" aria-label="返回操作台首页"><img src="assets/westoryvisa-mark.svg?v=20260819-logo-v1" alt=""><strong>WestoryVisa</strong></button>
       <nav class="workspace-portal-nav" aria-label="工作台导航">
         <button class="active" type="button" onclick="route('dashboard')">操作台</button>
         <a href="/membership">会员中心</a>
@@ -647,8 +645,7 @@ function render(view = "login") {
     questions: renderQuestions,
     validation: renderValidation,
     preview: renderPreview,
-    prefill: renderPrefill,
-    report: renderReport
+    prefill: renderPrefill
   };
   views[view](content);
   content.insertAdjacentHTML("afterbegin", renderMobileTopNav(view));
@@ -908,7 +905,7 @@ function renderSidebar(activeIndex) {
   return `
     <aside class="sidebar">
       <button class="brand" type="button" onclick="goBack()" aria-label="返回上一页">
-        <div class="brand-mark" lang="en">WV</div>
+        <img class="brand-mark" src="assets/westoryvisa-mark.svg?v=20260819-logo-v1" alt="">
         <div>
         <div class="brand-title" lang="en">WestoryVisa</div>
           <div class="brand-subtitle">中介机构填写辅助工具</div>
@@ -923,7 +920,7 @@ function renderSidebar(activeIndex) {
         `).join("")}
       </nav>
       <div class="sidebar-note">
-        使用边界：工具只辅助资料整理、初稿生成和核查清单，不提供法律建议，不替代顾问人工判断。
+        使用边界：工具只辅助资料整理、字段核查和初稿生成，不提供法律建议，不替代顾问人工判断。
         <button class="sidebar-home" type="button" onclick="logout()">${iconArrowLeft()} 退出账号</button>
       </div>
     </aside>
@@ -1250,7 +1247,9 @@ function renderProductSections() {
 }
 
 function viewForStep(step) {
-  return ["create", "documents", "processing", "fields", "questions", "validation", "preview", "report"][step] || "dashboard";
+  const views = ["create", "documents", "processing", "fields", "questions", "validation", "preview"];
+  const safeStep = Math.min(Math.max(Number(step) || 0, 0), views.length - 1);
+  return views[safeStep];
 }
 
 function renderDashboard(container) {
@@ -1275,7 +1274,7 @@ function renderDashboard(container) {
     <section class="overview-strip">
       <div><strong>${applications.length}</strong><span>客户档案</span></div>
       <div><strong>${applications.filter((item) => item.currentStep >= 3).length}</strong><span>待人工核查</span></div>
-      <div><strong>${applications.filter((item) => item.currentStep >= 7).length}</strong><span>已生成清单</span></div>
+      <div><strong>${applications.filter((item) => item.currentStep >= 6).length}</strong><span>初稿已生成</span></div>
     </section>
     <section class="grid ${applications.length ? "three" : ""}">
       ${applications.length ? applications.map(renderProjectCard).join("") : `
@@ -3336,16 +3335,9 @@ function renderPreview(container) {
     ` : ""}
     <div class="actions" style="margin-top:18px">
       <button class="btn" id="prefillForm">进入 Computer Use 执行台</button>
-      <button class="btn secondary" id="generateReport">导出核查清单</button>
     </div>
   `;
   document.querySelector("#prefillForm").addEventListener("click", () => route("prefill"));
-  document.querySelector("#generateReport").addEventListener("click", () => {
-    buildAuditReport(application);
-    application.currentStep = 7;
-    saveApplication(application);
-    route("report");
-  });
 }
 
 function renderBranchPreview(application) {
@@ -3946,7 +3938,6 @@ function renderPrefill(container) {
       <span>Computer Use 不处理验证码、登录凭据、拒签或移民历史判断、安全与背景问题、电子签名、法律声明、付款和最终提交；不使用脚本注入，也不绕过网站限制。顾问可以随时停止并人工接管。</span>
     </div>
     <div class="actions" style="margin-top:18px">
-      <button class="btn" id="generateReport">生成 Agent 审计报告</button>
       <button class="btn secondary" id="backPreview">返回 DS-160 初稿</button>
     </div>
   `;
@@ -3959,12 +3950,6 @@ function renderPrefill(container) {
     route("questions");
   });
   document.querySelector("#backPreview")?.addEventListener("click", () => route("preview"));
-  document.querySelector("#generateReport")?.addEventListener("click", async () => {
-    buildAuditReport(application);
-    application.currentStep = 7;
-    await saveApplication(application);
-    route("report");
-  });
   if (agent.jobId && !closed) startCodexAgentPolling(application);
 }
 
@@ -4985,7 +4970,7 @@ function renderAppointmentAccount(container) {
       <span>这些内容属于预约账户凭据。WestoryVisa 只记录“顾问已完成”，不读取密码、验证码或密保答案，也不会把它们写入客户档案或数据库。</span>
     </section>
     <div class="actions appointment-footer-actions">
-      <button class="btn secondary" type="button" id="backAccountReport">返回核查清单</button>
+      <button class="btn secondary" type="button" id="backAccountPreview">返回 DS-160 初稿</button>
       <button class="btn secondary" type="button" id="backAccountDashboard">返回工作台</button>
     </div>
   `;
@@ -5047,7 +5032,7 @@ function renderAppointmentAccount(container) {
     await saveApplication(application);
     route("appointment");
   });
-  document.querySelector("#backAccountReport")?.addEventListener("click", () => route("report"));
+  document.querySelector("#backAccountPreview")?.addEventListener("click", () => route("preview"));
   document.querySelector("#backAccountDashboard")?.addEventListener("click", () => route("dashboard"));
 }
 
@@ -6143,7 +6128,6 @@ function statusLabel(value) {
 }
 
 function caseStatus(step) {
-  if (step >= 7) return "已完成";
   if (step >= 6) return "初稿已生成";
   if (step >= 3) return "待人工核查";
   if (step >= 1) return "资料收集中";
@@ -7067,7 +7051,7 @@ async function boot() {
   const savedNavigation = readSavedNavigation();
   const restorableViews = new Set([
     "dashboard", "create", "documents", "processing", "fields", "questions",
-    "validation", "preview", "prefill", "report"
+    "validation", "preview", "prefill"
   ]);
   if (state.user) {
     await loadApplicationsForCurrentOrganization();

@@ -588,6 +588,7 @@ button {
 }
 .workspace-portal-brand { display: inline-flex; align-items: center; justify-self: start; gap: 10px; padding: 0; border: 0; color: var(--text); background: transparent; }
 .workspace-portal-brand span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; color: #111; background: var(--accent); font-weight: 850; }
+.workspace-portal-brand img { width: 38px; height: 38px; display: block; border-radius: 50%; }
 .workspace-portal-brand strong { font-size: 15px; }
 .workspace-portal-nav { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.72); }
 .workspace-portal-nav a,
@@ -643,6 +644,13 @@ button {
   background: var(--accent);
   font-weight: 850;
   letter-spacing: -0.03em;
+}
+
+img.brand-mark {
+  display: block;
+  border-radius: 50%;
+  background: transparent;
+  object-fit: cover;
 }
 
 .brand-title {
@@ -6606,7 +6614,7 @@ td input {
 
 /* Responsive hardening for workflow pages */
 @media (min-width: 901px) and (max-width: 1320px) {
-  .ds-preview-grid {
+  .grid.two.ds-preview-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 

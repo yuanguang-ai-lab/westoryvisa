@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Westory Visa">
+  <circle cx="128" cy="128" r="128" fill="#111111"/>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="112" font-weight="800">
+    <text x="25" y="168" letter-spacing="-8" fill="#f6f5f2">W</text>
+    <text x="111" y="168" letter-spacing="-6" fill="#d7ff3f">S</text>
+  </g>
+  <rect x="182" y="88" width="16" height="80" fill="#d7ff3f"/>
+  <path d="M169 79 H208 V69 L228 88 L208 107 V97 H169 Z" fill="#d7ff3f"/>
+</svg>

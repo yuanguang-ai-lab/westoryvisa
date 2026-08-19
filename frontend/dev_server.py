@@ -81,6 +81,9 @@ class FrontendHandler(BaseHTTPRequestHandler):
             "promo/promo-video.css",
             "assets/ds160-preview-ui-v1.png",
             "assets/computer-use-ui-v1.png",
+            "assets/ds160-preview-ui-v2.png",
+            "assets/computer-use-ui-v2.png",
+            "assets/westoryvisa-mark.svg",
         }
         if not relative_path or (
             ("/" in relative_path or "\\" in relative_path)
