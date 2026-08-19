@@ -10,27 +10,29 @@
   <meta name="theme-color" content="#f4f4ef">
   <title>WestoryVisa｜签证顾问的自动化工作流</title>
   <link rel="icon" type="image/svg+xml" href="assets/westoryvisa-mark.svg?v=20260819-logo-v1">
-  <link rel="stylesheet" href="product.css?v=20260819-logo-v1">
+  <link rel="stylesheet" href="product.css?v=20260820-eight-step-v1">
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
 
   <header class="site-header" id="siteHeader">
-    <a class="brand" href="#top" aria-label="WestoryVisa 首页"><img class="brand-logo-mark" src="assets/westoryvisa-mark.svg?v=20260819-logo-v1" alt=""><strong>WestoryVisa</strong></a>
+    <a class="brand" href="/" aria-label="返回 WestoryVisa Landing Page"><img class="brand-logo-mark" src="assets/westoryvisa-mark.svg?v=20260819-logo-v1" alt=""><strong>WestoryVisa</strong></a>
     <nav class="desktop-nav" aria-label="页面导航">
       <a href="#automation">自动化亮点</a>
       <a href="#workflow">操作台预览</a>
       <a href="membership.html">会员中心</a>
     </nav>
     <div class="header-actions">
-      <a class="login-link desktop-only" href="workspace.html">登录</a>
-      <a class="button button-dark desktop-only" href="workspace.html">注册/登录账号</a>
+      <a class="login-link desktop-only" href="/workspace?entry=landing">登录</a>
+      <button class="button button-accent button-compact desktop-only" type="button" data-demo-open data-track="顶部-预约展示">预约展示</button>
+      <a class="button button-dark desktop-only" href="/workspace?entry=landing">注册/登录账号</a>
       <button class="menu-button" id="menuButton" type="button" aria-label="打开导航" aria-controls="mobileNav" aria-expanded="false"><span></span><span></span></button>
     </div>
   </header>
   <nav class="mobile-nav" id="mobileNav" aria-label="移动端页面导航" hidden>
     <a href="#automation">自动化亮点</a><a href="#workflow">操作台预览</a><a href="membership.html">会员中心</a>
-    <a href="workspace.html">登录</a><a class="button button-dark" href="workspace.html">注册/登录账号</a>
+    <button type="button" data-demo-open data-track="移动端-预约展示">预约展示</button>
+    <a href="/workspace?entry=landing">登录</a><a class="button button-dark" href="/workspace?entry=landing">注册/登录账号</a>
   </nav>
 
   <main id="main">
@@ -40,7 +42,8 @@
       <p class="hero-title">把一整套 DS-160 流程<br>交给自动化持续推进</p>
       <p class="hero-copy">材料自动读取、缺失信息自动归集、字段自动整理、页面逐步辅助填写。<br>顾问无需在文件、聊天记录和多个工具之间反复切换。</p>
       <div class="hero-actions">
-        <a class="button button-accent" href="workspace.html">注册/登录账号</a>
+        <button class="button button-accent" type="button" data-demo-open data-track="首屏-预约展示">预约展示</button>
+        <a class="button button-dark" href="/workspace?entry=landing">注册/登录账号</a>
       </div>
 
       <div class="automation-strip" id="automation" aria-label="自动化技术亮点">
@@ -55,7 +58,7 @@
     <section class="workflow-section" id="workflow" data-section="Full workflow" aria-labelledby="workflowTitle">
       <div class="section-intro">
         <div><p class="eyebrow">操作系统预览</p><h2 id="workflowTitle">操作台，一目了然。</h2></div>
-        <p>这里按真实工作台比例还原九步流程。点击左侧步骤查看对应页面，并可从初稿继续查看 DS-160 逐页填写。</p>
+        <p>这里按真实工作台比例还原八步流程。点击步骤即可在当前预览中查看对应页面，并可从初稿继续查看 DS-160 逐页填写。</p>
       </div>
 
       <div class="demo-shell" data-demo-player>
@@ -70,20 +73,19 @@
             <div class="sidebar-case"><span>A1</span><div><strong>客户 A-1024 · F-1</strong><small>资料整理中</small></div><i>72%</i></div>
             <div class="sidebar-label">完整工作流程</div>
             <div class="workflow-tabs" role="tablist" aria-label="完整产品流程" aria-orientation="vertical">
-              <button type="button" class="active" id="flowTab0" role="tab" aria-selected="true" aria-controls="demoScreen" tabindex="0" data-demo-chapter="0"><span>01</span><strong>档案</strong><small>客户基础信息</small></button>
-              <button type="button" id="flowTab1" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="1"><span>02</span><strong>资料</strong><small>上传与识别</small></button>
-              <button type="button" id="flowTab2" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="2"><span>03</span><strong>整理</strong><small>自动结构化</small></button>
-              <button type="button" id="flowTab3" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="3"><span>04</span><strong>字段核查</strong><small>来源与置信度</small></button>
-              <button type="button" id="flowTab4" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="4"><span>05</span><strong>待确认项</strong><small>只问缺失内容</small></button>
-              <button type="button" id="flowTab5" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="5"><span>06</span><strong>风险复核</strong><small>冲突集中判断</small></button>
-              <button type="button" id="flowTab6" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="6"><span>07</span><strong>DS-160 初稿</strong><small>页面结构映射</small></button>
-              <button type="button" id="flowTab7" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="7"><span>08</span><strong>DS-160 填写</strong><small>CEAC 逐页辅助</small></button>
-              <button type="button" id="flowTab8" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="8"><span>09</span><strong>核查清单</strong><small>提交前检查</small></button>
+              <button type="button" class="active" id="flowTab0" role="tab" aria-selected="true" aria-controls="demoScreen" tabindex="0" data-demo-chapter="0" onclick="window.selectDemoChapter?.(0)"><span>01</span><strong>档案</strong><small>客户基础信息</small></button>
+              <button type="button" id="flowTab1" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="1" onclick="window.selectDemoChapter?.(1)"><span>02</span><strong>资料</strong><small>上传与识别</small></button>
+              <button type="button" id="flowTab2" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="2" onclick="window.selectDemoChapter?.(2)"><span>03</span><strong>整理</strong><small>自动结构化</small></button>
+              <button type="button" id="flowTab3" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="3" onclick="window.selectDemoChapter?.(3)"><span>04</span><strong>字段核查</strong><small>来源与置信度</small></button>
+              <button type="button" id="flowTab4" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="4" onclick="window.selectDemoChapter?.(4)"><span>05</span><strong>待确认项</strong><small>只问缺失内容</small></button>
+              <button type="button" id="flowTab5" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="5" onclick="window.selectDemoChapter?.(5)"><span>06</span><strong>风险复核</strong><small>冲突集中判断</small></button>
+              <button type="button" id="flowTab6" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="6" onclick="window.selectDemoChapter?.(6)"><span>07</span><strong>DS-160 初稿</strong><small>页面结构映射</small></button>
+              <button type="button" id="flowTab7" role="tab" aria-selected="false" aria-controls="demoScreen" tabindex="-1" data-demo-chapter="7" onclick="window.selectDemoChapter?.(7)"><span>08</span><strong>DS-160 填写</strong><small>CEAC 逐页辅助</small></button>
             </div>
             <div class="automation-status"><i></i><div><strong>自动化服务运行中</strong><small>RPA · DeepSeek · Gemini</small></div></div>
           </aside>
 
-          <article class="demo-screen" id="demoScreen" role="tabpanel" aria-labelledby="flowTab0" data-demo-stage="0" tabindex="0">
+          <article class="demo-screen" id="demoScreen" role="tabpanel" aria-labelledby="flowTab0" data-demo-stage="0" tabindex="0" aria-live="polite">
             <div class="screen-loading" aria-hidden="true"></div>
           </article>
         </div>
@@ -154,6 +156,7 @@
       <li>验证码、账户凭证、拒签或移民历史判断、安全与背景问题、电子签名、法律声明、政府费用支付及最终提交不由本服务自动完成，必须由申请人或经授权的顾问人工处理。美国国务院也要求 DS‑160 信息准确、完整，并要求第三方协助者在相应页面如实披露，最终签署应由申请人本人完成。<a href="https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application/ds-160-faqs.html" target="_blank" rel="noopener noreferrer">查看美国国务院 DS‑160 填写说明</a>。</li>
       <li>页面所示处理时间为内部模拟环境下的参考结果，不包含验证码、人工复核、电子签名、付款及最终提交。实际处理时间可能因材料完整程度、目标网站状态、网络环境及第三方服务可用性而有所不同。</li>
       <li>为提供服务，WestoryVisa 可能处理机构账户信息，以及申请人主动提供或由获授权机构上传的身份、护照、联系方式、旅行、教育、工作和签证申请材料。相关信息仅用于账户管理、材料整理、字段核查、服务安全及履行合同，不用于广告画像或与签证服务无关的用途。详情请参阅<a href="privacy.html">隐私政策</a>。</li>
+      <li>当访客预约产品展示时，我们会保存其主动填写的姓名、电话、邮箱、机构信息和需求说明，用于联系、安排演示及跟进服务；系统可将预约摘要发送至指定的 WestoryVisa 业务收件邮箱。</li>
       <li>材料可能由云托管、文档识别、翻译、人工智能、邮件或技术支持服务商按照约定进行必要处理，部分处理可能涉及跨境传输。机构客户上传材料前，应依法向申请人履行告知义务，并取得处理敏感个人信息及跨境提供所需的授权或单独同意。</li>
       <li>我们采用传输加密、权限隔离、访问日志、最小权限及其他合理安全措施保护数据，但任何网络系统均无法保证绝对安全。用户应妥善保管登录凭证、限制团队权限，并及时删除不再需要的导出文件。</li>
       <li>月度和年度会员均为一次性购买的固定服务期限，不自动续费。功能、价格、币种、税费、实际扣款金额及退款条件，以购买页面和<a href="refund-policy.html">退款与取消政策</a>为准。</li>
@@ -166,6 +169,40 @@
     <nav aria-label="法律与公司信息"><a href="terms.html">服务条款</a><a href="privacy.html">隐私政策</a><a href="refund-policy.html">退款政策</a><a href="contact.html">联系我们</a></nav>
   </footer>
 
-  <script src="product.js?v=20260817-ds160-fill-v4"></script>
+  <div class="demo-modal" id="demoRequestModal" aria-hidden="true">
+    <button class="demo-modal-backdrop" type="button" data-demo-close aria-label="关闭预约展示窗口"></button>
+    <section class="demo-request-sheet" role="dialog" aria-modal="true" aria-labelledby="demoRequestTitle" aria-describedby="demoRequestIntro">
+      <header class="demo-request-header">
+        <div><span>PRODUCT DEMO</span><h2 id="demoRequestTitle">预约展示</h2><p id="demoRequestIntro">留下联系方式和团队需求，我们会尽快与你确认演示时间。</p></div>
+        <button class="demo-modal-close" type="button" data-demo-close aria-label="关闭">×</button>
+      </header>
+      <form class="demo-request-form" id="demoRequestForm" novalidate>
+        <div class="demo-form-grid">
+          <label><span>姓名 *</span><input name="name" type="text" autocomplete="name" maxlength="100" required placeholder="怎么称呼你"></label>
+          <label><span>电话 / WhatsApp *</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" required placeholder="+86 138 0000 0000"></label>
+          <label><span>工作邮箱 *</span><input name="email" type="email" autocomplete="email" maxlength="320" required placeholder="name@company.com"></label>
+          <label><span>机构 / 团队</span><input name="organizationName" type="text" autocomplete="organization" maxlength="180" placeholder="公司或团队名称"></label>
+          <label><span>城市 / 地区</span><input name="city" type="text" autocomplete="address-level2" maxlength="120" placeholder="例如：上海 / 香港"></label>
+          <label><span>团队规模</span><select name="teamSize"><option value="">请选择</option><option value="1">1 人</option><option value="2-5">2–5 人</option><option value="6-20">6–20 人</option><option value="21+">21 人以上</option></select></label>
+          <label class="demo-form-wide"><span>优先联系</span><select name="contactPreference"><option value="email">邮件</option><option value="phone">电话</option><option value="wechat">微信</option><option value="whatsapp">WhatsApp</option></select></label>
+          <label class="demo-form-wide"><span>想重点了解什么</span><textarea name="message" maxlength="1200" rows="4" placeholder="例如：团队每月处理多少份 DS-160、当前最耗时的环节"></textarea></label>
+        </div>
+        <label class="demo-honeypot" aria-hidden="true"><span>Website</span><input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+        <label class="demo-consent"><input name="privacyConsent" type="checkbox" required><span>我同意 WestoryVisa 按<a href="privacy.html" target="_blank" rel="noopener">隐私政策</a>保存以上信息，并通过电话或邮件联系我安排产品展示。</span></label>
+        <div class="demo-form-status" id="demoRequestStatus" role="status" aria-live="polite"></div>
+        <div class="demo-form-actions"><button class="button button-accent" type="submit">提交预约</button><small id="demoNotificationHint">提交信息会安全保存。</small></div>
+      </form>
+      <div class="demo-request-success" id="demoRequestSuccess" hidden><span>✓</span><h3>预约已收到</h3><p>谢谢你的信息。WestoryVisa 团队会尽快与你联系。</p><button class="button button-dark" type="button" data-demo-close>完成</button></div>
+    </section>
+  </div>
+
+  <aside class="consent-banner" id="consentBanner" aria-labelledby="consentTitle" hidden>
+    <div><strong id="consentTitle">Cookie preferences</strong><p>We use optional analytics cookies to measure time spent, sections viewed and button interactions. We never use them to read form entries, customer files or raw IP addresses.</p></div>
+    <div><button type="button" class="consent-decline" id="declineAnalytics">Reject optional</button><button type="button" class="consent-accept" id="acceptAnalytics">Accept analytics</button></div>
+  </aside>
+
+  <script src="runtime-config.js?v=20260727-frontend-backend-split-v1"></script>
+  <script src="api-client.js?v=20260814-local-file-navigation-v1"></script>
+  <script src="product.js?v=20260820-eight-step-v3"></script>
 </body>
 </html>

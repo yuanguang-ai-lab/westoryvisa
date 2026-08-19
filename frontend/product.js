@@ -1,3 +1,17 @@
+const PRODUCT_API = DocFlowApi.apiBaseUrl;
+const ANALYTICS_CONSENT_KEY = "docflowProductAnalyticsConsent";
+const ANALYTICS_SESSION_KEY = "docflowProductAnalyticsSession";
+const productPageState = {
+  config: {
+    analyticsConsentVersion: "anonymous-product-analytics-v1",
+    demoRequestPrivacyVersion: "demo-request-privacy-v1"
+  },
+  analyticsEnabled: false,
+  viewedSections: new Set(),
+  visibleSince: null,
+  lastFocusedElement: null
+};
+
 const DEMO_STAGES = [
   {
     title: "客户档案", eyebrow: "01 · 档案", description: "建立客户档案后，签证类型、负责人、时间节点和后续材料始终沿同一案件流转。", status: "3 个进行中案件",
@@ -34,11 +48,6 @@ const DEMO_STAGES = [
   },
   {
     title: "DS-160 填写", eyebrow: "08 · DS-160 填写", description: "在可见页面中按初稿逐项填写，并在进入下一页前复读核对。", status: "Personal Information 1"
-  },
-  {
-    title: "核查清单", eyebrow: "09 · 核查清单", description: "在离开系统前集中核对来源、未决问题与人工操作边界，形成可导出的审计清单。", status: "24 / 28 已通过",
-    rows: [["身份与护照一致性", "12 项检查", "全部匹配", "通过"], ["旅行信息完整性", "8 项检查", "2 项待确认", "核查中", "warn"], ["安全背景逐项确认", "顾问负责", "尚未最终确认", "人工确认", "danger"]],
-    side: [["检查项目", "28"], ["已经通过", "24"], ["需要确认", "3"], ["人工操作", "1"]]
   }
 ];
 
@@ -147,7 +156,7 @@ function renderStandardStage(stage, index) {
     <div class="real-screen-toolbar"><div><span>⌂</span> 工作台</div><i>/</i><div>← 上一步</div></div>
     <div class="screen-top real-screen-top"><div class="screen-title"><span>${escapeDemo(stage.eyebrow)}</span><h3>${escapeDemo(stage.title)}</h3><p>${escapeDemo(stage.description)}</p></div><div class="screen-meta"><span>客户 A-1024 · B1/B2</span><strong>${escapeDemo(stage.status)}</strong><small>自动保存 · 刚刚</small></div></div>
     <div class="screen-grid real-screen-grid">
-      <section class="screen-card real-data-card"><header class="card-head"><strong>${index === 8 ? "提交前核查" : "当前工作区"}</strong><span>${escapeDemo(stage.status)}</span></header><div class="data-rows">${stage.rows.map((row) => `<div class="data-row"><div><strong>${escapeDemo(row[0])}</strong><small>${escapeDemo(row[1])}</small></div><span>${escapeDemo(row[2])}</span><em class="${escapeDemo(row[4] || "")}">${escapeDemo(row[3])}</em></div>`).join("")}</div></section>
+      <section class="screen-card real-data-card"><header class="card-head"><strong>当前工作区</strong><span>${escapeDemo(stage.status)}</span></header><div class="data-rows">${stage.rows.map((row) => `<div class="data-row"><div><strong>${escapeDemo(row[0])}</strong><small>${escapeDemo(row[1])}</small></div><span>${escapeDemo(row[2])}</span><em class="${escapeDemo(row[4] || "")}">${escapeDemo(row[3])}</em></div>`).join("")}</div></section>
       <section class="screen-card real-summary-card"><header class="card-head"><strong>案件摘要</strong><span>${index + 1} / ${DEMO_STAGES.length}</span></header><div class="summary-list">${stage.side.map(([label, value]) => `<div><span>${escapeDemo(label)}</span><strong>${escapeDemo(value)}</strong></div>`).join("")}</div></section>
     </div>`;
 }
@@ -222,11 +231,25 @@ function initializeDemo() {
     current = (index + DEMO_STAGES.length) % DEMO_STAGES.length;
     elapsed = 0;
     update();
-    tabs[current].scrollIntoView({ block: "nearest", inline: "nearest", behavior: reducedMotion.matches ? "auto" : "smooth" });
+    tabs[current].scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
     if (focus) tabs[current].focus();
   };
+  const activateChapter = (index) => {
+    wantsPlay = false;
+    select(Number(index));
+    if (window.matchMedia("(max-width: 720px)").matches) {
+      requestAnimationFrame(() => document.querySelector("#demoScreen")?.scrollIntoView({
+        block: "start",
+        behavior: reducedMotion.matches ? "auto" : "smooth"
+      }));
+    }
+  };
+  window.selectDemoChapter = activateChapter;
+  player.addEventListener("pointerdown", (event) => {
+    const chapter = event.target.closest("[data-demo-chapter]");
+    if (chapter) activateChapter(chapter.dataset.demoChapter);
+  }, true);
   tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => { wantsPlay = false; select(index); });
     tab.addEventListener("keydown", (event) => {
       if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
@@ -312,6 +335,256 @@ function initializeFeatureCarousel() {
   update();
 }
 
-initializeNavigation();
-initializeDemo();
-initializeFeatureCarousel();
+function productRandomId(prefix = "event") {
+  const value = globalThis.crypto?.randomUUID?.().replaceAll("-", "")
+    || `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  return `${prefix}_${value}`;
+}
+
+function analyticsSessionId(create = true) {
+  let sessionId = sessionStorage.getItem(ANALYTICS_SESSION_KEY);
+  if (!sessionId && create) {
+    sessionId = productRandomId("visit");
+    sessionStorage.setItem(ANALYTICS_SESSION_KEY, sessionId);
+  }
+  return sessionId || "";
+}
+
+function productReferrerHost() {
+  if (!document.referrer) return "direct";
+  try { return new URL(document.referrer).hostname || "direct"; }
+  catch (_error) { return "unknown"; }
+}
+
+function productDeviceType() {
+  if (window.innerWidth < 720) return "mobile";
+  if (window.innerWidth < 1100) return "tablet";
+  return "desktop";
+}
+
+function analyticsPayload(eventType, details = {}) {
+  const query = new URLSearchParams(window.location.search);
+  return {
+    sessionId: analyticsSessionId(),
+    eventId: productRandomId("event"),
+    eventType,
+    pagePath: window.location.pathname.slice(0, 300),
+    target: String(details.target || "").slice(0, 240),
+    section: String(details.section || "").slice(0, 160),
+    activeMs: Number(details.activeMs || 0),
+    referrerHost: productReferrerHost(),
+    utmSource: query.get("utm_source") || "",
+    utmMedium: query.get("utm_medium") || "",
+    utmCampaign: query.get("utm_campaign") || "",
+    deviceType: productDeviceType(),
+    locale: navigator.language || "",
+    consentVersion: productPageState.config.analyticsConsentVersion
+  };
+}
+
+function sendProductAnalytics(eventType, details = {}, useBeacon = false) {
+  if (!productPageState.analyticsEnabled) return;
+  const body = JSON.stringify(analyticsPayload(eventType, details));
+  if (useBeacon && navigator.sendBeacon) {
+    navigator.sendBeacon(
+      `${PRODUCT_API}/product/analytics/events`,
+      new Blob([body], { type: "application/json" })
+    );
+    return;
+  }
+  DocFlowApi.request(`${PRODUCT_API}/product/analytics/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true
+  }).catch(() => {});
+}
+
+function flushProductActiveTime(useBeacon = false) {
+  if (!productPageState.analyticsEnabled || productPageState.visibleSince === null) return;
+  const activeMs = Math.max(0, Math.round(performance.now() - productPageState.visibleSince));
+  productPageState.visibleSince = document.visibilityState === "visible" ? performance.now() : null;
+  if (activeMs >= 500) sendProductAnalytics("dwell", { activeMs }, useBeacon);
+}
+
+function initializeSectionAnalytics() {
+  if (!("IntersectionObserver" in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting || entry.intersectionRatio < .32) return;
+      const section = entry.target.dataset.section;
+      if (!section || productPageState.viewedSections.has(section)) return;
+      productPageState.viewedSections.add(section);
+      sendProductAnalytics("section_view", { section, target: section });
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: [.32, .6] });
+  document.querySelectorAll("[data-section]").forEach((section) => observer.observe(section));
+}
+
+function enableProductAnalytics() {
+  if (productPageState.analyticsEnabled) return;
+  productPageState.analyticsEnabled = true;
+  productPageState.visibleSince = document.visibilityState === "visible" ? performance.now() : null;
+  sendProductAnalytics("page_view", { target: document.title });
+  initializeSectionAnalytics();
+}
+
+function initializeAnalyticsConsent() {
+  const banner = document.querySelector("#consentBanner");
+  const stored = localStorage.getItem(ANALYTICS_CONSENT_KEY);
+  const doNotTrack = navigator.doNotTrack === "1" || window.doNotTrack === "1";
+  if (stored === "accepted" && !doNotTrack) {
+    enableProductAnalytics();
+    return;
+  }
+  if (stored === "declined" || doNotTrack || !banner) return;
+  window.setTimeout(() => { banner.hidden = false; }, 650);
+  document.querySelector("#acceptAnalytics")?.addEventListener("click", () => {
+    localStorage.setItem(ANALYTICS_CONSENT_KEY, "accepted");
+    banner.hidden = true;
+    enableProductAnalytics();
+  });
+  document.querySelector("#declineAnalytics")?.addEventListener("click", () => {
+    localStorage.setItem(ANALYTICS_CONSENT_KEY, "declined");
+    banner.hidden = true;
+  });
+}
+
+async function loadProductPageConfig() {
+  try {
+    const response = await DocFlowApi.request(`${PRODUCT_API}/product/config`, { cache: "no-store" });
+    if (!response.ok) return;
+    productPageState.config = { ...productPageState.config, ...(await response.json()) };
+    const hint = document.querySelector("#demoNotificationHint");
+    if (hint && productPageState.config.demoRequestNotificationConfigured) {
+      hint.textContent = "提交后，预约摘要会自动通知 WestoryVisa 团队。";
+    }
+  } catch (_error) {}
+}
+
+function demoRequestSource() {
+  const query = new URLSearchParams(window.location.search);
+  return {
+    sourcePath: window.location.pathname.slice(0, 300),
+    referrerHost: productReferrerHost(),
+    utmSource: query.get("utm_source") || "",
+    utmMedium: query.get("utm_medium") || "",
+    utmCampaign: query.get("utm_campaign") || "",
+    analyticsSessionId: productPageState.analyticsEnabled ? analyticsSessionId() : ""
+  };
+}
+
+function initializeDemoRequestForm() {
+  const modal = document.querySelector("#demoRequestModal");
+  const form = document.querySelector("#demoRequestForm");
+  const success = document.querySelector("#demoRequestSuccess");
+  const status = document.querySelector("#demoRequestStatus");
+  if (!modal || !form || !success || !status) return;
+
+  const close = () => {
+    if (!modal.classList.contains("open")) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("demo-modal-open");
+    productPageState.lastFocusedElement?.focus?.();
+  };
+  const open = (trigger) => {
+    productPageState.lastFocusedElement = trigger || document.activeElement;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("demo-modal-open");
+    sendProductAnalytics("demo_open", { target: trigger?.dataset.track || "预约展示" });
+    window.setTimeout(() => modal.querySelector("input[name='name']")?.focus(), 60);
+  };
+
+  document.querySelectorAll("[data-demo-open]").forEach((button) => {
+    button.addEventListener("click", () => open(button));
+  });
+  document.querySelectorAll("[data-demo-close]").forEach((button) => {
+    button.addEventListener("click", close);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    status.textContent = "";
+    status.className = "demo-form-status";
+    if (!form.reportValidity()) return;
+    const submit = form.querySelector("button[type='submit']");
+    const values = Object.fromEntries(new FormData(form).entries());
+    const payload = {
+      ...values,
+      ...demoRequestSource(),
+      privacyConsentVersion: productPageState.config.demoRequestPrivacyVersion
+    };
+    submit.disabled = true;
+    submit.textContent = "正在提交…";
+    flushProductActiveTime();
+    try {
+      const response = await DocFlowApi.request(`${PRODUCT_API}/product/demo-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "预约提交失败，请稍后重试。 ");
+      sendProductAnalytics("demo_submit", { target: "预约展示提交成功" });
+      form.hidden = true;
+      success.hidden = false;
+      success.querySelector("button")?.focus();
+    } catch (error) {
+      status.textContent = error.message || "预约提交失败，请稍后重试。";
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "提交预约";
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!modal.classList.contains("open")) return;
+    if (event.key === "Escape") {
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [...modal.querySelectorAll("a[href], button:not([disabled]), input:not([type='hidden']), select, textarea")]
+      .filter((element) => element.offsetParent !== null && element.tabIndex !== -1);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+}
+
+function initializeProductAnalyticsEvents() {
+  document.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-track]");
+    if (target) sendProductAnalytics("click", { target: target.dataset.track });
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushProductActiveTime(true);
+    else if (productPageState.analyticsEnabled) productPageState.visibleSince = performance.now();
+  });
+  window.addEventListener("pagehide", () => flushProductActiveTime(true));
+  window.setInterval(() => {
+    if (document.visibilityState === "visible") flushProductActiveTime();
+  }, 15000);
+}
+
+async function initializeProductPage() {
+  initializeNavigation();
+  initializeDemo();
+  initializeFeatureCarousel();
+  initializeDemoRequestForm();
+  initializeProductAnalyticsEvents();
+  await loadProductPageConfig();
+  initializeAnalyticsConsent();
+}
+
+initializeProductPage();
