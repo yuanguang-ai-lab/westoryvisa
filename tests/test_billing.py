@@ -27,7 +27,7 @@ class BillingTests(unittest.TestCase):
             "organizationId": "org-billing-test",
             "email": "billing@example.com",
         }
-        stamped = server.now_iso()
+        stamped = "2020-01-01T00:00:00+00:00"
         with server.connect() as connection:
             connection.execute(
                 "INSERT INTO organizations (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)",
@@ -315,6 +315,59 @@ class BillingTests(unittest.TestCase):
         )
         self.assertEqual(expired_status, 402)
         self.assertEqual(expired_payload["code"], "membership_required")
+
+    def test_new_account_gets_three_case_trials_for_thirty_days(self):
+        trial_user = {
+            "id": "user-trial-test",
+            "organizationId": "org-trial-test",
+            "email": "trial@example.com",
+            "identity": "Trial Test",
+            "name": "Trial User",
+            "accountKeyId": "trial-key",
+        }
+        stamped = server.now_iso()
+        with server.connect() as connection:
+            connection.execute(
+                "INSERT INTO organizations (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                (trial_user["organizationId"], "Trial Test", stamped, stamped),
+            )
+            connection.execute(
+                """
+                INSERT INTO users (
+                  id, organization_id, name, email, password_iterations,
+                  created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    trial_user["id"], trial_user["organizationId"], "Trial User",
+                    trial_user["email"], server.PASSWORD_ITERATIONS, stamped, stamped,
+                ),
+            )
+        initial = server.billing_summary(trial_user)["trial"]
+        self.assertTrue(initial["active"])
+        self.assertEqual(initial["remaining"], 3)
+
+        for index in range(3):
+            server.upsert_case(
+                {"id": f"trial-case-{index}", "visaType": "B1/B2"},
+                trial_user,
+                enforce_trial_limit=True,
+            )
+        self.assertEqual(server.billing_summary(trial_user)["trial"]["remaining"], 0)
+
+        with self.assertRaisesRegex(PermissionError, "3 次免费试验"):
+            server.upsert_case(
+                {"id": "trial-case-four", "visaType": "B1/B2"},
+                trial_user,
+                enforce_trial_limit=True,
+            )
+
+        updated = server.upsert_case(
+            {"id": "trial-case-2", "visaType": "B1/B2", "currentStep": 1},
+            trial_user,
+            enforce_trial_limit=True,
+        )
+        self.assertEqual(updated["id"], "trial-case-2")
 
     def test_payment_admin_api_rejects_consultants_and_accepts_platform_admin(self):
         token = server.create_auth_session(self.user["id"])

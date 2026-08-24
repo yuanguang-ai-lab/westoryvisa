@@ -76,6 +76,10 @@
       }
       const billing = await request("/billing");
       const membership = billing.membership || {};
+      const trial = billing.trial || {};
+      const trialDetail = document.querySelector("#freeTrialDetail");
+      const trialBadge = document.querySelector("#freeTrialBadge");
+      const trialWorkspaceLink = document.querySelector("#freeTrialWorkspaceLink");
       const legalAcceptance = document.querySelector("#legalAcceptance");
       const checkoutButtons = [...document.querySelectorAll(".billing-checkout")];
       checkoutButtons.forEach((button) => { button.dataset.defaultText ||= button.textContent; });
@@ -106,12 +110,26 @@
         detail.textContent = `当前有效期至 ${dateTime(membership.currentPeriodEnd)}。新购买的时长会接在现有有效期之后。`;
         badge.textContent = "已开通";
         document.querySelector("#membershipWorkspaceLink").hidden = false;
+        trialDetail.textContent = `当前正在使用付费会员权益，创建案件不会扣减免费试验次数。免费试验记录：已使用 ${trial.used || 0} / ${trial.limit || 3} 次。`;
+        trialBadge.textContent = "会员优先";
+      } else if (trial.active) {
+        title.textContent = trial.remaining > 0 ? "免费试验可用" : "免费试验次数已用完";
+        detail.textContent = trial.remaining > 0
+          ? `注册后 30 天内可创建 3 个免费试验案件；当前剩余 ${trial.remaining} 次。`
+          : "3 次免费试验案件已经全部创建；到期前仍可查看和完善已有案件，创建新案件需购买会员。";
+        badge.textContent = trial.remaining > 0 ? `剩余 ${trial.remaining} 次` : "0 次剩余";
+        document.querySelector("#membershipWorkspaceLink").hidden = false;
+        trialDetail.textContent = `已使用 ${trial.used || 0} / ${trial.limit || 3} 次，有效至 ${dateTime(trial.expiresAt)}。每创建一个新客户案件计为 1 次。`;
+        trialBadge.textContent = trial.remaining > 0 ? `剩余 ${trial.remaining} 次` : "次数已用完";
+        trialWorkspaceLink.hidden = false;
       } else {
         title.textContent = "当前未开通有效会员";
-        detail.textContent = "请直接在下方选择月度或年度会员并购买；支付确认到账后自动开通工作台。";
+        detail.textContent = "30 天免费试用期已结束，请在下方选择月度或年度会员并购买。";
         badge.textContent = "未开通";
+        trialDetail.textContent = `免费试验已结束；此前已使用 ${trial.used || 0} / ${trial.limit || 3} 次。购买会员后可继续创建和处理案件。`;
+        trialBadge.textContent = "已结束";
       }
-      if (!membership.active && !billing.gateway.configured) {
+      if (!membership.active && !trial.active && !billing.gateway.configured) {
         showNotice(billing.gateway.message || "支付通道正在接入。", "warning");
       }
       syncCheckoutAvailability();
@@ -145,9 +163,9 @@
       });
       const params = new URLSearchParams(global.location.search);
       if (params.get("auth") === "registered") {
-        showNotice("账号已创建。请直接在本页选择方案并购买，支付到账后即可进入工作台。", "success");
+        showNotice("账号已创建，30 天内的 3 次免费试验已自动开通。", "success");
       } else if (params.get("auth") === "logged-in" || params.get("access") === "required") {
-        if (!membership.active) {
+        if (!membership.active && !trial.active) {
           showNotice("当前账号尚未开通会员，请选择月付或年付方案。", "warning");
         }
       } else if (params.get("checkout") === "success") {

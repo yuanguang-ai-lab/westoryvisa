@@ -63,6 +63,7 @@ const state = {
   mailService: null,
   screenAgentRuntime: null,
   membership: null,
+  trial: null,
   membershipBypass: false,
   registrationVerification: { mode: "none", required: false },
   emailCodeTimer: null,
@@ -343,6 +344,7 @@ async function loadState() {
           if (billingResponse.ok) {
             const billingData = await billingResponse.json();
             state.membership = billingData.membership || null;
+            state.trial = billingData.trial || null;
           }
         }
       }
@@ -1222,8 +1224,9 @@ async function submitAuthForm(event) {
     if (billingResponse.ok) {
       const billingData = await billingResponse.json();
       state.membership = billingData.membership || null;
+      state.trial = billingData.trial || null;
     }
-    if (!state.membership?.active && !state.membershipBypass) {
+    if (!state.membership?.active && !state.trial?.active && !state.membershipBypass) {
       window.location.replace("/membership?auth=logged-in");
       return;
     }
@@ -7078,7 +7081,7 @@ async function boot() {
     return;
   }
   await loadState();
-  if (state.user && !state.membership?.active && !state.membershipBypass) {
+  if (state.user && !state.membership?.active && !state.trial?.active && !state.membershipBypass) {
     window.location.replace("/membership?access=required");
     return;
   }

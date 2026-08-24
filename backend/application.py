@@ -162,11 +162,14 @@ BROWSER_USE_PYTHON = ROOT / ".venv-browser-use" / "bin" / "python"
 BROWSER_USE_TRAVEL_WORKER = ROOT / "backend" / "workers" / "browser_use_travel_worker.py"
 CHROME_EXECUTABLE = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 PRODUCT_ANALYTICS_CONSENT_VERSION = "anonymous-product-analytics-v1"
+DEMO_REQUEST_PRIVACY_VERSION = "demo-request-privacy-v1"
+FREE_TRIAL_DURATION_DAYS = 30
+FREE_TRIAL_CASE_LIMIT = 3
 PRODUCT_EVENT_TYPES = {
     "page_view", "click", "section_view", "dwell", "wjx_open", "wjx_close",
 }
 BILLING_PROVIDER = "stripe"
-MERCHANT_TERMS_VERSION = "2026-08-14"
+MERCHANT_TERMS_VERSION = "2026-08-24"
 MERCHANT_PROFILE_FIELDS = {
     "legalNameEn": "MERCHANT_LEGAL_NAME_EN",
     "legalNameZh": "MERCHANT_LEGAL_NAME_ZH",
@@ -280,6 +283,10 @@ def product_public_config():
         "wjxConfigured": bool(configured_url),
         "analyticsConsentVersion": PRODUCT_ANALYTICS_CONSENT_VERSION,
         "analyticsMode": "anonymous_opt_in",
+        "demoRequestEnabled": True,
+        "demoRequestPrivacyVersion": DEMO_REQUEST_PRIVACY_VERSION,
+        "demoRequestNotificationConfigured": bool(demo_request_recipient())
+        and mail_service_status()["configured"],
     }
 
 
@@ -289,6 +296,146 @@ def update_product_settings(payload, user):
     survey_url = validate_wjx_survey_url(payload.get("wjxSurveyUrl"))
     save_site_setting("wjx_survey_url", survey_url, user)
     return product_public_config()
+
+
+def demo_request_recipient():
+    return (
+        os.environ.get("DEMO_REQUEST_RECIPIENT_EMAIL", "").strip()
+        or os.environ.get("MERCHANT_SUPPORT_EMAIL", "").strip()
+        or os.environ.get("MAIL_FROM", "").strip()
+    )[:320]
+
+
+def clean_demo_request_field(payload, key, limit, required=False):
+    value = clean_product_analytics_text(payload.get(key), limit)
+    if required and not value:
+        labels = {"name": "名字", "phone": "电话", "email": "邮箱"}
+        raise ValueError(f"请填写{labels.get(key, key)}")
+    return value
+
+
+def demo_request_email_content(request_record):
+    fields = (
+        ("名字", request_record["name"]),
+        ("电话", request_record["phone"]),
+        ("邮箱", request_record["email"]),
+        ("其他备注", request_record["message"] or "未填写"),
+        ("来源页面", request_record["sourcePath"] or "/"),
+        ("提交时间", request_record["createdAt"]),
+    )
+    text_content = "收到一条新的 WestoryVisa 预约演示申请。\n\n" + "\n".join(
+        f"{label}：{value}" for label, value in fields
+    )
+    rows = "".join(
+        "<tr><th style=\"padding:9px 12px;text-align:left;vertical-align:top;"
+        "border-bottom:1px solid #ecece7;color:#6e7169;font-size:12px;"
+        "font-weight:600;white-space:nowrap;\">"
+        f"{html.escape(label)}</th><td style=\"padding:9px 12px;"
+        "border-bottom:1px solid #ecece7;color:#171915;font-size:14px;"
+        "line-height:1.65;word-break:break-word;\">"
+        f"{html.escape(value)}</td></tr>"
+        for label, value in fields
+    )
+    html_content = f"""\
+<!doctype html>
+<html lang="zh-CN"><body style="margin:0;background:#f4f4ef;color:#171915;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;">
+  <div style="max-width:640px;margin:0 auto;padding:36px 20px;">
+    <div style="background:#fff;border:1px solid rgba(17,25,16,.1);border-radius:22px;overflow:hidden;">
+      <div style="padding:26px 28px;background:#171915;color:#fff;"><div style="font-size:12px;color:#caff35;letter-spacing:.08em;">WESTORYVISA</div><h1 style="margin:8px 0 0;font-size:23px;">新的预约演示申请</h1></div>
+      <table style="width:100%;border-collapse:collapse;"><tbody>{rows}</tbody></table>
+      <p style="margin:0;padding:18px 28px;color:#74766f;font-size:11px;line-height:1.65;">此邮件由 WestoryVisa 首页自动发送；完整记录已保存至服务器数据库。</p>
+    </div>
+  </div>
+</body></html>"""
+    return "WestoryVisa 新的预约演示申请", text_content, html_content
+
+
+def create_demo_request(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("预约信息格式不正确")
+    if clean_demo_request_field(payload, "website", 200):
+        raise ValueError("预约信息无法提交")
+
+    name = clean_demo_request_field(payload, "name", 100, required=True)
+    phone = clean_demo_request_field(payload, "phone", 30, required=True)
+    email_address = clean_demo_request_field(
+        payload, "email", 320, required=True
+    ).lower()
+    validate_email_address(email_address)
+    if not re.fullmatch(r"[0-9+()\-\s]{6,30}", phone):
+        raise ValueError("请输入有效的联系电话")
+    privacy_version = clean_demo_request_field(
+        payload, "privacyConsentVersion", 80
+    )
+    if privacy_version != DEMO_REQUEST_PRIVACY_VERSION:
+        raise ValueError("请先同意隐私政策和联系授权")
+
+    now = datetime.now(timezone.utc)
+    stamped = now.isoformat()
+    hour_ago = (now - timedelta(hours=1)).isoformat()
+    request_id = f"demo-{secrets.token_hex(16)}"
+    message = clean_demo_request_field(payload, "message", 1200)
+    source_path = clean_demo_request_field(payload, "sourcePath", 300) or "/"
+    if not source_path.startswith("/"):
+        source_path = "/"
+
+    with connect() as conn:
+        recent = conn.execute(
+            "SELECT COUNT(*) AS count FROM demo_requests "
+            "WHERE email = ? AND created_at >= ?",
+            (email_address, hour_ago),
+        ).fetchone()["count"]
+        if recent >= 3:
+            raise EmailRateLimitError("预约提交过于频繁，请稍后再试", 3600)
+        conn.execute(
+            "INSERT INTO demo_requests "
+            "(id, name, phone, email, message, source_path, "
+            "privacy_consent_version, notification_status, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
+            (
+                request_id, name, phone, email_address, message, source_path,
+                privacy_version, stamped,
+            ),
+        )
+
+    record = {
+        "name": name,
+        "phone": phone,
+        "email": email_address,
+        "message": message,
+        "sourcePath": source_path,
+        "createdAt": stamped,
+    }
+    recipient = demo_request_recipient()
+    notification_sent = False
+    notification_error = ""
+    if recipient:
+        try:
+            subject, text_content, html_content = demo_request_email_content(record)
+            sendEmail(recipient, subject, text_content, html_content)
+            notification_sent = True
+        except EmailDeliveryError as error:
+            notification_error = clean_product_analytics_text(error, 500)
+    else:
+        notification_error = "预约通知收件邮箱尚未配置"
+
+    with connect() as conn:
+        conn.execute(
+            "UPDATE demo_requests SET notification_status = ?, "
+            "notification_error = ?, notified_at = ? WHERE id = ?",
+            (
+                "sent" if notification_sent else "failed",
+                notification_error,
+                stamped if notification_sent else None,
+                request_id,
+            ),
+        )
+    return {
+        "id": request_id,
+        "ok": True,
+        "notificationSent": notification_sent,
+        "message": "预约信息已提交，我们会尽快与你联系。",
+    }
 
 
 def record_product_analytics_event(payload):
@@ -718,6 +865,26 @@ CREATE TABLE IF NOT EXISTS product_analytics_events (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS demo_requests (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT,
+  source_path TEXT,
+  privacy_consent_version TEXT NOT NULL,
+  notification_status TEXT NOT NULL DEFAULT 'pending',
+  notification_error TEXT,
+  notified_at TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS trial_case_uses (
+  case_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  used_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS billing_products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -896,6 +1063,14 @@ def init_db():
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_product_events_session "
             "ON product_analytics_events(session_id, created_at)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_demo_requests_email_created "
+            "ON demo_requests(email, created_at DESC)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_trial_case_uses_user "
+            "ON trial_case_uses(user_id, used_at DESC)"
         )
         conn.execute("CREATE INDEX IF NOT EXISTS idx_billing_orders_org_created ON billing_orders(organization_id, created_at DESC)")
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_billing_orders_checkout ON billing_orders(provider_checkout_id) WHERE provider_checkout_id IS NOT NULL")
@@ -4294,6 +4469,70 @@ def active_membership_for_user(user):
     return public_membership(row) if row else None
 
 
+def _trial_entitlement_from_values(created_at, used_count):
+    if not created_at:
+        return {
+            "active": False,
+            "eligible": False,
+            "limit": FREE_TRIAL_CASE_LIMIT,
+            "used": int(used_count or 0),
+            "remaining": 0,
+            "expiresAt": None,
+        }
+    registered_at = datetime.fromisoformat(created_at)
+    if registered_at.tzinfo is None:
+        registered_at = registered_at.replace(tzinfo=timezone.utc)
+    expires_at = registered_at + timedelta(days=FREE_TRIAL_DURATION_DAYS)
+    used = min(FREE_TRIAL_CASE_LIMIT, max(0, int(used_count or 0)))
+    eligible = datetime.now(timezone.utc) < expires_at
+    return {
+        "active": eligible,
+        "eligible": eligible,
+        "limit": FREE_TRIAL_CASE_LIMIT,
+        "used": used,
+        "remaining": max(0, FREE_TRIAL_CASE_LIMIT - used),
+        "expiresAt": expires_at.isoformat(),
+    }
+
+
+def trial_entitlement_for_user(user):
+    if not user or not user.get("id"):
+        return _trial_entitlement_from_values(None, 0)
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT created_at FROM users WHERE id = ?", (user["id"],)
+        ).fetchone()
+        used = conn.execute(
+            "SELECT COUNT(*) AS count FROM trial_case_uses WHERE user_id = ?",
+            (user["id"],),
+        ).fetchone()["count"]
+    return _trial_entitlement_from_values(row["created_at"] if row else None, used)
+
+
+def consume_trial_case_use(conn, user, case_id):
+    existing_use = conn.execute(
+        "SELECT case_id FROM trial_case_uses WHERE case_id = ?", (case_id,)
+    ).fetchone()
+    if existing_use:
+        return
+    row = conn.execute(
+        "SELECT created_at FROM users WHERE id = ?", (user["id"],)
+    ).fetchone()
+    used = conn.execute(
+        "SELECT COUNT(*) AS count FROM trial_case_uses WHERE user_id = ?",
+        (user["id"],),
+    ).fetchone()["count"]
+    trial = _trial_entitlement_from_values(row["created_at"] if row else None, used)
+    if not trial["active"]:
+        raise PermissionError("30 天免费试用期已结束，请购买会员后继续使用")
+    if trial["remaining"] <= 0:
+        raise PermissionError("3 次免费试验机会已用完，请购买会员后创建新案件")
+    conn.execute(
+        "INSERT INTO trial_case_uses (case_id, user_id, used_at) VALUES (?, ?, ?)",
+        (case_id, user["id"], now_iso()),
+    )
+
+
 def workspace_membership_required(path):
     return (
         path == "/api/cases"
@@ -4324,6 +4563,7 @@ def billing_summary(user):
         "gateway": billing_settings(),
         "products": [public_billing_product(row) for row in product_rows],
         "membership": public_membership(membership),
+        "trial": trial_entitlement_for_user(user),
         "orders": [public_billing_order(row) for row in order_rows],
         "refunds": [public_billing_refund(row) for row in refund_rows],
     }
@@ -4811,7 +5051,7 @@ def create_refund(order_id, payload, user, *, platform_scope=False):
     return public_billing_refund(row)
 
 
-def upsert_case(payload, user):
+def upsert_case(payload, user, enforce_trial_limit=False):
     payload = json.loads(json.dumps(payload, ensure_ascii=False))
     case_id = payload.get("id")
     if not case_id:
@@ -4871,6 +5111,8 @@ def upsert_case(payload, user):
     for index, document in enumerate(payload.get("documents") or []):
         document["id"] = document.get("id") or f"{case_id}-doc-{index}"
 
+    paid_membership = active_membership_for_user(user) if enforce_trial_limit else None
+
     with connect() as conn:
         existing_case = conn.execute(
             "SELECT organization_id, client_id FROM ds160_cases WHERE id = ?",
@@ -4878,6 +5120,8 @@ def upsert_case(payload, user):
         ).fetchone()
         if existing_case and existing_case["organization_id"] != org_id:
             raise PermissionError("无权修改其他机构的客户档案")
+        if enforce_trial_limit and not existing_case and not paid_membership:
+            consume_trial_case_use(conn, user, case_id)
         if existing_case and existing_case["client_id"]:
             client_id = existing_case["client_id"]
 
@@ -6017,6 +6261,18 @@ class Handler(BaseHTTPRequestHandler):
                 )
             except (ValueError, TypeError, json.JSONDecodeError) as error:
                 return self.json_response({"error": str(error)}, status=400)
+        if parsed.path == "/api/product/demo-requests":
+            try:
+                return self.json_response(
+                    create_demo_request(self.read_json()), status=201
+                )
+            except EmailRateLimitError as error:
+                return self.json_response(
+                    {"error": str(error), "retryAfter": error.retry_after},
+                    status=429,
+                )
+            except (ValueError, TypeError, json.JSONDecodeError) as error:
+                return self.json_response({"error": str(error)}, status=400)
         if parsed.path == "/api/product/settings":
             user = self.require_user()
             if not user:
@@ -6255,7 +6511,11 @@ class Handler(BaseHTTPRequestHandler):
                 return None
             try:
                 payload = self.read_json()
-                saved = upsert_case(payload.get("case") or payload, user)
+                saved = upsert_case(
+                    payload.get("case") or payload,
+                    user,
+                    enforce_trial_limit=True,
+                )
                 return self.json_response({"case": saved})
             except (ValueError, PermissionError) as error:
                 return self.json_response({"error": str(error)}, status=403)
@@ -6370,9 +6630,10 @@ class Handler(BaseHTTPRequestHandler):
         if not user:
             return None
         membership = active_membership_for_user(user)
-        if not membership:
+        trial = trial_entitlement_for_user(user)
+        if not membership and not trial["active"]:
             self.json_response({
-                "error": "请先购买有效会员后再使用机构工作台",
+                "error": "免费试用期已结束，请购买有效会员后再使用机构工作台",
                 "code": "membership_required",
                 "redirect": "/membership",
             }, status=402)

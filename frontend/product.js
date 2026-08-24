@@ -260,6 +260,109 @@ function initializeFeatureCarousel() {
   update();
 }
 
+const productPageConfig = {
+  demoRequestPrivacyVersion: "demo-request-privacy-v1"
+};
+
+async function loadDemoRequestConfig() {
+  if (!window.DocFlowApi) return;
+  try {
+    const response = await DocFlowApi.request(`${DocFlowApi.apiBaseUrl}/product/config`, { cache: "no-store" });
+    if (response.ok) Object.assign(productPageConfig, await response.json());
+  } catch (_error) {}
+}
+
+function initializeDemoRequestForm() {
+  const modal = document.querySelector("#demoRequestModal");
+  const form = document.querySelector("#demoRequestForm");
+  const success = document.querySelector("#demoRequestSuccess");
+  const status = document.querySelector("#demoRequestStatus");
+  if (!modal || !form || !success || !status) return;
+
+  let lastFocusedElement = null;
+  const close = () => {
+    if (!modal.classList.contains("open")) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("demo-modal-open");
+    lastFocusedElement?.focus?.();
+  };
+  const open = (trigger) => {
+    if (!success.hidden) {
+      form.reset();
+      form.hidden = false;
+      success.hidden = true;
+    }
+    lastFocusedElement = trigger || document.activeElement;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("demo-modal-open");
+    window.setTimeout(() => modal.querySelector("input[name='name']")?.focus(), 60);
+  };
+
+  document.querySelectorAll("[data-demo-open]").forEach((button) => {
+    button.addEventListener("click", () => open(button));
+  });
+  document.querySelectorAll("[data-demo-close]").forEach((button) => {
+    button.addEventListener("click", close);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    status.textContent = "";
+    if (!form.reportValidity()) return;
+    const submit = form.querySelector("button[type='submit']");
+    const payload = {
+      ...Object.fromEntries(new FormData(form).entries()),
+      sourcePath: window.location.pathname.slice(0, 300),
+      privacyConsentVersion: productPageConfig.demoRequestPrivacyVersion
+    };
+    submit.disabled = true;
+    submit.textContent = "正在提交…";
+    try {
+      if (!window.DocFlowApi) throw new Error("当前页面未连接到预约服务，请稍后重试。");
+      const response = await DocFlowApi.request(`${DocFlowApi.apiBaseUrl}/product/demo-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "预约提交失败，请稍后重试。");
+      form.hidden = true;
+      success.hidden = false;
+      success.querySelector("button")?.focus();
+    } catch (error) {
+      status.textContent = error.message || "预约提交失败，请稍后重试。";
+    } finally {
+      submit.disabled = false;
+      submit.textContent = "提交预约";
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!modal.classList.contains("open")) return;
+    if (event.key === "Escape") {
+      close();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [...modal.querySelectorAll("a[href], button:not([disabled]), input:not([type='hidden']), textarea")]
+      .filter((element) => element.offsetParent !== null && element.tabIndex !== -1);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+}
+
 initializeNavigation();
 initializeDemo();
 initializeFeatureCarousel();
+initializeDemoRequestForm();
+loadDemoRequestConfig();

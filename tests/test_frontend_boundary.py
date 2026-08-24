@@ -61,7 +61,7 @@ class FrontendBoundaryTests(unittest.TestCase):
     def test_home_includes_required_product_story_and_boundaries(self):
         product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
         for phrase in (
-            "约 8 分钟",
+            "约 6 分钟",
             "RPA",
             "DeepSeek",
             "Gemini",
@@ -84,10 +84,35 @@ class FrontendBoundaryTests(unittest.TestCase):
     def test_product_home_has_explicit_mobile_layout_rules(self):
         css = (server.FRONTEND_DIR / "product.css").read_text(encoding="utf-8")
         self.assertIn("@media (max-width: 720px)", css)
-        self.assertIn(".workflow-tabs { display: flex", css)
+        self.assertIn(".workflow-tabs { display: grid", css)
         self.assertIn("overflow-x: auto", css)
         self.assertIn("@media (prefers-reduced-motion: reduce)", css)
         self.assertIn("100svh", css)
+
+    def test_home_demo_request_and_membership_trial_are_published(self):
+        product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")
+        product_css = (server.FRONTEND_DIR / "product.css").read_text(encoding="utf-8")
+        product_js = (server.FRONTEND_DIR / "product.js").read_text(encoding="utf-8")
+        membership_html = (server.FRONTEND_DIR / "membership.html").read_text(encoding="utf-8")
+        billing_js = (server.FRONTEND_DIR / "billing.js").read_text(encoding="utf-8")
+        app_js = (server.FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn("6 分钟填完 DS-160 表格", product_html)
+        self.assertNotIn("查看完整操作台", product_html)
+        self.assertGreaterEqual(product_html.count("data-demo-open"), 3)
+        self.assertIn('id="demoRequestForm"', product_html)
+        for field in ("name", "phone", "email", "message"):
+            self.assertIn(f'name="{field}"', product_html)
+        for removed_field in ("organizationName", "city", "teamSize"):
+            self.assertNotIn(f'name="{removed_field}"', product_html)
+        self.assertIn("/product/demo-requests", product_js)
+        self.assertIn(".hero-actions .button", product_css)
+        self.assertIn("font-size: clamp(17px", product_css)
+
+        self.assertIn("注册后 30 天内可免费试验 3 次", membership_html)
+        self.assertIn('id="freeTrialDetail"', membership_html)
+        self.assertIn("billing.trial", billing_js)
+        self.assertIn("state.trial", app_js)
 
     def test_home_membership_prices_reuse_current_product_configuration(self):
         product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")

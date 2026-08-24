@@ -19,6 +19,7 @@
         <div><div class="page-kicker">会员购买</div><h1>购买会员</h1><p class="muted">直接在本页选择月付或年付并完成购买，支付确认后自动开通当前机构账号。</p></div>
       </div>
       <section class="membership-status-card observe"><div><span class="page-kicker">当前状态</span><h2 id="membershipStatusTitle">正在读取会员状态</h2><p id="membershipStatusDetail">会员有效期、权益和订单与机构账号关联。</p></div><div class="membership-status-actions"><div class="membership-mode-badge" id="membershipStatusBadge">机构级会员</div><a class="btn" id="membershipWorkspaceLink" href="/workspace" hidden>进入工作台</a></div></section>
+      <section class="membership-status-card observe" aria-labelledby="freeTrialTitle"><div><span class="page-kicker">新账号免费试验</span><h2 id="freeTrialTitle">注册后 30 天内可免费试验 3 次</h2><p id="freeTrialDetail">每创建一个新的客户案件计为 1 次；登录后会显示剩余次数和到期日。</p></div><div class="membership-status-actions"><div class="membership-mode-badge" id="freeTrialBadge">3 次免费</div><a class="btn secondary" id="freeTrialWorkspaceLink" href="/workspace" hidden>开始免费试验</a></div></section>
       <div class="billing-notice" id="billingNotice" role="status" hidden></div>
       <section class="membership-section">
         <div class="section-heading"><span class="page-kicker">会员方案</span><h2>在本页选择月付或年付</h2></div>
@@ -40,6 +41,7 @@
     <section class="page-disclosures membership-disclosures" id="membership-disclosures" aria-label="会员购买说明">
       <ol>
         <li>WestoryVisa 是面向签证顾问及机构客户的软件辅助工具，并非美国政府、美国国务院、任何使领馆或签证签发机构的官方网站或授权代表。WestoryVisa 不提供法律意见，也不保证签证申请获批。</li>
+        <li>新注册账号自注册时间起 30 天内可免费创建 3 个客户案件，每个新案件计为 1 次；删除案件不会返还次数。免费试验到期或次数用完后，创建新案件需购买会员。</li>
         <li>月度和年度会员均为一次性购买的固定服务期限，不自动续费。功能、价格、币种、税费、实际扣款金额及退款条件，以本购买页面和<a href="/refund-policy">退款与取消政策</a>为准。</li>
         <li>为管理机构账户、会员、订单和服务安全，WestoryVisa 会处理必要的账户及交易记录；案件材料的处理范围、用途和保存方式请参阅<a href="/privacy">隐私政策</a>。</li>
         <li>材料可能由云托管、文档识别、翻译、人工智能、邮件或技术支持服务商按照约定进行必要处理，部分处理可能涉及跨境传输。机构客户上传材料前，应取得所需授权或单独同意。</li>
@@ -51,6 +53,6 @@
   <script src="runtime-config.js?v=20260813-billing-v1"></script>
   <script src="api-client.js?v=20260814-local-file-navigation-v1"></script>
   <script src="legal.js?v=20260814-legal-v1"></script>
-  <script src="billing.js?v=20260817-quiet-active-membership-v3"></script>
+  <script src="billing.js?v=20260824-free-trial-v1"></script>
 </body>
 </html>
