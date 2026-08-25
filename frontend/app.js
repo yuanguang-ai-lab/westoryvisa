@@ -603,7 +603,7 @@ function progressForApplication(application) {
 function renderWorkspacePortalHeader() {
   return `
     <header class="workspace-portal-header">
-      <button class="workspace-portal-brand" type="button" onclick="route('dashboard')" aria-label="返回操作台首页"><span>WV</span><strong>WestoryVisa</strong></button>
+      <a class="workspace-portal-brand" href="/" aria-label="返回 WestoryVisa 首页"><span>WV</span><strong>WestoryVisa</strong></a>
       <nav class="workspace-portal-nav" aria-label="工作台导航">
         <button class="active" type="button" onclick="route('dashboard')">操作台</button>
         <a href="/membership">会员中心</a>
@@ -909,13 +909,6 @@ function renderOcrPreviewModal(payload = {}) {
 function renderSidebar(activeIndex) {
   return `
     <aside class="sidebar">
-      <button class="brand" type="button" onclick="goBack()" aria-label="返回上一页">
-        <div class="brand-mark" lang="en">WV</div>
-        <div>
-        <div class="brand-title" lang="en">WestoryVisa</div>
-          <div class="brand-subtitle">中介机构填写辅助工具</div>
-        </div>
-      </button>
       <nav class="stepper" aria-label="Workflow steps">
         ${STEP_LABELS.map((label, index) => `
           <button class="step-item ${index === activeIndex ? "active" : ""} ${index < activeIndex ? "done" : ""}" type="button" ${index <= activeIndex ? `onclick="route('${viewForStep(index)}')"` : "disabled"}>

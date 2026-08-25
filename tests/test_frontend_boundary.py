@@ -241,6 +241,14 @@ class FrontendBoundaryTests(unittest.TestCase):
         self.assertIn("renderWorkspacePortalHeader", app_js)
         self.assertIn('href="/membership#account"', app_js)
 
+    def test_workspace_keeps_one_brand_link_to_landing_page(self):
+        app_js = (server.FRONTEND_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn(
+            '<a class="workspace-portal-brand" href="/" aria-label="返回 WestoryVisa 首页">',
+            app_js,
+        )
+        self.assertNotIn('<button class="brand"', app_js)
+
     def test_browser_requests_use_the_shared_api_client(self):
         api_client = (server.FRONTEND_DIR / "api-client.js").read_text(
             encoding="utf-8"
