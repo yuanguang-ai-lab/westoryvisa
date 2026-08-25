@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="WestoryVisa WST logo">
+  <circle cx="32" cy="32" r="31" fill="#10120f"/>
+  <text x="5" y="41" font-family="Arial Black, Arial, sans-serif" font-size="25" font-weight="900" letter-spacing="-4">
+    <tspan fill="#ffffff">WS</tspan><tspan fill="#caff35">T</tspan>
+  </text>
+</svg>

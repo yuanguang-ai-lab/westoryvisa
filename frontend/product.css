@@ -29,7 +29,7 @@ button { cursor: pointer; }
 }
 .site-header.scrolled { border-color: var(--line); background: rgba(244, 244, 239, .96); }
 .brand { display: inline-flex; align-items: center; gap: 11px; justify-self: start; }
-.brand > span, .demo-brand > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; background: var(--accent); font-weight: 900; letter-spacing: -.05em; }
+.brand > img, .demo-brand > img { width: 42px; height: 42px; display: block; flex: 0 0 auto; }
 .brand strong { font-size: 17px; letter-spacing: -.03em; }
 .desktop-nav { display: none; gap: 8px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.65); }
 .desktop-nav a { padding: 9px 14px; border-radius: 999px; color: #555850; font-size: 13px; }
@@ -218,7 +218,7 @@ body.demo-modal-open { overflow: hidden; }
 @media (max-width: 720px) {
   html { scroll-padding-top: 68px; }
   .site-header { min-height: 68px; padding: 10px 14px; }
-  .brand > span { width: 40px; height: 40px; }
+  .brand > img { width: 40px; height: 40px; }
   .desktop-only { display: none; }
   .menu-button { display: block; }
   .mobile-nav { inset-top: 68px; }
@@ -237,7 +237,7 @@ body.demo-modal-open { overflow: hidden; }
   .section-intro > p { font-size: 13px; }
   .demo-shell { border-radius: 24px; }
   .demo-global-header { min-height: 68px; padding: 12px 14px; }
-  .demo-brand > span { width: 38px; height: 38px; border-radius: 12px; }
+  .demo-brand > img { width: 38px; height: 38px; }
   .demo-brand small, .demo-account span { display: none; }
   .demo-global-header nav { justify-content: flex-start; overflow-x: auto; }
   .demo-global-header nav span { flex: 0 0 auto; padding: 8px 11px; }

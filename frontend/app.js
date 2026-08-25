@@ -603,7 +603,7 @@ function progressForApplication(application) {
 function renderWorkspacePortalHeader() {
   return `
     <header class="workspace-portal-header">
-      <a class="workspace-portal-brand" href="/" aria-label="返回 WestoryVisa 首页"><span>WV</span><strong>WestoryVisa</strong></a>
+      <a class="workspace-portal-brand" href="/" aria-label="返回 WestoryVisa 首页"><img src="assets/westoryvisa-mark.svg" alt=""><strong>WestoryVisa</strong></a>
       <nav class="workspace-portal-nav" aria-label="工作台导航">
         <button class="active" type="button" onclick="route('dashboard')">操作台</button>
         <a href="/membership">会员中心</a>
