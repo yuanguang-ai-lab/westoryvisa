@@ -106,6 +106,8 @@ class FrontendBoundaryTests(unittest.TestCase):
         for removed_field in ("organizationName", "city", "teamSize"):
             self.assertNotIn(f'name="{removed_field}"', product_html)
         self.assertIn("/product/demo-requests", product_js)
+        self.assertIn(".hero > .eyebrow", product_css)
+        self.assertIn("font-size: clamp(22px, 2vw, 32px)", product_css)
         self.assertIn(".hero-actions .button", product_css)
         self.assertIn("font-size: clamp(17px", product_css)
 
