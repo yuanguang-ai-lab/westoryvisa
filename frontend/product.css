@@ -200,7 +200,7 @@ button { cursor: pointer; }
 .demo-request-success p { margin: 0 0 8px; color: var(--muted); line-height: 1.7; }
 body.demo-modal-open { overflow: hidden; }
 
-@media (max-width: 1100px) {
+@media (max-width: 1120px) {
   .desktop-nav { display: none; }
   .site-header { grid-template-columns: 1fr auto; }
   .automation-strip { grid-template-columns: repeat(2,1fr); }
