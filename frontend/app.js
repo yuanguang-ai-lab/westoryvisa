@@ -1262,7 +1262,6 @@ function renderDashboard(container) {
       </div>
       <div class="topbar-actions">
         <button class="btn" id="newProject">创建客户档案</button>
-        <a class="btn secondary" href="/analytics.html">落地页数据</a>
         <a class="btn secondary" href="/landing-page" target="_blank" rel="noopener">查看落地页</a>
         <a class="btn secondary" href="/">返回机构接入</a>
         <button class="btn secondary" id="logoutAccount">退出账号</button>
