@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS billing_refunds CASCADE;
 DROP TABLE IF EXISTS payment_transactions CASCADE;
 DROP TABLE IF EXISTS billing_orders CASCADE;
 DROP TABLE IF EXISTS billing_products CASCADE;
+DROP TABLE IF EXISTS trial_case_uses CASCADE;
 DROP TABLE IF EXISTS intake_links CASCADE;
 DROP TABLE IF EXISTS auth_sessions CASCADE;
 DROP TABLE IF EXISTS email_verifications CASCADE;
@@ -207,6 +208,12 @@ CREATE TABLE intake_links (
   updated_at TIMESTAMPTZ NOT NULL
 );
 
+CREATE TABLE trial_case_uses (
+  case_id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  used_at TIMESTAMPTZ NOT NULL
+);
+
 CREATE TABLE billing_products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -300,6 +307,7 @@ CREATE INDEX idx_ds160_answers_case_id ON ds160_answers(case_id);
 CREATE INDEX idx_review_issues_case_id ON review_issues(case_id);
 CREATE INDEX idx_audit_logs_case_id ON audit_logs(case_id);
 CREATE INDEX idx_auth_sessions_user_id ON auth_sessions(user_id);
+CREATE INDEX idx_trial_case_uses_user ON trial_case_uses(user_id, used_at DESC);
 CREATE INDEX idx_intake_links_case_id ON intake_links(case_id, created_at DESC);
 CREATE INDEX idx_email_verifications_email_created ON email_verifications(email, purpose, created_at DESC);
 CREATE UNIQUE INDEX idx_email_verifications_sending
