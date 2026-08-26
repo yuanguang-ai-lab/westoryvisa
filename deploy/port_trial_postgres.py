@@ -71,17 +71,25 @@ def port_application(path: Path) -> None:
         "trial identity insertion point",
     )
 
-    handler_call = '                saved = upsert_case(payload.get("case") or payload, user)\n'
-    position = source.rfind(handler_call)
-    if position < 0:
-        raise RuntimeError("case API handler call not found")
+    handler_call = '''                saved = upsert_case(
+                    payload.get("case") or payload,
+                    user,
+                    require_version=True,
+                )
+'''
     enforced_call = '''                saved = upsert_case(
                     payload.get("case") or payload,
                     user,
                     enforce_trial_limit=True,
+                    require_version=True,
                 )
 '''
-    source = source[:position] + enforced_call + source[position + len(handler_call) :]
+    source = replace_once(
+        source,
+        handler_call,
+        enforced_call,
+        "case API handler call",
+    )
 
     status_pattern = (
         r'(def status_for_step\(step\):\n)'
