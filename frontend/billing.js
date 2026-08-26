@@ -74,6 +74,24 @@
         });
         return;
       }
+      const accountAction = document.querySelector("#membershipAccountAction");
+      if (accountAction) {
+        accountAction.textContent = "退出账号";
+        accountAction.href = "#";
+        accountAction.addEventListener("click", async (event) => {
+          event.preventDefault();
+          accountAction.setAttribute("aria-disabled", "true");
+          accountAction.textContent = "正在退出…";
+          try {
+            await request("/logout", { method: "POST", body: "{}" });
+            global.location.replace("/workspace");
+          } catch (error) {
+            accountAction.removeAttribute("aria-disabled");
+            accountAction.textContent = "退出账号";
+            showNotice(error.message || "退出失败，请稍后重试。", "error");
+          }
+        }, { once: true });
+      }
       const billing = await request("/billing");
       const membership = billing.membership || {};
       const trial = billing.trial || {};

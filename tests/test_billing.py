@@ -349,7 +349,11 @@ class BillingTests(unittest.TestCase):
 
         for index in range(3):
             server.upsert_case(
-                {"id": f"trial-case-{index}", "visaType": "B1/B2"},
+                {
+                    "id": f"trial-case-{index}",
+                    "applicantName": f"Trial Client {index}",
+                    "visaType": "B1/B2",
+                },
                 trial_user,
                 enforce_trial_limit=True,
             )
@@ -363,11 +367,28 @@ class BillingTests(unittest.TestCase):
             )
 
         updated = server.upsert_case(
-            {"id": "trial-case-2", "visaType": "B1/B2", "currentStep": 1},
+            {
+                "id": "trial-case-2",
+                "applicantName": "Trial Client 2",
+                "visaType": "B1/B2",
+                "currentStep": 6,
+            },
             trial_user,
             enforce_trial_limit=True,
         )
         self.assertEqual(updated["id"], "trial-case-2")
+        self.assertEqual(updated["caseMeta"]["status"], "已完成")
+
+        with self.assertRaisesRegex(PermissionError, "不能更换客户姓名或签证类型"):
+            server.upsert_case(
+                {
+                    "id": "trial-case-2",
+                    "applicantName": "Another Client",
+                    "visaType": "B1/B2",
+                    "currentStep": 6,
+                },
+                trial_user,
+            )
 
     def test_payment_admin_api_rejects_consultants_and_accepts_platform_admin(self):
         token = server.create_auth_session(self.user["id"])

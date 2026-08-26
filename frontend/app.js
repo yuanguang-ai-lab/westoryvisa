@@ -590,7 +590,7 @@ function stepIndexForView(view) {
     validation: 5,
     preview: 6,
     prefill: 6,
-    report: 7
+    report: 6
   };
   return map[view] ?? 0;
 }
@@ -1246,7 +1246,8 @@ function renderProductSections() {
 }
 
 function viewForStep(step) {
-  return ["create", "documents", "processing", "fields", "questions", "validation", "preview", "report"][step] || "dashboard";
+  const boundedStep = Math.min(Math.max(Number(step) || 0, 0), STEP_LABELS.length - 1);
+  return ["create", "documents", "processing", "fields", "questions", "validation", "preview"][boundedStep] || "dashboard";
 }
 
 function renderDashboard(container) {
@@ -1270,7 +1271,7 @@ function renderDashboard(container) {
     <section class="overview-strip">
       <div><strong>${applications.length}</strong><span>客户档案</span></div>
       <div><strong>${applications.filter((item) => item.currentStep >= 3).length}</strong><span>待人工核查</span></div>
-      <div><strong>${applications.filter((item) => item.currentStep >= 7).length}</strong><span>已生成清单</span></div>
+      <div><strong>${applications.filter((item) => item.currentStep >= 6).length}</strong><span>流程已完成</span></div>
     </section>
     <section class="grid ${applications.length ? "three" : ""}">
       ${applications.length ? applications.map(renderProjectCard).join("") : `
@@ -3355,7 +3356,7 @@ function renderPreview(container) {
   document.querySelector("#prefillForm").addEventListener("click", () => route("prefill"));
   document.querySelector("#generateReport").addEventListener("click", () => {
     buildAuditReport(application);
-    application.currentStep = 7;
+    application.currentStep = 6;
     saveApplication(application);
     route("report");
   });
@@ -3974,7 +3975,7 @@ function renderPrefill(container) {
   document.querySelector("#backPreview")?.addEventListener("click", () => route("preview"));
   document.querySelector("#generateReport")?.addEventListener("click", async () => {
     buildAuditReport(application);
-    application.currentStep = 7;
+    application.currentStep = 6;
     await saveApplication(application);
     route("report");
   });
@@ -6156,8 +6157,7 @@ function statusLabel(value) {
 }
 
 function caseStatus(step) {
-  if (step >= 7) return "已完成";
-  if (step >= 6) return "初稿已生成";
+  if (step >= 6) return "已完成";
   if (step >= 3) return "待人工核查";
   if (step >= 1) return "资料收集中";
   return "未开始";

@@ -113,8 +113,16 @@ class FrontendBoundaryTests(unittest.TestCase):
 
         self.assertIn("注册后 30 天内可免费试验 3 次", membership_html)
         self.assertIn('id="freeTrialDetail"', membership_html)
+        self.assertIn('id="membershipAccountAction"', membership_html)
         self.assertIn("billing.trial", billing_js)
+        self.assertIn('request("/logout"', billing_js)
         self.assertIn("state.trial", app_js)
+
+        mock_data = (server.FRONTEND_DIR / "mockData.js").read_text(encoding="utf-8")
+        step_labels = mock_data.split("];", 1)[0]
+        self.assertEqual(step_labels.count('"'), 14)
+        self.assertNotIn("核查清单", step_labels)
+        self.assertIn("report: 6", app_js)
 
     def test_home_membership_prices_reuse_current_product_configuration(self):
         product_html = (server.FRONTEND_DIR / "product.html").read_text(encoding="utf-8")

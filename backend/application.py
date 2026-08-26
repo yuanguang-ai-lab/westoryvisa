@@ -5115,11 +5115,31 @@ def upsert_case(payload, user, enforce_trial_limit=False):
 
     with connect() as conn:
         existing_case = conn.execute(
-            "SELECT organization_id, client_id FROM ds160_cases WHERE id = ?",
+            "SELECT organization_id, client_id, visa_type, payload_json FROM ds160_cases WHERE id = ?",
             (case_id,),
         ).fetchone()
         if existing_case and existing_case["organization_id"] != org_id:
             raise PermissionError("无权修改其他机构的客户档案")
+        if existing_case:
+            trial_use = conn.execute(
+                "SELECT case_id FROM trial_case_uses WHERE case_id = ?", (case_id,)
+            ).fetchone()
+            if trial_use:
+                try:
+                    original_payload = json.loads(existing_case["payload_json"] or "{}")
+                except (TypeError, json.JSONDecodeError):
+                    original_payload = {}
+                original_name = str(original_payload.get("applicantName") or "").strip()
+                updated_name = str(payload.get("applicantName") or "").strip()
+                original_visa = str(
+                    original_payload.get("visaType") or existing_case["visa_type"] or ""
+                ).strip()
+                updated_visa = str(payload.get("visaType") or "").strip()
+                if updated_name != original_name or updated_visa != original_visa:
+                    raise PermissionError(
+                        "免费试验档案创建后不能更换客户姓名或签证类型；"
+                        "请继续补充该客户资料并完成流程"
+                    )
         if enforce_trial_limit and not existing_case and not paid_membership:
             consume_trial_case_use(conn, user, case_id)
         if existing_case and existing_case["client_id"]:
@@ -5810,10 +5830,8 @@ def delete_case(case_id, user):
 
 
 def status_for_step(step):
-    if step >= 7:
-        return "已完成"
     if step >= 6:
-        return "初稿已生成"
+        return "已完成"
     if step >= 3:
         return "待人工核查"
     if step >= 1:
