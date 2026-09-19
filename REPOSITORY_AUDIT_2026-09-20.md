@@ -4,7 +4,7 @@ Audit date: 2026-09-20 (Asia/Shanghai)
 
 GitHub baseline: `main` at `2e985e95a1030e497e502c273e954bfd13154d2b`
 
-Production endpoint: `https://westoryvisa.com` (`45.76.169.220` at audit time)
+Production endpoint: `https://westoryvisa.com`
 
 ## Executive conclusion
 
@@ -78,49 +78,13 @@ The repository stores rendered MP4/WebM files and release tarballs directly in
 Git. The fetched pack is about 24 MiB even though there are only 34 commits.
 Future large media should use Git LFS or a release/object store.
 
-## Production and security findings
+## Production and security follow-up
 
-### High: global analytics are available to any authenticated user
-
-`/api/product/analytics` and its session-detail route use `require_user()`
-instead of `require_platform_admin()`. The data is global rather than scoped by
-organization, so a normal customer account can read site-wide traffic data.
-
-### High: production identity and account controls are incomplete
-
-The public health endpoint reports registration verification mode `none`, an
-unconfigured external email service, and an unconfigured payment provider.
-This may be acceptable for a private test environment, but it is not a safe
-production account lifecycle for a public site.
-
-### Medium: operational details are publicly exposed
-
-`/api/health` and `/backend-status` disclose the API version, worker count,
-browser runtime types, translation configuration state, registration mode, and
-payment readiness. These endpoints should provide a minimal anonymous liveness
-response; detailed readiness should require administrator authentication or
-internal network access.
-
-### Medium: build-only files are publicly served
-
-The frontend image copies the entire `frontend/` directory. Production serves
-Python helper files, README material, promo rendering sources, and full rendered
-videos. No credential file or backend source was found at the probed paths, but
-the unnecessary files increase disclosure and attack surface.
-
-### Medium: missing browser security headers
-
-The sampled static response did not include HSTS, Content-Security-Policy,
-frame-ancestor/X-Frame-Options, Referrer-Policy, or Permissions-Policy headers.
-The Nginx configuration adds `X-Content-Type-Options` only for the generic
-location and does not define a consistent security-header policy.
-
-### Medium: authentication has no general login throttling
-
-Password hashing and session-token storage are reasonable for the current
-stdlib implementation, and cookies are configured HttpOnly/SameSite/Secure in
-production. However, login and registration have no general rate limiter or
-account lockout. Origin checking is not a substitute for brute-force control.
+The private audit identified access-control, account-lifecycle, information-
+exposure, static-image scope, browser-header, and authentication-hardening work.
+Exact security findings are intentionally not published in this public
+repository. Complete that review on the reconciliation branch before treating
+the service as production-ready.
 
 ## Recommended repair order
 
@@ -130,7 +94,7 @@ account lockout. Origin checking is not a substitute for brute-force control.
    service source.
 3. Reconcile the recovered public frontend into the work branch and make the
    complete application pass tests.
-4. Fix analytics authorization and reduce anonymous health/status output.
+4. Resolve the private security-review findings before the next release.
 5. Make `frontend/` and `backend/` the only canonical implementations; remove
    or generate legacy root copies.
 6. Add CI, release metadata, immutable image tags, and a verified rollback
