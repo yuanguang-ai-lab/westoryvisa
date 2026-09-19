@@ -12,7 +12,7 @@
 
   function showNotice(message, tone = "info") {
     if (!notice) return;
-    notice.hidden = !message;
+    notice.hidden = !message || (page === 'membership' && ['#account', '#help'].includes(global.location.hash));
     notice.textContent = message || "";
     notice.dataset.tone = tone;
   }
@@ -30,14 +30,14 @@
   }
 
   function money(amount, currency) {
-    return new Intl.NumberFormat("zh-CN", {
+    return new Intl.NumberFormat(global.WestoryCountry?.locale || "zh-CN", {
       style: "currency", currency: String(currency || "cny").toUpperCase(),
     }).format(Number(amount || 0) / 100);
   }
 
   function dateTime(value) {
     if (!value) return "—";
-    return new Intl.DateTimeFormat("zh-CN", {
+    return new Intl.DateTimeFormat(global.WestoryCountry?.locale || "zh-CN", {
       dateStyle: "medium", timeStyle: "short",
     }).format(new Date(value));
   }
@@ -58,46 +58,55 @@
     })[character]);
   }
 
+  function renderMembershipSection() {
+    const section = ['#account', '#help'].includes(global.location.hash) ? global.location.hash.slice(1) : 'membership';
+    document.querySelectorAll('#membership > :not(.portal-support-grid)').forEach(element => {
+      element.hidden = section !== 'membership' || (element.id === 'billingNotice' && !element.textContent);
+    });
+    document.querySelector('.portal-support-grid').hidden = section === 'membership';
+    document.querySelectorAll('.portal-support-grid > article').forEach(element => {
+      element.hidden = element.id !== section;
+    });
+    document.querySelectorAll('.organization-nav a').forEach(link => {
+      link.classList.toggle('active', link.hash === '#' + section);
+    });
+    document.title = 'WestoryVisa｜' + ({membership:'会员中心',account:'个人中心',help:'帮助中心'})[section];
+    global.scrollTo(0, 0);
+  }
+
   async function loadMembership() {
     const title = document.querySelector("#membershipStatusTitle");
     const detail = document.querySelector("#membershipStatusDetail");
     const badge = document.querySelector("#membershipStatusBadge");
     try {
       const session = await request("/session");
+      const accountDetail = document.querySelector('#account p');
+      const accountLink = document.querySelector('#account .btn');
+      const loginLink = document.querySelector('.organization-logout');
+      loginLink.href = '/workspace?view=login';
+      accountLink.href = '/workspace?view=login';
       if (!session.user) {
+        accountDetail.textContent = '尚未登录。登录后可查看当前机构和会员状态。';
+        accountLink.textContent = '登录账号';
         title.textContent = "请先登录机构账号";
         detail.textContent = "登录后才能创建订单，会员权益会绑定到当前机构。";
         badge.textContent = "尚未登录";
         document.querySelectorAll(".billing-checkout").forEach((button) => {
           button.textContent = "登录后购买";
-          button.addEventListener("click", () => { global.location.href = "/workspace"; });
+          button.addEventListener("click", () => { global.location.href = "/workspace?view=login"; });
         });
         return;
       }
-      const accountAction = document.querySelector("#membershipAccountAction");
-      if (accountAction) {
-        accountAction.textContent = "退出账号";
-        accountAction.href = "#";
-        accountAction.addEventListener("click", async (event) => {
-          event.preventDefault();
-          accountAction.setAttribute("aria-disabled", "true");
-          accountAction.textContent = "正在退出…";
-          try {
-            await request("/logout", { method: "POST", body: "{}" });
-            global.location.replace("/workspace");
-          } catch (error) {
-            accountAction.removeAttribute("aria-disabled");
-            accountAction.textContent = "退出账号";
-            showNotice(error.message || "退出失败，请稍后重试。", "error");
-          }
-        }, { once: true });
-      }
+      loginLink.textContent = '切换账号';
+      accountLink.textContent = '切换账号';
+      accountDetail.textContent = `${session.user.name || ''} · ${session.user.email || ''} · ${session.user.organizationName || session.user.identity || ''}`;
+      if (session.user.platformAdmin) global.WestoryCountry?.unlock?.();
+      else global.WestoryCountry?.lock?.(session.user.serviceCountry || "CN");
       const billing = await request("/billing");
       const membership = billing.membership || {};
-      const trial = billing.trial || {};
-      const trialDetail = document.querySelector("#freeTrialDetail");
-      const trialBadge = document.querySelector("#freeTrialBadge");
-      const trialWorkspaceLink = document.querySelector("#freeTrialWorkspaceLink");
+      accountDetail.textContent += membership.active
+        ? `。会员有效期至 ${dateTime(membership.currentPeriodEnd)}。`
+        : billing.trial?.active ? `。试用有效期至 ${dateTime(billing.trial.expiresAt)}；插件填写仍需有效会员。` : '。当前没有有效会员或试用权限。';
       const legalAcceptance = document.querySelector("#legalAcceptance");
       const checkoutButtons = [...document.querySelectorAll(".billing-checkout")];
       checkoutButtons.forEach((button) => { button.dataset.defaultText ||= button.textContent; });
@@ -128,26 +137,17 @@
         detail.textContent = `当前有效期至 ${dateTime(membership.currentPeriodEnd)}。新购买的时长会接在现有有效期之后。`;
         badge.textContent = "已开通";
         document.querySelector("#membershipWorkspaceLink").hidden = false;
-        trialDetail.textContent = `当前正在使用付费会员权益，创建案件不会扣减免费试验次数。免费试验记录：已使用 ${trial.used || 0} / ${trial.limit || 3} 次。`;
-        trialBadge.textContent = "会员优先";
-      } else if (trial.active) {
-        title.textContent = trial.remaining > 0 ? "免费试验可用" : "免费试验次数已用完";
-        detail.textContent = trial.remaining > 0
-          ? `注册后 30 天内可创建 3 个免费试验案件；当前剩余 ${trial.remaining} 次。`
-          : "3 次免费试验案件已经全部创建；到期前仍可查看和完善已有案件，创建新案件需购买会员。";
-        badge.textContent = trial.remaining > 0 ? `剩余 ${trial.remaining} 次` : "0 次剩余";
-        document.querySelector("#membershipWorkspaceLink").hidden = false;
-        trialDetail.textContent = `已使用 ${trial.used || 0} / ${trial.limit || 3} 次，有效至 ${dateTime(trial.expiresAt)}。每创建一个新客户案件计为 1 次。`;
-        trialBadge.textContent = trial.remaining > 0 ? `剩余 ${trial.remaining} 次` : "次数已用完";
-        trialWorkspaceLink.hidden = false;
+      } else if (billing.trial?.active) {
+        title.textContent = '工作台试用权限有效';
+        detail.textContent = `试用有效期至 ${dateTime(billing.trial.expiresAt)}。插件填写需要另行开通有效会员。`;
+        badge.textContent = '试用中';
+        document.querySelector('#membershipWorkspaceLink').hidden = false;
       } else {
         title.textContent = "当前未开通有效会员";
-        detail.textContent = "30 天免费试用期已结束，请在下方选择月度或年度会员并购买。";
+        detail.textContent = "请直接在下方选择月度或年度会员并购买；支付确认到账后自动开通工作台。";
         badge.textContent = "未开通";
-        trialDetail.textContent = `免费试验已结束；此前已使用 ${trial.used || 0} / ${trial.limit || 3} 次。购买会员后可继续创建和处理案件。`;
-        trialBadge.textContent = "已结束";
       }
-      if (!membership.active && !trial.active && !billing.gateway.configured) {
+      if (!membership.active && !billing.gateway.configured) {
         showNotice(billing.gateway.message || "支付通道正在接入。", "warning");
       }
       syncCheckoutAvailability();
@@ -181,9 +181,9 @@
       });
       const params = new URLSearchParams(global.location.search);
       if (params.get("auth") === "registered") {
-        showNotice("账号已创建，30 天内的 3 次免费试验已自动开通。", "success");
+        showNotice("账号已创建。请直接在本页选择方案并购买，支付到账后即可进入工作台。", "success");
       } else if (params.get("auth") === "logged-in" || params.get("access") === "required") {
-        if (!membership.active && !trial.active) {
+        if (!membership.active && !billing.trial?.active && billing.gateway.configured) {
           showNotice("当前账号尚未开通会员，请选择月付或年付方案。", "warning");
         }
       } else if (params.get("checkout") === "success") {
@@ -277,6 +277,10 @@
     }
   }
 
-  if (page === "membership") loadMembership();
+  if (page === "membership") {
+    renderMembershipSection();
+    global.addEventListener('hashchange', renderMembershipSection);
+    loadMembership();
+  }
   if (page === "console") loadConsole();
 })(window);

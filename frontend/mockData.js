@@ -34,8 +34,7 @@ const AGENT_STEPS = [
   "SEVIS / Student Info Agent",
   "Consistency Validation Agent",
   "Missing Info Question Agent",
-  "DS-160 Draft Mapping Agent",
-  "Review Checklist Agent"
+  "DS-160 Draft Mapping Agent"
 ];
 
 const BASE_EXTRACTED_FIELDS = [
@@ -232,7 +231,7 @@ const BASE_VALIDATION_RESULTS = [
 
 const SAFETY_BOUNDARIES = [
   "客户护照、家庭、工作教育和背景信息应严格保密，并通过权限管理、访问控制和操作记录保护。",
-  "本工具仅辅助资料整理、DS-160 初稿生成和核查清单整理，不提供法律建议，不生成获签预测。",
+  "本工具仅辅助资料整理和 DS-160 初稿生成，不提供法律建议，不生成获签预测。",
   "系统会先完成格式、来源和跨材料一致性校验；文案老师或签证顾问重点复核关键、冲突和低置信度字段，并负责最终确认。",
   "本演示不连接真实政府网站、不提交 DS-160、不支付费用、不确认法律声明。",
   "安全与背景问题、拒签记录、移民违规等敏感字段必须人工逐项确认，系统不会自动代答。"

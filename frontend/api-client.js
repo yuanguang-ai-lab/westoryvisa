@@ -46,14 +46,14 @@
 
   async function request(resource, options) {
     const requestOptions = Object.assign({ credentials: "include" }, options || {});
-    const response = await transport(resource, requestOptions);
-    if (
-      response.status === 402
-      && global.location.protocol !== "file:"
-      && global.location.pathname !== "/membership"
-    ) {
-      global.location.replace("/membership?access=required");
+    const headers = new Headers(requestOptions.headers || {});
+    const serviceCountry = String(global.WestoryCountry?.code || "").toUpperCase();
+    if (["CN", "MX", "BR", "IN"].includes(serviceCountry)) {
+      headers.set("X-Westory-Service-Country", serviceCountry);
     }
+    requestOptions.headers = headers;
+    const response = await transport(resource, requestOptions);
+    // Callers display access errors in context; transport must not navigate.
     return response;
   }
 

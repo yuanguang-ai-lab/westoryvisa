@@ -3,7 +3,7 @@ const SESSION_KEY = "docflowDs160Session";
 const NAVIGATION_KEY = "docflowDs160Navigation";
 const API_BASE = window.location.protocol === "file:" ? "" : DocFlowApi.apiBaseUrl;
 const REQUIRED_API_VERSION = "2026-07-27-inline-intake-v17";
-const REQUIRED_API_REVISION = 20;
+const REQUIRED_API_REVISION = 22;
 const US_TRAVEL_DOCS_URL = "https://www.ustraveldocs.com/";
 
 function versionAtLeast(version, minimum) {
@@ -54,6 +54,10 @@ const state = {
     ds160: null,
     appointment: null
   },
+  computerUseViewers: {
+    ds160: null,
+    appointment: null
+  },
   openCoworkTimer: null,
   apiAvailable: false,
   apiVersion: "",
@@ -62,8 +66,10 @@ const state = {
   translationService: null,
   mailService: null,
   screenAgentRuntime: null,
+  agentRuntime: null,
   membership: null,
   trial: null,
+  workspaceAccessDenied: false,
   membershipBypass: false,
   registrationVerification: { mode: "none", required: false },
   emailCodeTimer: null,
@@ -90,6 +96,44 @@ const VISA_OPTIONS = [
   { id: "j1", name: "J1 交流访问签证", description: "适用于 DS-2019、项目、学校或机构信息核查场景。", icon: "J" },
   { id: "j2", name: "J2 交流家属签证", description: "适用于 J-1 配偶或子女的 DS-2019、SEVIS 与主申请人信息核对。", icon: "J2" }
 ];
+
+const APPLICATION_COUNTRIES = [
+  { code: "CN", label: "中国", locale: "zh-CN", executor: "中国现有版本" },
+  { code: "MX", label: "墨西哥", locale: "es-MX", executor: "墨西哥独立版本" },
+  { code: "BR", label: "巴西", locale: "pt-BR", executor: "巴西独立版本" },
+  { code: "IN", label: "印度", locale: "en-IN", executor: "印度独立版本" }
+];
+
+function selectedSiteCountryCode() {
+  return String(window.WestoryCountry?.code || "CN").toUpperCase();
+}
+
+function organizationCountry() {
+  const code = String(state.user?.serviceCountry || selectedSiteCountryCode()).toUpperCase();
+  return APPLICATION_COUNTRIES.find((country) => country.code === code)
+    || APPLICATION_COUNTRIES[0];
+}
+
+function applyAccountCountryScope(user) {
+  if (!user) {
+    window.WestoryCountry?.unlock?.();
+    return;
+  }
+  if (user.platformAdmin) {
+    window.WestoryCountry?.unlock?.();
+    return;
+  }
+  window.WestoryCountry?.lock?.(user.serviceCountry || selectedSiteCountryCode());
+}
+
+function applicationCountryFor(application) {
+  const caseMeta = application?.caseMeta || application?.partnerMeta || {};
+  const code = String(
+    application?.applicationCountry || caseMeta.applicationCountry || "CN"
+  ).toUpperCase();
+  return APPLICATION_COUNTRIES.find((country) => country.code === code)
+    || APPLICATION_COUNTRIES[0];
+}
 
 const APPOINTMENT_LOCATIONS = [
   { value: "BEIJING", label: "北京", detail: "U.S. Embassy Beijing" },
@@ -332,6 +376,7 @@ async function loadState() {
     state.mailService = healthData.emailVerification || null;
     state.translationService = healthData.translation || null;
     state.screenAgentRuntime = healthData.screenAgent || null;
+    state.agentRuntime = healthData.agent || null;
     state.membershipBypass = healthData.membershipBypass === true;
     state.registrationVerification = healthData.registrationVerification || { mode: "none", required: false };
     if (state.apiAvailable) {
@@ -340,6 +385,7 @@ async function loadState() {
         const sessionData = await sessionResponse.json();
         state.user = sessionData.user || null;
         if (state.user) {
+          applyAccountCountryScope(state.user);
           const billingResponse = await DocFlowApi.request(`${API_BASE}/billing`);
           if (billingResponse.ok) {
             const billingData = await billingResponse.json();
@@ -364,7 +410,8 @@ async function loadApplicationsForCurrentOrganization() {
       return;
     }
     if (response.status === 402) {
-      window.location.replace("/membership?access=required");
+      state.workspaceAccessDenied = true;
+      state.applications = [];
       return;
     }
     if (!response.ok) throw new Error("客户档案读取失败");
@@ -383,17 +430,27 @@ function persist() {
   persistLocal();
 }
 
-function syncApplication(application) {
+async function syncApplication(application) {
   if (!state.apiAvailable || !API_BASE || !application?.id) return Promise.resolve(null);
-  return DocFlowApi.request(`${API_BASE}/cases/${encodeURIComponent(application.id)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ case: application })
-  }).then(async (response) => {
+  try {
+    const response = await DocFlowApi.request(`${API_BASE}/cases/${encodeURIComponent(application.id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case: application })
+    });
     if (response.status === 401) logout({ expired: true });
-    if (!response.ok) throw new Error("客户档案保存失败");
-    return response.json();
-  }).catch((error) => console.warn("Case save failed", error));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "客户档案保存失败");
+    const recordVersion = Number(data.case?.caseMeta?.recordVersion || 0);
+    if (recordVersion > 0) {
+      application.caseMeta = application.caseMeta || {};
+      application.caseMeta.recordVersion = recordVersion;
+    }
+    return data;
+  } catch (error) {
+    console.warn("Case save failed", error);
+    return null;
+  }
 }
 
 function getActiveApplication() {
@@ -417,7 +474,9 @@ function organizationNameForApplication(application) {
 
 function visibleApplications() {
   if (!state.user) return [];
+  const serviceCountry = organizationCountry().code;
   return state.applications.filter((application) => {
+    if (applicationCountryFor(application).code !== serviceCountry) return false;
     const applicationOrgId = application.caseMeta?.organizationId;
     if (applicationOrgId && state.user.organizationId) return applicationOrgId === state.user.organizationId;
     return normalizeOrgName(organizationNameForApplication(application)) === normalizeOrgName(state.user.identity);
@@ -447,6 +506,7 @@ async function logout({ expired = false } = {}) {
     password: "",
     confirmPassword: ""
   };
+  window.WestoryCountry?.unlock?.();
   clearSavedNavigation();
   route("login");
 }
@@ -489,7 +549,7 @@ function normalizeApplicationForVisa(application) {
 }
 
 function route(view, applicationId) {
-  if (["appointment-account", "appointment"].includes(view)) view = "report";
+  if (["report", "appointment-account", "appointment"].includes(view)) view = "preview";
   const viewChanged = state.currentView !== view || Boolean(applicationId && applicationId !== state.activeId);
   if (state.currentView === "prefill") stopScreenAgentRuntime();
   clearDesktopAgentPolling();
@@ -603,14 +663,17 @@ function progressForApplication(application) {
 function renderWorkspacePortalHeader() {
   return `
     <header class="workspace-portal-header">
-      <a class="workspace-portal-brand" href="/" aria-label="返回 WestoryVisa 首页"><img src="assets/westoryvisa-mark.svg" alt=""><strong>WestoryVisa</strong></a>
+      <button class="workspace-portal-brand" type="button" onclick="route('dashboard')" aria-label="返回操作台首页"><img src="assets/westoryvisa-mark.svg?v=20260820-logo-vector-v2" alt=""><strong>WestoryVisa</strong></button>
       <nav class="workspace-portal-nav" aria-label="工作台导航">
         <button class="active" type="button" onclick="route('dashboard')">操作台</button>
         <a href="/membership">会员中心</a>
         <a href="/membership#account">个人中心</a>
         <a href="/membership#help">帮助中心</a>
       </nav>
-      <a class="workspace-portal-membership" href="/membership">会员与账户</a>
+      <div class="workspace-portal-account">
+        <button class="country-version-button workspace-country-button" type="button" data-country-current aria-label="切换服务国家"></button>
+        <a class="workspace-portal-membership" href="/membership">会员与账户</a>
+      </div>
     </header>
   `;
 }
@@ -625,6 +688,11 @@ function render(view = "login") {
 
   if (view === "login") {
     renderLogin(app);
+    return;
+  }
+
+  if (!hasWorkspaceAccess()) {
+    renderWorkspaceAccess(app);
     return;
   }
 
@@ -650,13 +718,31 @@ function render(view = "login") {
     validation: renderValidation,
     preview: renderPreview,
     prefill: renderPrefill,
-    report: renderReport
+    report: renderPreview
   };
   views[view](content);
   content.insertAdjacentHTML("afterbegin", renderMobileTopNav(view));
   content.insertAdjacentHTML("beforeend", renderWorkspaceDisclosures());
   content.insertAdjacentHTML("beforeend", renderFlowDock(view));
   wireModalEvents();
+}
+
+function hasWorkspaceAccess() {
+  return Boolean(state.user && !state.workspaceAccessDenied &&
+    (state.membershipBypass || state.membership?.active || state.trial?.active));
+}
+
+function renderWorkspaceAccess(app) {
+  app.innerHTML = `<div class="workspace-root">${renderWorkspacePortalHeader()}
+    <main class="content"><section class="workspace-brief"><div>
+      <span class="page-kicker">操作台</span><h2>当前账号暂无工作台使用权限</h2>
+      <p>${escapeHtml(state.user?.email || state.user?.name || '当前账号')} 已登录。处理客户档案需要有效会员或有效试用权限。</p>
+      <p>你仍可查看个人中心、帮助和插件安装说明，或切换账号。</p>
+      <div class="actions"><a class="btn" href="/membership">查看会员状态</a>
+      <a class="btn secondary" href="/membership#account">个人中心</a>
+      <a class="btn secondary" href="/extension.html">插件安装说明</a>
+      <button class="btn secondary" type="button" onclick="logout()">退出并切换账号</button></div>
+    </div></section></main></div>`;
 }
 
 function renderMobileTopNav(view) {
@@ -909,6 +995,13 @@ function renderOcrPreviewModal(payload = {}) {
 function renderSidebar(activeIndex) {
   return `
     <aside class="sidebar">
+      <button class="brand" type="button" onclick="goBack()" aria-label="返回上一页">
+        <img class="brand-mark" src="assets/westoryvisa-mark.svg?v=20260820-logo-vector-v2" alt="">
+        <div>
+        <div class="brand-title" lang="en">WestoryVisa</div>
+          <div class="brand-subtitle">中介机构填写辅助工具</div>
+        </div>
+      </button>
       <nav class="stepper" aria-label="Workflow steps">
         ${STEP_LABELS.map((label, index) => `
           <button class="step-item ${index === activeIndex ? "active" : ""} ${index < activeIndex ? "done" : ""}" type="button" ${index <= activeIndex ? `onclick="route('${viewForStep(index)}')"` : "disabled"}>
@@ -918,7 +1011,7 @@ function renderSidebar(activeIndex) {
         `).join("")}
       </nav>
       <div class="sidebar-note">
-        使用边界：工具只辅助资料整理、初稿生成和核查清单，不提供法律建议，不替代顾问人工判断。
+        使用边界：工具只辅助资料整理和初稿生成，不提供法律建议，不替代顾问人工判断。
         <button class="sidebar-home" type="button" onclick="logout()">${iconArrowLeft()} 退出账号</button>
       </div>
     </aside>
@@ -933,17 +1026,27 @@ function renderLogin(container) {
   const isRegister = state.authMode === "register";
   const requiresEmailVerification = isRegister && state.registrationVerification?.mode === "email";
   const draft = state.authDraft;
+  const country = organizationCountry();
   container.innerHTML = `
     <div class="auth-shell">
       <section class="auth-panel">
         <div class="auth-copy">
-          <div class="brand-line">
-            <span class="brand-dot"></span>
-            <span lang="en">WestoryVisa</span>
+          <div class="auth-copy-header">
+            <div class="brand-line">
+              <span class="brand-dot"></span>
+              <span lang="en">WestoryVisa</span>
+            </div>
+            <div class="auth-country-selector">
+              <button class="country-version-button workspace-country-button" type="button" data-country-current aria-label="切换服务国家"></button>
+            </div>
           </div>
           <div class="auth-kicker">面向文案老师和签证顾问的 DS-160 工作台</div>
           <h1><span lang="en">DS-160</span> 高效核查</h1>
           <p class="auth-lede">按 DS-160 真实结构整理客户资料，辅助生成可核查的填写初稿。中介人员负责专业判断与最终确认，系统负责减少重复输入、字段遗漏和资料来回确认。</p>
+          <div class="country-scope-notice">
+            <strong>${escapeHtml(country.label)}版</strong>
+            <span>注册后机构固定为${escapeHtml(country.label)}服务机构，只处理本国客户。</span>
+          </div>
           <div class="auth-tabs" role="tablist" aria-label="账号入口">
             <button class="${isRegister ? "" : "active"}" type="button" role="tab" aria-selected="${!isRegister}" data-auth-mode="login">账号登录</button>
             <button class="${isRegister ? "active" : ""}" type="button" role="tab" aria-selected="${isRegister}" data-auth-mode="register">注册机构账号</button>
@@ -1184,6 +1287,7 @@ async function submitAuthForm(event) {
 
   try {
     const payload = isRegister ? {
+      serviceCountry: selectedSiteCountryCode(),
       organizationName: draft.organizationName,
       name: draft.name,
       phone: draft.phone,
@@ -1191,6 +1295,7 @@ async function submitAuthForm(event) {
       emailCode: state.registrationVerification?.mode === "email" ? draft.emailCode : "",
       password: draft.password
     } : {
+      serviceCountry: selectedSiteCountryCode(),
       email: draft.email,
       password: draft.password
     };
@@ -1203,6 +1308,13 @@ async function submitAuthForm(event) {
     if (!response.ok) throw new Error(data.error || "账号操作失败，请稍后重试。");
 
     state.user = data.user;
+    const signedInUrl = new URL(window.location.href);
+    signedInUrl.searchParams.delete('view');
+    window.history.replaceState(null, '', signedInUrl.pathname + signedInUrl.search + signedInUrl.hash);
+    state.workspaceAccessDenied = false;
+    state.membership = null;
+    state.trial = null;
+    applyAccountCountryScope(state.user);
     state.activeId = null;
     state.applications = [];
     state.draftCase = {};
@@ -1219,11 +1331,7 @@ async function submitAuthForm(event) {
       state.membership = billingData.membership || null;
       state.trial = billingData.trial || null;
     }
-    if (!state.membership?.active && !state.trial?.active && !state.membershipBypass) {
-      window.location.replace("/membership?auth=logged-in");
-      return;
-    }
-    await loadApplicationsForCurrentOrganization();
+    if (hasWorkspaceAccess()) await loadApplicationsForCurrentOrganization();
     route("dashboard");
   } catch (error) {
     showAuthError(error.message || "账号操作失败，请稍后重试。");
@@ -1246,23 +1354,26 @@ function renderProductSections() {
 }
 
 function viewForStep(step) {
-  const boundedStep = Math.min(Math.max(Number(step) || 0, 0), STEP_LABELS.length - 1);
-  return ["create", "documents", "processing", "fields", "questions", "validation", "preview"][boundedStep] || "dashboard";
+  const views = ["create", "documents", "processing", "fields", "questions", "validation", "preview"];
+  const index = Math.min(Math.max(Number(step) || 0, 0), views.length - 1);
+  return views[index];
 }
 
 function renderDashboard(container) {
   const applications = visibleApplications();
   const organizationName = state.user?.identity || "未选择机构";
   const accountName = state.user?.name || state.user?.email || "当前账号";
+  const country = organizationCountry();
   container.innerHTML = `
     <div class="topbar">
       <div>
-        <div class="page-kicker">机构工作台</div>
+        <div class="page-kicker">${escapeHtml(country.label)}机构工作台</div>
         <h1>客户 DS-160 档案</h1>
-        <p class="muted">${escapeHtml(accountName)} · ${escapeHtml(organizationName)}。当前账号只能访问本机构的客户档案。</p>
+        <p class="muted">${escapeHtml(accountName)} · ${escapeHtml(organizationName)}。当前账号只能访问本机构的${escapeHtml(country.label)}客户档案。</p>
       </div>
       <div class="topbar-actions">
         <button class="btn" id="newProject">创建客户档案</button>
+        <a class="btn secondary" href="/analytics.html">落地页数据</a>
         <a class="btn secondary" href="/landing-page" target="_blank" rel="noopener">查看落地页</a>
         <a class="btn secondary" href="/">返回机构接入</a>
         <button class="btn secondary" id="logoutAccount">退出账号</button>
@@ -1271,7 +1382,7 @@ function renderDashboard(container) {
     <section class="overview-strip">
       <div><strong>${applications.length}</strong><span>客户档案</span></div>
       <div><strong>${applications.filter((item) => item.currentStep >= 3).length}</strong><span>待人工核查</span></div>
-      <div><strong>${applications.filter((item) => item.currentStep >= 6).length}</strong><span>流程已完成</span></div>
+      <div><strong>${applications.filter((item) => item.currentStep >= 6).length}</strong><span>已生成初稿</span></div>
     </section>
     <section class="grid ${applications.length ? "three" : ""}">
       ${applications.length ? applications.map(renderProjectCard).join("") : `
@@ -1298,6 +1409,7 @@ function renderDashboard(container) {
 function renderProjectCard(application) {
   const progress = progressForApplication(application);
   const caseMeta = application.caseMeta || application.partnerMeta || {};
+  const country = applicationCountryFor(application);
   const documentCount = visibleDocumentEntries(application)
     .filter(({ documentItem }) => documentItem.fileName).length;
   return `
@@ -1306,6 +1418,7 @@ function renderProjectCard(application) {
         <h3>${escapeHtml(application.applicantName)}</h3>
         <div class="project-meta">
           ${caseMeta.owner ? `<span>负责人：${escapeHtml(caseMeta.owner)}</span>` : ""}
+          <span>${escapeHtml(country.label)}版 · ${escapeHtml(country.code)}</span>
           <span>${escapeHtml(application.visaType)}</span>
           <span>${escapeHtml(caseMeta.status || caseStatus(application.currentStep))}</span>
           <span>更新于 ${formatDate(application.lastUpdated)}</span>
@@ -1327,11 +1440,13 @@ function renderProjectCard(application) {
 }
 
 function getCreateDraft() {
+  const country = organizationCountry();
   return {
     applicantName: "",
     organizationName: state.user?.identity || "",
     passportNumber: "",
     owner: state.user?.name || "",
+    applicationCountry: country.code,
     notes: "",
     ...state.draftCase
   };
@@ -1345,6 +1460,7 @@ function captureCreateDraft() {
     organizationName: document.querySelector("#organizationName")?.value.trim() || "",
     passportNumber: document.querySelector("#passportNumber")?.value.trim() || "",
     owner: document.querySelector("#owner")?.value.trim() || "",
+    applicationCountry: organizationCountry().code,
     notes: document.querySelector("#notes")?.value.trim() || ""
   };
 }
@@ -1469,6 +1585,7 @@ function visibleValidationResultsForApplication(application) {
 
 function renderCreateProject(container) {
   const draft = getCreateDraft();
+  const organizationServiceCountry = organizationCountry();
   container.innerHTML = `
     <div class="topbar">
       <div>
@@ -1501,6 +1618,11 @@ function renderCreateProject(container) {
         <div class="form-row">
           <label for="owner">负责人</label>
           <input id="owner" required autocomplete="name" value="${escapeHtml(draft.owner)}" placeholder="文案老师 / 签证顾问姓名">
+        </div>
+        <div class="form-row">
+          <label for="applicationCountry">申请版本</label>
+          <input id="applicationCountry" type="text" readonly value="${escapeHtml(organizationServiceCountry.label)}版 · ${escapeHtml(organizationServiceCountry.code)}">
+          <small class="field-note">国家版本由机构账号固定，不能在客户档案中切换。</small>
         </div>
         <div class="form-row">
           <label>签证类型</label>
@@ -1541,11 +1663,15 @@ function renderCreateProject(container) {
     captureCreateDraft();
     const visaType = state.draftVisaType;
     const visaId = visaByName(visaType).id;
+    const country = organizationCountry();
+    const applicationCountry = country.code;
     const application = {
       id: `app-${Date.now()}`,
       applicantName: document.querySelector("#applicantName").value.trim(),
       email: document.querySelector("#owner").value.trim(),
       visaType,
+      applicationCountry,
+      sourceLocale: country.locale,
       caseMeta: {
         organizationName: state.user.identity,
         organizationId: state.user.organizationId,
@@ -1554,6 +1680,8 @@ function renderCreateProject(container) {
         ownerUserId: state.user.id,
         ownerEmail: state.user.email,
         accountKeyId: state.user.accountKeyId,
+        applicationCountry,
+        sourceLocale: country.locale,
         status: "资料收集中",
         notes: document.querySelector("#notes").value.trim()
       },
@@ -2271,11 +2399,6 @@ function renderProcessing(container) {
       <div class="progress-track"><div class="progress-fill" id="scanProgressBar" style="width:0%"></div></div>
       <div class="timeline" id="documentScanTimeline"></div>
     </section>
-    <section class="panel" style="margin-top:18px">
-      <div class="timeline" id="timeline">
-        ${(application.agentTimeline || []).map(renderTimelineRow).join("")}
-      </div>
-    </section>
     <div class="inline-notice" id="scanNotice" role="status"></div>
     <div class="actions processing-actions" style="margin-top:18px">
       <button class="btn" id="viewCurrentFields">进入字段核查</button>
@@ -2285,19 +2408,6 @@ function renderProcessing(container) {
   document.querySelector("#viewCurrentFields")?.addEventListener("click", () => enterFieldReview(application));
   document.querySelector("#backToDocuments")?.addEventListener("click", () => route("documents", application.id));
   pollScanStatus(application);
-}
-
-function renderTimelineRow(agent) {
-  return `
-    <div class="timeline-row ${agent.status}">
-      <span class="agent-dot"></span>
-      <div>
-        <strong>${escapeHtml(localizeAgent(agent.name))}</strong>
-        <div class="small muted">${agent.output || "等待上一环节完成"}</div>
-      </div>
-      <span class="badge ${agent.status}">${statusLabel(agent.status)}</span>
-    </div>
-  `;
 }
 
 function renderDocumentScanRow(documentItem) {
@@ -2571,6 +2681,114 @@ function renderQuestions(container) {
   renderPriorityQuestions(container);
 }
 
+function consultantIntakeData(application) {
+  const country = applicationCountryFor(application || getActiveApplication());
+  return {
+    applicationCountry: country.code,
+    sourceLocale: country.locale
+  };
+}
+
+function consultantSectionLabel(application, value) {
+  return window.DocFlowIntakeI18n?.section(consultantIntakeData(application), value) || value;
+}
+
+function consultantFieldLabel(application, field) {
+  return window.DocFlowIntakeI18n?.field(consultantIntakeData(application), field) || field?.label || "";
+}
+
+function consultantQuestionLabel(application, question) {
+  const normalized = {
+    ...question,
+    prompt: question?.prompt || question?.label || "",
+    englishPrompt: question?.englishPrompt || question?.englishLabel || ""
+  };
+  return window.DocFlowIntakeI18n?.question(consultantIntakeData(application), normalized)
+    || normalized.prompt;
+}
+
+function consultantItemLabel(application, value, semanticId = "") {
+  return window.DocFlowIntakeI18n?.label(consultantIntakeData(application), value, semanticId) || value;
+}
+
+function consultantChoiceLabel(application, choice) {
+  return window.DocFlowIntakeI18n?.choice(consultantIntakeData(application), choice)
+    || choice?.label || choice?.value || "";
+}
+
+function consultantQuestionSource(application, value) {
+  const source = String(value || "待客户确认");
+  const countryCode = applicationCountryFor(application).code;
+  const labels = {
+    MX: { "客户确认": "Confirmado por el cliente", "待客户确认": "Pendiente del cliente", "上传材料": "Documentos cargados", "客户补充": "Datos del cliente", "材料冲突": "Conflicto entre documentos" },
+    BR: { "客户确认": "Confirmado pelo cliente", "待客户确认": "Aguardando o cliente", "上传材料": "Documentos enviados", "客户补充": "Dados do cliente", "材料冲突": "Conflito entre documentos" },
+    IN: { "客户确认": "Client confirmation", "待客户确认": "Waiting for client", "上传材料": "Uploaded documents", "客户补充": "Client details", "材料冲突": "Document conflict" }
+  }[countryCode];
+  if (!labels) return source;
+  if (labels[source]) return labels[source];
+  if (source.includes("冲突")) return labels["材料冲突"];
+  return /^[\x20-\x7e\u00a0-\u024f]+$/.test(source) ? source : labels["待客户确认"];
+}
+
+function consultantGuidance(application, question) {
+  return window.DocFlowIntakeI18n?.guidance(consultantIntakeData(application), question)
+    || question?.guidance || "";
+}
+
+function consultantValidationMessage(application, value) {
+  const countryCode = applicationCountryFor(application).code;
+  if (countryCode === "CN") return localizeValidationMessage(value);
+  const translations = {
+    MX: {
+      sensitive: (count) => `Aún faltan respuestas del cliente para ${count} preguntas sensibles de antecedentes. El sistema nunca selecciona No por defecto.`,
+      detail: (label) => `“${label}” activa campos adicionales, pero la información aún está incompleta.`,
+      generic: "Revisa este punto con los datos y documentos confirmados por el cliente."
+    },
+    BR: {
+      sensitive: (count) => `Ainda faltam respostas do cliente para ${count} perguntas sensíveis de antecedentes. O sistema nunca seleciona Não por padrão.`,
+      detail: (label) => `“${label}” ativa campos adicionais, mas as informações ainda estão incompletas.`,
+      generic: "Revise este item com os dados e documentos confirmados pelo cliente."
+    },
+    IN: {
+      sensitive: (count) => `${count} sensitive background questions still need the client's answers. The system never selects No by default.`,
+      detail: (label) => `“${label}” activates additional fields, but the information is still incomplete.`,
+      generic: "Review this item against the information and documents confirmed by the client."
+    }
+  }[countryCode];
+  const sensitive = String(value || "").match(/^仍有 (\d+) 项敏感历史问题等待客户逐题回答。系统不会默认选择 No。$/);
+  if (sensitive) return translations.sensitive(sensitive[1]);
+  const incomplete = String(value || "").match(/^“(.+)”已触发附加字段，但资料尚未填写完整。$/);
+  if (incomplete) {
+    const question = (application.branchQuestionnaire || []).find((item) => item.label === incomplete[1]);
+    return translations.detail(question ? consultantQuestionLabel(application, question) : incomplete[1]);
+  }
+  return /^[\x20-\x7e\u00a0-\u024f]+$/.test(String(value || "")) ? value : translations.generic;
+}
+
+function consultantPrefillMessages(application, issues) {
+  const countryCode = applicationCountryFor(application).code;
+  if (countryCode === "CN") {
+    return {
+      title: `当前档案还有 ${issues.length} 项资料未收齐，暂不能开始逐页填写`,
+      body: `${issues.slice(0, 4).map((item) => item.label).join("；")}${issues.length > 4 ? `；另有 ${issues.length - 4} 项` : ""}。补齐后系统才会建立 Computer Use 任务，避免 CEAC 页面留下空项。`
+    };
+  }
+  const labels = issues.slice(0, 4).map((item) => consultantFieldLabel(application, item));
+  const more = Math.max(0, issues.length - labels.length);
+  if (countryCode === "MX") return {
+    title: `Faltan ${issues.length} datos; aún no se puede iniciar el llenado página por página`,
+    body: `${labels.join("; ")}${more ? `; y ${more} más` : ""}. Computer Use se habilitará cuando se completen para no dejar campos vacíos en CEAC.`
+  };
+  if (countryCode === "BR") return {
+    title: `Faltam ${issues.length} dados; o preenchimento página a página ainda não pode começar`,
+    body: `${labels.join("; ")}${more ? `; e mais ${more}` : ""}. O Computer Use será liberado quando esses dados forem preenchidos, evitando campos vazios no CEAC.`
+  };
+  return {
+    title: `${issues.length} details are still missing; page-by-page entry cannot start yet`,
+    body: `${labels.join("; ")}${more ? `; and ${more} more` : ""}. Computer Use will be enabled once these details are complete so CEAC is not left with blank fields.`
+  };
+}
+
 function intakeLinkStorageKey(applicationId) {
   return `docflow-intake-link:${applicationId}`;
 }
@@ -2614,7 +2832,7 @@ function renderClientIntakePanel(application, pendingItems) {
         </div>
         ${hasPendingItems ? `
           <div class="client-intake-pending-list" aria-label="当前待补充字段">
-            ${pendingPreview.map((item) => `<span>${escapeHtml(item.label)}</span>`).join("")}
+            ${pendingPreview.map((item) => `<span>${escapeHtml(consultantFieldLabel(application, item))}</span>`).join("")}
             ${pendingCount > pendingPreview.length ? `<span class="client-intake-more">另有 ${pendingCount - pendingPreview.length} 项将在客户表单中显示</span>` : ""}
           </div>
         ` : '<div class="client-intake-complete-copy">当前客户补充项已经收齐。</div>'}
@@ -2767,10 +2985,10 @@ function renderPriorityQuestions(container) {
         ${important.length ? important.map((question) => `
           <div class="priority-question-row ${question.sensitive ? "sensitive" : ""}">
             <span>
-              <strong>${escapeHtml(question.label)}</strong>
-              <small>${escapeHtml(question.section)} · ${escapeHtml(question.source || "待客户确认")}</small>
+              <strong>${escapeHtml(consultantQuestionLabel(application, question))}</strong>
+              <small>${escapeHtml(consultantSectionLabel(application, question.section))} · ${escapeHtml(consultantQuestionSource(application, question.source))}</small>
             </span>
-            <span class="priority-question-answer">${escapeHtml(branchAnswerDisplay(question))}</span>
+            <span class="priority-question-answer">${escapeHtml(branchAnswerDisplay(question, application))}</span>
             <span class="badge ${branchStatusClass(question.status)}">${escapeHtml(question.status)}</span>
             <button class="icon-text-btn" type="button" data-open-priority-question="${question.id}">核对</button>
           </div>
@@ -2850,7 +3068,7 @@ function renderFullQuestions(container) {
       <section class="questionnaire-intake-alert" role="status">
         <div>
           <strong>还有 ${clientIntakePending.length} 项资料字段不在条件问答列表中</strong>
-          <span>${escapeHtml(clientIntakePreview.map((item) => item.label).join("；"))}${clientIntakePending.length > clientIntakePreview.length ? `；另有 ${clientIntakePending.length - clientIntakePreview.length} 项会出现在客户补充表中。` : ""}</span>
+          <span>${escapeHtml(clientIntakePreview.map((item) => consultantFieldLabel(application, item)).join("; "))}${clientIntakePending.length > clientIntakePreview.length ? `；另有 ${clientIntakePending.length - clientIntakePreview.length} 项会出现在客户补充表中。` : ""}</span>
         </div>
         <button class="btn secondary" type="button" id="showPriorityForMissing">返回客户补充链接</button>
       </section>
@@ -2862,7 +3080,7 @@ function renderFullQuestions(container) {
           const pending = items.filter((item) => !["已回答", "已核查"].includes(item.status)).length;
           return `
             <button class="branch-section-button ${section === state.activeQuestionSection ? "active" : ""}" type="button" data-question-section="${escapeHtml(section)}">
-              <span>${escapeHtml(section)}</span>
+              <span>${escapeHtml(consultantSectionLabel(application, section))}</span>
               <small>${pending ? `${pending} 项待处理` : "已完成"}</small>
             </button>
           `;
@@ -2872,12 +3090,12 @@ function renderFullQuestions(container) {
         <header class="branch-section-header">
           <div>
             <span class="page-kicker">条件问答</span>
-            <h2>${escapeHtml(state.activeQuestionSection)}</h2>
+            <h2>${escapeHtml(consultantSectionLabel(application, state.activeQuestionSection))}</h2>
           </div>
           <span>${activeQuestions.length} 项</span>
         </header>
         <div class="branch-question-list">
-          ${activeQuestions.map(renderBranchQuestion).join("")}
+          ${activeQuestions.map((question) => renderBranchQuestion(question, application)).join("")}
         </div>
         <div class="inline-notice" id="branchNotice" role="status"></div>
         <footer class="branch-form-actions">
@@ -3042,7 +3260,7 @@ function renderLegacyQuestions(container, application) {
   });
 }
 
-function renderBranchQuestion(question) {
+function renderBranchQuestion(question, application = getActiveApplication()) {
   const activeDetails = branchActiveDetails(question);
   const showRecords = question.answerType === "records" || (
     (question.recordFields || []).length && (question.triggerValues || []).includes(question.answer)
@@ -3052,18 +3270,18 @@ function renderBranchQuestion(question) {
       <header class="branch-question-header">
         <div>
           <div class="branch-question-title-row">
-            <h3>${escapeHtml(question.label)}</h3>
+            <h3>${escapeHtml(consultantQuestionLabel(application, question))}</h3>
             ${question.sensitive ? '<span class="badge high-risk">必须人工确认</span>' : ""}
           </div>
           ${question.englishLabel ? `<p lang="en">${escapeHtml(question.englishLabel)}</p>` : ""}
         </div>
         <span class="badge ${branchStatusClass(question.status)}">${escapeHtml(question.status)}</span>
       </header>
-      ${question.guidance ? `<p class="branch-guidance">${escapeHtml(question.guidance)}</p>` : ""}
+      ${question.guidance ? `<p class="branch-guidance">${escapeHtml(consultantGuidance(application, question))}</p>` : ""}
       ${question.autoDetermined ? `
         <div class="question-auto-evidence">
           <span>材料自动判断 · ${Math.round(Number(question.answerConfidence || 0) * 100)}%</span>
-          <strong>${escapeHtml(question.source || "上传材料")}</strong>
+          <strong>${escapeHtml(consultantQuestionSource(application, question.source || "上传材料"))}</strong>
           ${question.answerEvidence ? `<small>${escapeHtml(question.answerEvidence)}</small>` : ""}
         </div>
       ` : ""}
@@ -3073,13 +3291,13 @@ function renderBranchQuestion(question) {
           <p>${escapeHtml(question.clientResponse)}</p>
         </div>
       ` : ""}
-      ${renderBranchAnswerControl(question)}
+      ${renderBranchAnswerControl(question, application)}
       ${activeDetails.length ? `
         <div class="branch-detail-grid">
-          ${activeDetails.map((field) => renderBranchDetailField(question, field)).join("")}
+          ${activeDetails.map((field) => renderBranchDetailField(question, field, application)).join("")}
         </div>
       ` : ""}
-      ${showRecords ? renderBranchRecords(question) : ""}
+      ${showRecords ? renderBranchRecords(question, application) : ""}
       ${question.sensitive ? `
         <div class="sensitive-confirm-row">
           <span>系统只提取材料中的明确答案，不会因材料未提及而默认选择 No。</span>
@@ -3098,13 +3316,13 @@ function renderBranchQuestion(question) {
   `;
 }
 
-function renderBranchAnswerControl(question) {
+function renderBranchAnswerControl(question, application = getActiveApplication()) {
   if (question.answerType === "yes_no") {
     return `
-      <div class="answer-segmented" role="group" aria-label="${escapeHtml(question.label)}">
+      <div class="answer-segmented" role="group" aria-label="${escapeHtml(consultantQuestionLabel(application, question))}">
         ${(question.choices || []).map((choice) => `
           <button class="${question.answer === choice.value ? "selected" : ""}" type="button" data-branch-question="${question.id}" data-branch-answer="${choice.value}" aria-pressed="${question.answer === choice.value}">
-            ${escapeHtml(choice.label)}
+            ${escapeHtml(consultantChoiceLabel(application, choice))}
           </button>
         `).join("")}
       </div>
@@ -3116,7 +3334,7 @@ function renderBranchAnswerControl(question) {
         <label for="branch-${question.id}">选择当前答案</label>
         <select id="branch-${question.id}" data-branch-select="${question.id}">
           <option value="">请选择</option>
-          ${(question.choices || []).map((choice) => `<option value="${choice.value}" ${question.answer === choice.value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
+          ${(question.choices || []).map((choice) => `<option value="${choice.value}" ${question.answer === choice.value ? "selected" : ""}>${escapeHtml(consultantChoiceLabel(application, choice))}</option>`).join("")}
         </select>
       </div>
     `;
@@ -3151,14 +3369,14 @@ function branchActiveRecordFields(question, record) {
   ));
 }
 
-function renderBranchDetailField(question, field) {
+function renderBranchDetailField(question, field, application = getActiveApplication()) {
   const value = question.details?.[field.id] || "";
   const placeholder = field.placeholder || (field.type === "date" ? "YYYY-MM-DD" : "请输入客户已确认的信息");
   return `
     <div class="form-row ${field.type === "textarea" ? "full" : ""}">
-      <label>${escapeHtml(field.label)}${field.required ? " *" : ""}</label>
+      <label>${escapeHtml(consultantItemLabel(application, field.label, field.id))}${field.required ? " *" : ""}</label>
       ${(field.choices || []).length
-        ? `<select data-branch-detail data-branch-question="${question.id}" data-branch-field="${field.id}"><option value="">请选择</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}</select>`
+        ? `<select data-branch-detail data-branch-question="${question.id}" data-branch-field="${field.id}"><option value="">请选择</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(consultantChoiceLabel(application, choice))}</option>`).join("")}</select>`
         : field.type === "textarea"
         ? `<textarea data-branch-detail data-branch-question="${question.id}" data-branch-field="${field.id}" placeholder="${escapeHtml(placeholder)}">${escapeHtml(value)}</textarea>`
         : `<input type="${field.type === "email" ? "email" : "text"}" ${field.type === "date" ? 'inputmode="numeric"' : ""} data-branch-detail data-branch-question="${question.id}" data-branch-field="${field.id}" value="${escapeHtml(value)}" placeholder="${escapeHtml(placeholder)}">`
@@ -3167,26 +3385,27 @@ function renderBranchDetailField(question, field) {
   `;
 }
 
-function renderBranchRecords(question) {
+function renderBranchRecords(question, application = getActiveApplication()) {
   const records = question.records || [];
+  const recordLabel = consultantItemLabel(application, question.recordLabel || "记录", `${question.id}.record`);
   return `
     <div class="branch-records">
       <div class="branch-record-heading">
-        <strong>${escapeHtml(question.recordLabel || "记录")}</strong>
+        <strong>${escapeHtml(recordLabel)}</strong>
         <button class="icon-text-btn" type="button" data-add-branch-record="${question.id}">+ 添加一项</button>
       </div>
       ${records.length ? records.map((record, recordIndex) => `
         <article class="branch-record">
           <header>
-            <strong>${escapeHtml(question.recordLabel || "记录")} ${recordIndex + 1}</strong>
+            <strong>${escapeHtml(recordLabel)} ${recordIndex + 1}</strong>
             <button class="icon-btn" type="button" data-branch-question="${question.id}" data-remove-branch-record="${recordIndex}" aria-label="删除本条记录">${iconClose()}</button>
           </header>
           <div class="branch-detail-grid">
             ${branchActiveRecordFields(question, record).map((field) => `
               <div class="form-row ${field.type === "textarea" ? "full" : ""}">
-                <label>${escapeHtml(field.label)}${field.required ? " *" : ""}</label>
+                <label>${escapeHtml(consultantItemLabel(application, field.label, field.id))}${field.required ? " *" : ""}</label>
                 ${(field.choices || []).length
-                  ? `<select data-branch-record data-branch-question="${question.id}" data-record-index="${recordIndex}" data-branch-field="${field.id}"><option value="">请选择</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === record[field.id] ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}</select>`
+                  ? `<select data-branch-record data-branch-question="${question.id}" data-record-index="${recordIndex}" data-branch-field="${field.id}"><option value="">请选择</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === record[field.id] ? "selected" : ""}>${escapeHtml(consultantChoiceLabel(application, choice))}</option>`).join("")}</select>`
                   : field.type === "textarea"
                   ? `<textarea data-branch-record data-branch-question="${question.id}" data-record-index="${recordIndex}" data-branch-field="${field.id}" placeholder="请输入客户已确认的信息">${escapeHtml(record[field.id] || "")}</textarea>`
                   : `<input type="${field.type === "email" ? "email" : "text"}" ${field.type === "date" ? 'inputmode="numeric" placeholder="YYYY-MM-DD"' : 'placeholder="请输入"'} data-branch-record data-branch-question="${question.id}" data-record-index="${recordIndex}" data-branch-field="${field.id}" value="${escapeHtml(record[field.id] || "")}">`
@@ -3285,14 +3504,14 @@ function renderValidation(container) {
     <section class="grid two">
       ${priorityResults.length ? Object.entries(grouped).map(([category, items]) => `
         <div class="panel validation-group">
-          <h2>${escapeHtml(localizeCategory(category))}</h2>
+          <h2>${escapeHtml(consultantSectionLabel(application, localizeCategory(category)))}</h2>
           ${items.map((item) => `
             <div class="validation-item">
               <div class="actions" style="justify-content:space-between">
                 <span class="badge ${item.severity}">${riskLabel(item.severity)}</span>
                 <span class="badge ${item.resolved ? "resolved" : "unresolved"}">${item.resolved ? "已解决" : "需顾问判断"}</span>
               </div>
-              <p>${escapeHtml(localizeValidationMessage(item.message))}</p>
+              <p>${escapeHtml(consultantValidationMessage(application, item.message))}</p>
               ${item.requiresUserResolution ? `<button class="btn secondary" data-resolve="${item.id}">${String(item.id).startsWith("branch.") ? "返回条件问答" : "标记已核查"}</button>` : ""}
             </div>
           `).join("")}
@@ -3332,34 +3551,29 @@ function renderValidation(container) {
 function renderPreview(container) {
   const application = getActiveApplication();
   const sections = visibleSectionsForApplication(application);
-  const screenAgentReady = Boolean(state.screenAgentRuntime?.available);
+  const screenAgentReady = Boolean(
+    state.agentRuntime?.ready || state.screenAgentRuntime?.available
+  );
   container.innerHTML = `
     ${renderAppHeader(application, "DS-160 初稿预览", "按 DS-160 模块展示可复核的填写初稿。敏感背景问题仅显示提醒，不自动代填。")}
     <div class="safety-box" style="margin-bottom:16px">
       初稿仅供中介人员核查。Computer Use 可以在可见 Chrome 中辅助写入 CEAC，但验证码、敏感背景判断、电子签名和最终提交必须由人工完成。
     </div>
-    <section class="grid two">
+    <section class="grid two ds-preview-grid">
       ${sections.map((section) => renderDsSection(application, section)).join("")}
     </section>
     ${renderBranchPreview(application)}
     ${!screenAgentReady ? `
       <div class="screen-agent-runtime-alert" role="status">
         <strong>当前是预览模式，不能控制 Chrome</strong>
-        <span>${escapeHtml(state.screenAgentRuntime?.message || "请从 Finder 启动 Screen Agent 版本。")}</span>
+        <span>${escapeHtml(state.agentRuntime?.message || state.screenAgentRuntime?.message || "可见浏览器执行层尚未就绪。")}</span>
       </div>
     ` : ""}
     <div class="actions" style="margin-top:18px">
       <button class="btn" id="prefillForm">进入 Computer Use 执行台</button>
-      <button class="btn secondary" id="generateReport">导出核查清单</button>
     </div>
   `;
   document.querySelector("#prefillForm").addEventListener("click", () => route("prefill"));
-  document.querySelector("#generateReport").addEventListener("click", () => {
-    buildAuditReport(application);
-    application.currentStep = 6;
-    saveApplication(application);
-    route("report");
-  });
 }
 
 function renderBranchPreview(application) {
@@ -3378,14 +3592,14 @@ function renderBranchPreview(application) {
       ${Object.entries(grouped).map(([section, items]) => `
         <details class="branch-preview-section">
           <summary>
-            <strong>${escapeHtml(section)}</strong>
+            <strong>${escapeHtml(consultantSectionLabel(application, section))}</strong>
             <span>${items.filter((item) => ["已回答", "已核查"].includes(item.status)).length} / ${items.length}</span>
           </summary>
           <div>
             ${items.map((item) => `
               <div class="branch-preview-row">
-                <span>${escapeHtml(item.label)}</span>
-                <strong>${escapeHtml(branchAnswerDisplay(item))}</strong>
+                <span>${escapeHtml(consultantQuestionLabel(application, item))}</span>
+                <strong>${escapeHtml(branchAnswerDisplay(item, application))}</strong>
                 <span class="badge ${branchStatusClass(item.status)}">${escapeHtml(item.status)}</span>
               </div>
             `).join("")}
@@ -3396,20 +3610,20 @@ function renderBranchPreview(application) {
   `;
 }
 
-function branchAnswerDisplay(question) {
+function branchAnswerDisplay(question, application = getActiveApplication()) {
   if (question.answerType === "records") return `${(question.records || []).length} 条记录`;
   if (question.answerType === "details") {
     return Object.values(question.details || {}).some((value) => String(value || "").trim()) ? "已填写" : "待补充";
   }
   const choice = (question.choices || []).find((item) => item.value === question.answer);
-  return choice?.label || "待客户确认";
+  return choice ? consultantChoiceLabel(application, choice) : "待客户确认";
 }
 
 function renderDsSection(application, section) {
   if (section === "安全与背景问题") {
     return `
       <article class="panel ds-section">
-        <h2>${section}</h2>
+        <h2>${escapeHtml(consultantSectionLabel(application, section))}</h2>
         ${["健康相关问题", "犯罪记录", "移民违规", "安全相关问题", "特殊组织 / 军事 / 执法 / 专业技能", "过往拒签、拒绝入境或撤回入境申请"].map((label) => `
           <div class="field-pair">
             <div class="field-label">${label}</div>
@@ -3438,7 +3652,7 @@ function renderDsSection(application, section) {
   const questionFields = section === "美国联系人" ? application.missingQuestions.slice(0, 1) : section === "工作 / 教育 / 培训" ? application.missingQuestions.slice(2) : [];
   return `
     <article class="panel ds-section">
-      <h2>${section}</h2>
+      <h2>${escapeHtml(consultantSectionLabel(application, section))}</h2>
       ${fields.map((field) => `
         <div class="field-pair">
           <div class="field-label">${escapeHtml(localizeField(field.label))}</div>
@@ -3803,7 +4017,7 @@ function browserWorkflowPreflightIssues(application) {
 function codexAgentFlowStep(agent) {
   if (["expired", "revoked", "failed"].includes(agent.state)) return 0;
   if (["review_required", "completed"].includes(agent.state)) return 4;
-  if (["claimed", "running", "blocked"].includes(agent.state)) return 3;
+  if (["claimed", "running", "paused", "blocked"].includes(agent.state)) return 3;
   if (agent.state === "waiting_for_entry") return 2;
   if (agent.state === "prepared") return 1;
   return 0;
@@ -3816,6 +4030,7 @@ function codexAgentStatusMeta(status) {
     claimed: { label: "Computer Use 已接收", badge: "running" },
     waiting_for_entry: { label: "等待进入表格", badge: "needs-review" },
     running: { label: "正在填写", badge: "running" },
+    paused: { label: "已暂停，可人工修改", badge: "needs-review" },
     review_required: { label: "等待人工核对", badge: "confirmed" },
     completed: { label: "任务已完成", badge: "confirmed" },
     blocked: { label: "需要人工处理", badge: "needs-review" },
@@ -3825,19 +4040,79 @@ function codexAgentStatusMeta(status) {
   }[status] || { label: "未准备", badge: "pending" };
 }
 
+function computerUseManualWindowUrl(viewerUrl) {
+  if (!viewerUrl) return "";
+  try {
+    const url = new URL(viewerUrl, window.location.origin);
+    url.searchParams.set("resize", "off");
+    url.searchParams.set("quality", "4");
+    url.searchParams.set("compression", "3");
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch (_error) {
+    return viewerUrl
+      .replace(/([?&])resize=[^&]*/i, "$1resize=off")
+      .replace(/([?&])quality=[^&]*/i, "$1quality=4")
+      .replace(/([?&])compression=[^&]*/i, "$1compression=3");
+  }
+}
+
+function stabilizeEmbeddedComputerUseViewer(frame) {
+  if (!frame) return;
+  const apply = () => {
+    try {
+      const frameWindow = frame.contentWindow;
+      const frameDocument = frame.contentDocument;
+      const rfb = frameWindow?.UI?.rfb;
+      if (rfb) rfb.dragViewport = false;
+      if (frameDocument && !frameDocument.querySelector("#docflowEmbeddedNoVncStyle")) {
+        const style = frameDocument.createElement("style");
+        style.id = "docflowEmbeddedNoVncStyle";
+        style.textContent = "#noVNC_view_drag_button{display:none!important}";
+        frameDocument.head?.appendChild(style);
+      }
+    } catch (_error) {
+      // A reconnect can briefly replace noVNC's document. The bounded retries
+      // below will apply the same non-dragging embedded-view contract again.
+    }
+  };
+  apply();
+  [500, 1500, 4000].forEach((delay) => window.setTimeout(apply, delay));
+}
+
 function renderPrefill(container) {
   const application = getActiveApplication();
   const agent = application.codexAgent || { state: "idle" };
+  const isGeminiV2 = (
+    agent.executionMode === "gemini-v2-linux"
+    || (!agent.jobId && state.agentRuntime?.ready === true)
+  );
+  const humanFirst = Boolean(
+    !agent.jobId
+    || agent.humanFirst
+    || agent.browserRuntime === "chrome_stable_human_first"
+  );
+  const officialChromeAvailable = Boolean(
+    state.agentRuntime?.chromePilotAvailable
+    || state.agentRuntime?.browserRuntimes?.chrome_stable_human_first?.ready
+  );
   const rows = browserWorkflowRows(application);
   const preflightIssues = browserWorkflowPreflightIssues(application);
+  const preflightCopy = consultantPrefillMessages(application, preflightIssues);
   const closed = ["review_required", "completed", "expired", "revoked"].includes(agent.state) || agent.closed;
   const activeJob = Boolean(agent.jobId && !closed);
   const handoff = state.computerUseHandoffs.ds160;
-  const handoffReady = Boolean(activeJob && handoff?.jobId === agent.jobId);
-  const agentStarted = ["claimed", "running", "blocked"].includes(agent.state);
-  const needsFreshHandoff = Boolean(activeJob && !handoffReady && !agentStarted);
+  const handoffReady = Boolean(
+    activeJob
+    && (isGeminiV2 || handoff?.jobId === agent.jobId)
+  );
+  const agentStarted = ["claimed", "running"].includes(agent.state)
+    || (!isGeminiV2 && agent.state === "blocked");
+  const needsFreshHandoff = Boolean(
+    !isGeminiV2 && activeJob && !handoffReady && !agentStarted
+  );
   const canPrepare = Boolean(
     state.apiAvailable && API_BASE && rows.length
+    && officialChromeAvailable
     && !preflightIssues.length
     && (!activeJob || needsFreshHandoff)
   );
@@ -3847,8 +4122,9 @@ function renderPrefill(container) {
     && !preflightIssues.length
     && agent.state !== "running"
   );
+  const userPaused = isGeminiV2 && agent.state === "paused";
   const manualNextPending = agent.statusCode === "auto_next_disabled";
-  const showResume = Boolean(activeJob && handoffReady && !agentStarted && !manualNextPending);
+  const showResume = Boolean(activeJob && handoffReady && !agentStarted && !manualNextPending && !userPaused);
   const showStartGate = showResume || manualNextPending;
   const observedRoutes = Array.isArray(agent.observedRoutes) ? agent.observedRoutes : [];
   const mappedRouteCount = observedRoutes.filter((route) => route.mapped).length;
@@ -3859,21 +4135,23 @@ function renderPrefill(container) {
     : 0;
   const flowStep = codexAgentFlowStep(agent);
   const autoNextEnabled = agent.jobId ? Boolean(agent.autoNext) : true;
+  const viewerUrl = state.computerUseViewers.ds160 || "";
+  const manualWindowUrl = computerUseManualWindowUrl(viewerUrl);
   container.innerHTML = `
-    ${renderAppHeader(application, "Computer Use 逐页填写", "WestoryVisa 准备当前客户字段计划。你人工完成验证码并进入正式表格后，再把可见页面交给 Codex Computer Use 稳健填写。")} 
+    ${renderAppHeader(application, "Computer Use 逐页填写", isGeminiV2 ? "用户可在当前域名内看到 Linux 虚拟 Chrome 的全部填写过程。先人工完成验证码并进入正式表格，再启动 Gemini V2。" : "WestoryVisa 准备当前客户字段计划。你人工完成验证码并进入正式表格后，再把可见页面交给 Computer Use 稳健填写。")}
     <section class="screen-agent-banner browser-use-banner codex-agent-banner">
-      <div><span class="agent-live-dot ${["claimed", "running"].includes(agent.state) ? "active" : ""}"></span><strong>Codex Computer Use</strong><span>系统级可见操作 · 无需 Chrome 扩展</span></div>
+      <div><span class="agent-live-dot ${["claimed", "running"].includes(agent.state) ? "active" : ""}"></span><strong>${isGeminiV2 ? "Gemini Computer Use V2" : "Codex Computer Use"}</strong><span>${isGeminiV2 ? "Linux X11 真实输入 · 域名内可见" : "系统级可见操作 · 无需 Chrome 扩展"}</span></div>
       <div><span class="badge ${meta.badge}" id="codexAgentStatus">${meta.label}</span><span id="codexAgentProgressText">${progress}%</span></div>
     </section>
     <section class="screen-agent-runtime-alert ${state.apiAvailable ? "ready" : "blocked"}" role="status">
-      <strong>${needsFreshHandoff ? "本机授权已随刷新失效，请重新准备" : "Computer Use 执行通道已就绪"}</strong>
-      <span>${needsFreshHandoff ? "为避免把一次性令牌写入数据库，页面刷新后需要撤销旧任务并生成新的本机交接。客户字段仍保留在档案中。" : "WestoryVisa 只准备短时字段任务并打开 CEAC；实际点击、输入、下拉选择与页面复读由 Codex Desktop 的 Computer Use 完成。"}</span>
+      <strong>${needsFreshHandoff ? "本机授权已随刷新失效，请重新准备" : isGeminiV2 ? (state.agentRuntime?.ready ? "Gemini V2 Linux 执行通道已就绪" : "Gemini V2 Linux 执行通道尚未就绪") : "Computer Use 执行通道已就绪"}</strong>
+      <span>${needsFreshHandoff ? "为避免把一次性令牌写入数据库，页面刷新后需要撤销旧任务并生成新的本机交接。客户字段仍保留在档案中。" : isGeminiV2 ? escapeHtml(state.agentRuntime?.message || (humanFirst ? "人工阶段仅运行官方 Chrome；确认进入正式表格后才连接填写执行层。" : "虚拟显示器、Chromium、Gemini 与加密检查点由服务器统一管理。")) : "WestoryVisa 只准备短时字段任务并打开 CEAC；实际点击、输入、下拉选择与页面复读由 Codex Desktop 的 Computer Use 完成。"}</span>
     </section>
     ${preflightIssues.length ? `
       <section class="screen-agent-runtime-alert workflow-preflight-alert" role="alert">
         <div>
-          <strong>当前档案还有 ${preflightIssues.length} 项资料未收齐，暂不能开始逐页填写</strong>
-          <span>${escapeHtml(preflightIssues.slice(0, 4).map((item) => item.label).join("；"))}${preflightIssues.length > 4 ? `；另有 ${preflightIssues.length - 4} 项` : ""}。补齐后系统才会建立 Computer Use 任务，避免 CEAC 页面留下空项。</span>
+          <strong>${escapeHtml(preflightCopy.title)}</strong>
+          <span>${escapeHtml(preflightCopy.body)}</span>
         </div>
         <button class="btn secondary" type="button" id="resolveWorkflowQuestions">返回客户问题补充</button>
       </section>
@@ -3881,18 +4159,29 @@ function renderPrefill(container) {
     <section class="codex-start-gate" id="codexStartGate" ${showStartGate ? "" : "hidden"}>
       <div>
         <span>${manualNextPending ? "当前页已填写完成" : "进入正式表格后"}</span>
-        <strong>${manualNextPending ? "请回到 CEAC 点击 Next；下一页打开后再让 Computer Use 继续。" : "点击后会复制当前任务的短时启动指令；回到 Codex 发送后才会读取和填写页面。"}</strong>
+        <strong>${manualNextPending ? "请回到 CEAC 点击 Next；下一页打开后再让 Computer Use 继续。" : isGeminiV2 ? (humanFirst ? "确认下方官方 Chrome 已进入正式 DS-160 表格；点击后才会连接填写执行层。" : "确认下方虚拟 Chrome 已进入正式 DS-160 表格，然后启动服务器 Gemini V2。") : "点击后会复制当前任务的短时启动指令；回到 Codex 发送后才会读取和填写页面。"}</strong>
       </div>
       ${manualNextPending
         ? '<span class="browser-use-target-state">请在 CEAC 点击 Next</span>'
-        : `<button class="btn" type="button" id="resumeCodexAgent" ${canResume ? "" : "disabled"}>${agent.state === "waiting_for_entry" ? "再次复制 Codex 启动指令" : "我已进入表格，交给 Computer Use"}</button>`}
+        : `<button class="btn" type="button" id="resumeCodexAgent" ${canResume ? "" : "disabled"}>${isGeminiV2 ? (humanFirst ? "我已进入 DS-160 正式表格" : "我已进入表格，启动 Gemini V2") : agent.state === "waiting_for_entry" ? "再次复制 Codex 启动指令" : "我已进入表格，交给 Computer Use"}</button>`}
     </section>
     <section class="browser-use-workspace">
       <div class="browser-use-main">
         <div class="browser-use-target">
           <div><span class="page-kicker">Current Scope</span><h2>当前客户的逐页字段计划</h2></div>
-          <span class="browser-use-target-state">60 分钟本机任务</span>
+          <span class="browser-use-target-state">${isGeminiV2 ? "60 分钟服务器会话" : "60 分钟本机任务"}</span>
         </div>
+        <section class="computer-use-viewer" id="computerUseViewer" ${viewerUrl ? "" : "hidden"}>
+          <header>
+            <div><span class="page-kicker">LIVE LINUX CHROME</span><h2>服务器浏览器实时画面</h2></div>
+            <div class="computer-use-viewer-actions">
+              ${manualWindowUrl ? `<a href="${escapeHtml(manualWindowUrl)}" target="_blank" rel="noopener noreferrer">独立窗口人工操作</a>` : ""}
+              <span id="computerUseViewerMode">${agent.state === "running" ? "自动填写中 · 可人工接管" : "人工接管可用"}</span>
+            </div>
+          </header>
+          <p class="computer-use-viewer-help">嵌入画面适合观看与短暂点击；精确滚动、下拉或长时间人工接管请打开独立窗口。自动填写运行时，Gemini 与人工共用同一套鼠标和键盘。</p>
+          ${viewerUrl ? `<iframe id="computerUseViewerFrame" src="${escapeHtml(viewerUrl)}" title="Gemini V2 Linux Chrome 实时画面" allow="clipboard-read; clipboard-write" referrerpolicy="same-origin"></iframe>` : ""}
+        </section>
         <div class="browser-use-flow" aria-label="Computer Use 执行步骤">
           ${[
             ["整理字段", "生成当前档案白名单"],
@@ -3918,8 +4207,8 @@ function renderPrefill(container) {
       </div>
       <aside class="screen-agent-console browser-use-console codex-agent-console">
         <div class="agent-console-heading">
-          <div><span class="page-kicker">Local Computer</span><h2>当前执行状态</h2></div>
-          <span class="agent-session-id">WORKFLOW V4</span>
+          <div><span class="page-kicker">${isGeminiV2 ? "PRODUCTION SERVER" : "Local Computer"}</span><h2>当前执行状态</h2></div>
+          <span class="agent-session-id">${isGeminiV2 ? "V1 CORE + V2" : "CODEX HANDOFF"}</span>
         </div>
         <div class="agent-progress-block">
           <div><span>字段进度</span><strong id="codexAgentProgressValue">${progress}%</strong></div>
@@ -3928,7 +4217,7 @@ function renderPrefill(container) {
         </div>
         <div class="agent-runtime-grid">
           <div><span>Agent</span><strong>Computer Use</strong></div>
-          <div><span>Browser</span><strong>当前 Chrome</strong></div>
+          <div><span>Browser</span><strong>${humanFirst ? "官方 Chrome Stable" : "当前 Chrome"}</strong></div>
           <div><span>节奏</span><strong>0.9–1.5s</strong></div>
           <div><span>Next</span><strong>核验后</strong></div>
         </div>
@@ -3950,7 +4239,10 @@ function renderPrefill(container) {
           <i aria-hidden="true"></i>
         </label>
         <div class="desktop-agent-actions browser-use-actions codex-agent-actions">
-          <button class="btn" type="button" id="prepareCodexAgent" ${canPrepare ? "" : "disabled"} ${activeJob && !needsFreshHandoff ? "hidden" : ""}>${needsFreshHandoff ? "重新准备 Computer Use 任务" : "准备任务并打开 CEAC"}</button>
+          <button class="btn" type="button" id="toggleGeminiExecution"
+            ${isGeminiV2 && activeJob && ["running", "paused"].includes(agent.state) ? "" : "hidden"}
+            ${userPaused && agent.resumeReady !== true ? "disabled" : ""}>${userPaused ? "继续 Gemini" : "暂停 Gemini"}</button>
+          <button class="btn" type="button" id="prepareCodexAgent" ${canPrepare ? "" : "disabled"} ${activeJob && !needsFreshHandoff ? "hidden" : ""}>${officialChromeAvailable ? (needsFreshHandoff ? "重新开始填写" : "开始填写") : "官方 Chrome 暂不可用"}</button>
           <button class="btn secondary" type="button" id="revokeCodexAgent" ${activeJob ? "" : "disabled"} ${activeJob ? "" : "hidden"}>停止当前任务</button>
         </div>
       </aside>
@@ -3960,25 +4252,35 @@ function renderPrefill(container) {
       <span>Computer Use 不处理验证码、登录凭据、拒签或移民历史判断、安全与背景问题、电子签名、法律声明、付款和最终提交；不使用脚本注入，也不绕过网站限制。顾问可以随时停止并人工接管。</span>
     </div>
     <div class="actions" style="margin-top:18px">
-      <button class="btn" id="generateReport">生成 Agent 审计报告</button>
       <button class="btn secondary" id="backPreview">返回 DS-160 初稿</button>
     </div>
   `;
 
-  document.querySelector("#prepareCodexAgent")?.addEventListener("click", () => startComputerUseAgent(application));
+  document.querySelector("#prepareCodexAgent")?.addEventListener("click", (event) => (
+    startComputerUseAgent(application, "chrome_stable_human_first", event.currentTarget)
+  ));
   document.querySelector("#resumeCodexAgent")?.addEventListener("click", () => handoffToComputerUse(application));
+  document.querySelector("#toggleGeminiExecution")?.addEventListener("click", (event) => {
+    if (application.codexAgent?.state === "paused") {
+      handoffToComputerUse(application, event.currentTarget);
+    } else {
+      pauseGeminiV2(application, event.currentTarget);
+    }
+  });
   document.querySelector("#revokeCodexAgent")?.addEventListener("click", () => revokeCodexAgent(application));
   document.querySelector("#resolveWorkflowQuestions")?.addEventListener("click", async () => {
     if (activeJob) await revokeCodexAgent(application, { renderAfter: false });
     route("questions");
   });
   document.querySelector("#backPreview")?.addEventListener("click", () => route("preview"));
-  document.querySelector("#generateReport")?.addEventListener("click", async () => {
-    buildAuditReport(application);
-    application.currentStep = 6;
-    await saveApplication(application);
-    route("report");
-  });
+  const embeddedViewer = document.querySelector("#computerUseViewerFrame");
+  if (embeddedViewer) {
+    embeddedViewer.addEventListener(
+      "load",
+      () => stabilizeEmbeddedComputerUseViewer(embeddedViewer)
+    );
+    stabilizeEmbeddedComputerUseViewer(embeddedViewer);
+  }
   if (agent.jobId && !closed) startCodexAgentPolling(application);
 }
 
@@ -4052,8 +4354,12 @@ async function markComputerUseWaiting(handoff) {
   return data;
 }
 
-async function startComputerUseAgent(application) {
-  const button = document.querySelector("#prepareCodexAgent");
+async function startComputerUseAgent(
+  application,
+  browserRuntime = "chrome_stable_human_first",
+  triggerButton = null
+) {
+  const button = triggerButton || document.querySelector("#prepareCodexAgent");
   const preflightIssues = browserWorkflowPreflightIssues(application);
   if (preflightIssues.length) {
     updateCodexAgentMessage(
@@ -4086,24 +4392,29 @@ async function startComputerUseAgent(application) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        autoNext: document.querySelector("#autoNextToggle")?.checked !== false
+        autoNext: document.querySelector("#autoNextToggle")?.checked !== false,
+        browserRuntime
       })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Computer Use 任务准备失败");
-    if (!data.accessToken || !data.taskUrl) throw new Error("服务器没有返回本机 Computer Use 授权");
     preparedJobId = data.jobId;
+    const isGeminiV2 = data.executionMode === "gemini-v2-linux";
+    if (!isGeminiV2 && (!data.accessToken || !data.taskUrl)) {
+      throw new Error("服务器没有返回本机 Computer Use 授权");
+    }
     const autoNext = document.querySelector("#autoNextToggle")?.checked === true;
-    state.computerUseHandoffs.ds160 = {
+    state.computerUseHandoffs.ds160 = isGeminiV2 ? null : {
       jobId: data.jobId,
       taskUrl: data.taskUrl,
       accessToken: data.accessToken
     };
+    state.computerUseViewers.ds160 = data.viewerUrl || null;
     application.codexAgent = {
       jobId: data.jobId,
       workflowType: "ds160",
-      state: data.state || "prepared",
-      message: data.message || "任务已准备，等待你进入 CEAC 正式表格",
+      state: data.state || "queued",
+      message: data.message || "任务已进入队列，正在分配专属 Linux Chrome",
       completedFields: 0,
       totalFields: data.totalFields || 0,
       expiresAt: data.expiresAt || "",
@@ -4115,22 +4426,33 @@ async function startComputerUseAgent(application) {
       currentRoute: null,
       observedRoutes: [],
       autoNext,
+      executionMode: data.executionMode || "codex-handoff",
+      browserRuntime: data.browserRuntime || "playwright_chromium",
+      humanFirst: Boolean(data.humanFirst),
+      resumeReady: false,
       closed: false
     };
-    addScreenAgentLog(application, "info", "已准备 Codex Computer Use 逐页字段任务");
+    addScreenAgentLog(application, "info", isGeminiV2 ? "已准备 Gemini V2 Linux 可视填写任务" : "已准备 Codex Computer Use 逐页字段任务");
     await saveApplication(application);
-    if (!data.browserOpened) {
+    if (!isGeminiV2 && !data.browserOpened) {
       window.open("https://ceac.state.gov/GenNIV/Default.aspx", "_blank", "noopener,noreferrer");
     }
-    application.codexAgent.message = "CEAC 已打开。请人工完成申请地点、验证码和初始步骤，再回到这里交给 Computer Use。";
+    application.codexAgent.message = isGeminiV2
+      ? (data.viewerUrl
+        ? "Linux 虚拟 Chrome 已打开。请在下方完成申请地点、验证码和初始步骤。"
+        : "任务已进入队列，正在启动专属 Linux Chrome；页面会自动显示实时画面。")
+      : "CEAC 已打开。请人工完成申请地点、验证码和初始步骤，再回到这里交给 Computer Use。";
     render("prefill");
     startCodexAgentPolling(application);
   } catch (error) {
     if (button) {
       button.disabled = false;
-      button.textContent = "重新准备 Computer Use 任务";
+      button.textContent = browserRuntime === "chrome_stable_human_first"
+        ? "重新开始填写"
+        : "重新准备 Computer Use 任务";
     }
     state.computerUseHandoffs.ds160 = null;
+    state.computerUseViewers.ds160 = null;
     updateCodexAgentMessage(error.message || "Computer Use 任务准备失败", "error");
     if (preparedJobId) {
       DocFlowApi.request(`${API_BASE}/cases/${encodeURIComponent(application.id)}/codex-agent/${encodeURIComponent(preparedJobId)}`, {
@@ -4140,14 +4462,46 @@ async function startComputerUseAgent(application) {
   }
 }
 
-async function handoffToComputerUse(application) {
+async function handoffToComputerUse(application, triggerButton = null) {
   const agent = application.codexAgent;
-  const button = document.querySelector("#resumeCodexAgent");
+  const button = triggerButton || document.querySelector("#resumeCodexAgent");
   if (!agent?.jobId) {
     updateCodexAgentMessage("请先打开 CEAC 并建立当前客户任务。", "error");
     return;
   }
+  const isGeminiV2 = agent.executionMode === "gemini-v2-linux";
+  const humanFirst = Boolean(
+    agent.humanFirst
+    || agent.browserRuntime === "chrome_stable_human_first"
+  );
   const handoff = state.computerUseHandoffs.ds160;
+  if (isGeminiV2) {
+    if (button) {
+      button.disabled = true;
+      button.textContent = humanFirst ? "正在连接填写执行层…" : "正在启动 Gemini V2…";
+    }
+    try {
+      const response = await DocFlowApi.request(`${API_BASE}/cases/${encodeURIComponent(application.id)}/codex-agent/${encodeURIComponent(agent.jobId)}/start`, {
+        method: "POST"
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Gemini V2 启动失败");
+      agent.state = data.state || "running";
+      agent.message = data.message || "Gemini V2 正在 Linux 可见 Chrome 中填写";
+      agent.resumeReady = Boolean(data.resumeReady);
+      state.computerUseViewers.ds160 = data.viewerUrl || state.computerUseViewers.ds160;
+      await saveApplication(application);
+      render("prefill");
+      startCodexAgentPolling(application);
+    } catch (error) {
+      if (button) {
+        button.disabled = false;
+        button.textContent = "重新启动 Gemini V2";
+      }
+      updateCodexAgentMessage(error.message || "Gemini V2 启动失败", "error");
+    }
+    return;
+  }
   if (!handoff || handoff.jobId !== agent.jobId) {
     updateCodexAgentMessage("当前页面没有可用的一次性授权，请重新准备 Computer Use 任务。", "error");
     return;
@@ -4176,6 +4530,43 @@ async function handoffToComputerUse(application) {
   }
 }
 
+async function pauseGeminiV2(application, triggerButton = null) {
+  const agent = application.codexAgent;
+  if (
+    !agent?.jobId
+    || agent.executionMode !== "gemini-v2-linux"
+    || !state.apiAvailable
+    || !API_BASE
+  ) return;
+  const button = triggerButton || document.querySelector("#toggleGeminiExecution");
+  if (button) {
+    button.disabled = true;
+    button.textContent = "正在暂停…";
+  }
+  try {
+    const response = await DocFlowApi.request(
+      `${API_BASE}/cases/${encodeURIComponent(application.id)}/codex-agent/${encodeURIComponent(agent.jobId)}/pause`,
+      { method: "POST" }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Gemini V2 暂停失败");
+    agent.state = data.state || "paused";
+    agent.message = data.message || "Gemini 已暂停，可人工修改当前页面";
+    agent.resumeReady = Boolean(data.resumeReady);
+    state.computerUseViewers.ds160 = data.viewerUrl || state.computerUseViewers.ds160;
+    addScreenAgentLog(application, "warning", "用户主动暂停了 Gemini，保留当前浏览器供人工修改");
+    await saveApplication(application);
+    render("prefill");
+    startCodexAgentPolling(application);
+  } catch (error) {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "暂停 Gemini";
+    }
+    updateCodexAgentMessage(error.message || "Gemini V2 暂停失败", "error");
+  }
+}
+
 function startCodexAgentPolling(application) {
   clearCodexAgentPolling();
   refreshCodexAgent(application, { quiet: true });
@@ -4192,6 +4583,9 @@ async function refreshCodexAgent(application, options = {}) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Codex 状态读取失败");
     agent.state = data.state || agent.state;
+    agent.executionMode = data.executionMode || agent.executionMode || "codex-handoff";
+    agent.browserRuntime = data.browserRuntime || agent.browserRuntime || "playwright_chromium";
+    agent.humanFirst = Boolean(data.humanFirst || agent.humanFirst);
     agent.message = data.message || agent.message;
     agent.completedFields = data.completedFields || 0;
     agent.totalFields = data.totalFields || agent.totalFields || 0;
@@ -4202,7 +4596,18 @@ async function refreshCodexAgent(application, options = {}) {
     agent.statusCode = data.statusCode || "";
     agent.currentRoute = data.currentRoute || null;
     agent.observedRoutes = Array.isArray(data.observedRoutes) ? data.observedRoutes : [];
+    agent.resumeReady = Boolean(data.resumeReady);
     agent.closed = Boolean(data.closed);
+    const viewerWasMissing = !state.computerUseViewers.ds160;
+    if (data.viewerUrl) state.computerUseViewers.ds160 = data.viewerUrl;
+    if (
+      viewerWasMissing
+      && data.viewerUrl
+      && !document.querySelector("#computerUseViewerFrame")
+    ) {
+      render("prefill");
+      return;
+    }
     updateCodexAgentUI(application);
     if (["review_required", "completed", "expired", "revoked"].includes(agent.state) || agent.closed) {
       clearCodexAgentPolling();
@@ -4227,6 +4632,7 @@ async function revokeCodexAgent(application, options = {}) {
     agent.message = data.message || "Codex 任务已撤销";
     agent.closed = true;
     state.computerUseHandoffs.ds160 = null;
+    state.computerUseViewers.ds160 = null;
     addScreenAgentLog(application, "warning", "顾问停止了 Computer Use 逐页填写任务");
     await saveApplication(application);
     if (options.renderAfter !== false) render("prefill");
@@ -4237,13 +4643,24 @@ async function revokeCodexAgent(application, options = {}) {
 
 function updateCodexAgentUI(application) {
   const agent = application.codexAgent || { state: "idle" };
+  const isGeminiV2 = agent.executionMode === "gemini-v2-linux";
+  const humanFirst = Boolean(
+    agent.humanFirst
+    || agent.browserRuntime === "chrome_stable_human_first"
+  );
   const preflightIssues = browserWorkflowPreflightIssues(application);
   const closed = ["review_required", "completed", "expired", "revoked"].includes(agent.state) || agent.closed;
   const activeJob = Boolean(agent.jobId && !closed);
   const handoff = state.computerUseHandoffs.ds160;
-  const handoffReady = Boolean(activeJob && handoff?.jobId === agent.jobId);
-  const agentStarted = ["claimed", "running", "blocked"].includes(agent.state);
-  const needsFreshHandoff = Boolean(activeJob && !handoffReady && !agentStarted);
+  const handoffReady = Boolean(
+    activeJob
+    && (isGeminiV2 || handoff?.jobId === agent.jobId)
+  );
+  const agentStarted = ["claimed", "running"].includes(agent.state)
+    || (!isGeminiV2 && agent.state === "blocked");
+  const needsFreshHandoff = Boolean(
+    !isGeminiV2 && activeJob && !handoffReady && !agentStarted
+  );
   const canResume = Boolean(
     activeJob
     && handoffReady
@@ -4280,6 +4697,19 @@ function updateCodexAgentUI(application) {
   if (liveDot) liveDot.classList.toggle("active", ["claimed", "waiting_for_entry", "running"].includes(agent.state));
   const message = String(agent.message || "等待准备 Computer Use 任务");
   updateCodexAgentMessage(message);
+  const viewerFrame = document.querySelector("#computerUseViewerFrame");
+  const viewerUrl = state.computerUseViewers.ds160 || "";
+  if (viewerFrame && viewerUrl && viewerFrame.getAttribute("src") !== viewerUrl) {
+    viewerFrame.setAttribute("src", viewerUrl);
+  }
+  const viewerMode = document.querySelector("#computerUseViewerMode");
+  if (viewerMode) {
+    viewerMode.textContent = agent.state === "running"
+      ? "自动填写中 · 可人工接管"
+      : agent.state === "paused"
+        ? "Gemini 已暂停 · 人工操作中"
+        : "人工接管可用";
+  }
 
   const handoffTitle = document.querySelector("#codexHandoffTitle");
   const handoffCopy = document.querySelector("#codexHandoffCopy");
@@ -4287,14 +4717,16 @@ function updateCodexAgentUI(application) {
     handoffTitle.textContent = agent.pageLabel
       ? `当前：${agent.pageLabel}`
       : agent.state === "waiting_for_entry"
-        ? "任务指令已准备，等待 Codex 接收"
+        ? (isGeminiV2 ? (humanFirst ? "官方 Chrome 已打开，尚未连接填写执行层" : "Linux Chrome 已打开，等待进入正式表格") : "任务指令已准备，等待 Codex 接收")
         : "等待准备 CEAC 任务";
   }
   if (handoffCopy) {
     handoffCopy.textContent = agent.state === "waiting_for_entry"
-      ? "请回到 Codex 发送已复制的启动指令。只有发送后，Computer Use 才会读取当前可见表格。"
+      ? (isGeminiV2 ? (humanFirst ? "请在当前官方 Chrome 中完全人工完成验证码和找回申请；进入正式表格后点击确认，届时才会连接填写执行层。" : "请直接在上方 Linux Chrome 中完成验证码和找回申请；进入正式表格后点击启动 Gemini V2。") : "请回到 Codex 发送已复制的启动指令。只有发送后，Computer Use 才会读取当前可见表格。")
       : agent.state === "running"
         ? "Computer Use 每次只做一个可见操作并重新读取页面；动态字段稳定后才继续。"
+        : agent.state === "paused"
+          ? "Gemini 的旧动作已全部作废。你可返回上一页修改；完成后点击“继续 Gemini”，它会从当前页重新读取。"
         : manualNextPending
           ? "本页已通过可见必填项检查。请在 CEAC 点击 Next，下一页载入后再继续任务。"
           : agent.state === "blocked"
@@ -4323,7 +4755,9 @@ function updateCodexAgentUI(application) {
   const resumeButton = document.querySelector("#resumeCodexAgent");
   if (resumeButton) {
     resumeButton.disabled = !canResume;
-    resumeButton.textContent = agent.state === "waiting_for_entry"
+    resumeButton.textContent = isGeminiV2
+      ? (humanFirst ? "我已进入 DS-160 正式表格" : "我已进入表格，启动 Gemini V2")
+      : agent.state === "waiting_for_entry"
       ? "再次复制 Codex 启动指令"
       : "我已进入表格，交给 Computer Use";
   }
@@ -4340,6 +4774,18 @@ function updateCodexAgentUI(application) {
   if (stopButton) {
     stopButton.hidden = !activeJob;
     stopButton.disabled = !activeJob;
+  }
+  const toggleButton = document.querySelector("#toggleGeminiExecution");
+  if (toggleButton) {
+    const userPaused = isGeminiV2 && agent.state === "paused";
+    const canToggle = isGeminiV2
+      && activeJob
+      && (agent.state === "running" || (userPaused && agent.resumeReady === true));
+    toggleButton.hidden = !isGeminiV2
+      || !activeJob
+      || !["running", "paused"].includes(agent.state);
+    toggleButton.disabled = !canToggle;
+    toggleButton.textContent = userPaused ? "继续 Gemini" : "暂停 Gemini";
   }
 }
 
@@ -6091,6 +6537,7 @@ function sanitizeFilename(value) {
 
 function renderAppHeader(application, title, subtitle) {
   const caseMeta = application.caseMeta || application.partnerMeta || {};
+  const country = applicationCountryFor(application);
   return `
     <div class="topbar">
       <div>
@@ -6099,12 +6546,13 @@ function renderAppHeader(application, title, subtitle) {
           <span>/</span>
           <button type="button" onclick="goBack()">${iconArrowLeft()} 上一步</button>
         </div>
-        <div class="page-kicker">${escapeHtml(application.visaType)}</div>
+        <div class="page-kicker">${escapeHtml(country.label)}版 · ${escapeHtml(application.visaType)}</div>
         <h1>${title}</h1>
         <p class="muted">${subtitle}</p>
         <div class="project-meta">
           <span>${escapeHtml(application.applicantName)}</span>
           ${caseMeta.owner ? `<span>负责人：${escapeHtml(caseMeta.owner)}</span>` : ""}
+          <span>${escapeHtml(country.executor)}</span>
           ${caseMeta.status ? `<span>${escapeHtml(caseMeta.status)}</span>` : ""}
           <span>${escapeHtml(application.visaType)}</span>
           <span>更新于 ${formatDate(application.lastUpdated)}</span>
@@ -6139,7 +6587,7 @@ function groupBy(items, key) {
 
 function formatDate(dateString) {
   if (!dateString) return "今天";
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(organizationCountry().locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -6157,7 +6605,8 @@ function statusLabel(value) {
 }
 
 function caseStatus(step) {
-  if (step >= 6) return "已完成";
+  if (step >= 7) return "已完成";
+  if (step >= 6) return "初稿已生成";
   if (step >= 3) return "待人工核查";
   if (step >= 1) return "资料收集中";
   return "未开始";
@@ -6278,6 +6727,38 @@ const publicIntakeState = {
   draftSaving: false
 };
 
+function publicIntakeI18n() {
+  return window.DocFlowIntakeI18n;
+}
+
+function publicText(key, variables = {}) {
+  return publicIntakeI18n().text(publicIntakeState.data, key, variables);
+}
+
+function publicSectionLabel(value) {
+  return publicIntakeI18n().section(publicIntakeState.data, value);
+}
+
+function publicFieldLabel(field) {
+  return publicIntakeI18n().field(publicIntakeState.data, field);
+}
+
+function publicFieldHint(field) {
+  return publicIntakeI18n().fieldHint(publicIntakeState.data, field);
+}
+
+function publicQuestionPrompt(question) {
+  return publicIntakeI18n().question(publicIntakeState.data, question);
+}
+
+function publicItemLabel(value, semanticId = "") {
+  return publicIntakeI18n().label(publicIntakeState.data, value, semanticId);
+}
+
+function publicLocalizedChoice(choice) {
+  return publicIntakeI18n().choice(publicIntakeState.data, choice);
+}
+
 function publicIntakeSections(data) {
   const found = new Set([
     ...(data.fields || []).map((item) => item.section),
@@ -6357,7 +6838,10 @@ function publicChoiceLabel(question, choice) {
       no: "过去五年没有使用过"
     }
   };
-  return labels[question.id]?.[choice.value] || choice.label;
+  return publicLocalizedChoice({
+    ...choice,
+    label: labels[question.id]?.[choice.value] || choice.label
+  });
 }
 
 function publicRecordHasValue(record) {
@@ -6388,12 +6872,16 @@ function publicQuestionValidationIssue(question, questionsById) {
   const values = publicIntakeState.values.questions[question.id] || {};
   const answer = publicQuestionAnswer(question);
   if (["yes_no", "select"].includes(question.answerType) && !answer) {
-    return `请选择“${question.prompt}”的答案。`;
+    return publicText("choiceRequired", { label: publicQuestionPrompt(question) });
   }
   const missingDetail = publicActiveDetailFields(question).find((field) => (
     field.required && !String(values.details?.[field.id] || "").trim()
   ));
-  if (missingDetail) return `请填写“${missingDetail.label}”。`;
+  if (missingDetail) {
+    return publicText("fieldRequired", {
+      label: publicItemLabel(missingDetail.label, missingDetail.id)
+    });
+  }
 
   const requiresRecords = question.answerType === "records" || (
     (question.recordFields || []).length && (question.triggerValues || []).includes(answer)
@@ -6404,15 +6892,20 @@ function publicQuestionValidationIssue(question, questionsById) {
   const minimum = Math.max(0, Number(question.minRecords ?? 1));
   if (completeRecords.length < minimum) {
     if (question.id === "contact.social_media") {
-      return "选择一个使用过的平台并填写用户名即可继续。";
+      return publicText("socialRequired");
     }
     if (question.id === "companions.people") {
-      return "如果没有同行人，请在上一题选择“没有同行人”；如有同行人，请至少完整填写一位。";
+      return publicText("companionsRequired");
     }
-    return `请至少完整填写 ${minimum} 条“${question.recordLabel}”。`;
+    return publicText("recordMinimum", {
+      minimum,
+      label: publicItemLabel(question.recordLabel, question.id)
+    });
   }
   if (question.id !== "contact.social_media" && enteredRecords.some((record) => !publicRecordComplete(question, record))) {
-    return `请补全尚未填写完整的“${question.recordLabel}”，或删除该空白记录。`;
+    return publicText("recordIncomplete", {
+      label: publicItemLabel(question.recordLabel, question.id)
+    });
   }
   return "";
 }
@@ -6426,10 +6919,11 @@ function publicSectionValidationIssue(section) {
   ));
   if (missingField) {
     const hasValue = String(publicIntakeState.values.fields[missingField.id] || "").trim();
+    const label = publicFieldLabel(missingField);
     return {
       message: hasValue && BROWSER_WORKFLOW_SELECT_FIELD_IDS.has(missingField.id)
-        ? `“${missingField.label}”无法匹配 DS-160 的下拉选项，请填写官网使用的英文名称，例如 CHINA。`
-        : `请填写“${missingField.label}”。`,
+        ? publicText("invalidSelect", { label })
+        : publicText("fieldRequired", { label }),
       fieldId: missingField.id
     };
   }
@@ -6460,14 +6954,15 @@ function showPublicIntakeIssue(issue) {
 
 function renderPublicField(field) {
   const value = publicIntakeState.values.fields[field.id] || "";
-  const note = field.hint ? `<small>${escapeHtml(field.hint)}</small>` : "";
+  const hint = publicFieldHint(field);
+  const note = hint ? `<small>${escapeHtml(hint)}</small>` : "";
   const required = field.required ? 'required aria-required="true"' : "";
-  const label = `${escapeHtml(field.label)}${field.required ? " *" : ""}`;
+  const label = `${escapeHtml(publicFieldLabel(field))}${field.required ? " *" : ""}`;
   if (field.inputType === "textarea") {
     return `
       <div class="public-form-row full">
         <label for="public-field-${field.id}">${label}</label>
-        <textarea id="public-field-${field.id}" data-public-field="${field.id}" placeholder="${escapeHtml(field.placeholder || "请填写")}" ${required}>${escapeHtml(value)}</textarea>
+        <textarea id="public-field-${field.id}" data-public-field="${field.id}" placeholder="${escapeHtml(field.placeholder ? publicItemLabel(field.placeholder, field.id) : publicText("explain"))}" ${required}>${escapeHtml(value)}</textarea>
         ${note}
       </div>
     `;
@@ -6477,8 +6972,8 @@ function renderPublicField(field) {
       <div class="public-form-row">
         <label for="public-field-${field.id}">${label}</label>
         <select id="public-field-${field.id}" data-public-field="${field.id}" ${required}>
-          <option value="">请选择</option>
-          ${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
+          <option value="">${escapeHtml(publicText("choose"))}</option>
+          ${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(publicLocalizedChoice(choice))}</option>`).join("")}
         </select>
         ${note}
       </div>
@@ -6488,7 +6983,7 @@ function renderPublicField(field) {
   return `
     <div class="public-form-row">
       <label for="public-field-${field.id}">${label}</label>
-      <input id="public-field-${field.id}" data-public-field="${field.id}" type="${inputType}" ${field.inputType === "date" ? 'inputmode="numeric"' : ""} value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || (field.inputType === "date" ? "YYYY-MM-DD" : "请填写"))}" ${required}>
+      <input id="public-field-${field.id}" data-public-field="${field.id}" type="${inputType}" ${field.inputType === "date" ? 'inputmode="numeric"' : ""} value="${escapeHtml(value)}" placeholder="${escapeHtml(field.inputType === "date" ? "YYYY-MM-DD" : (field.placeholder ? publicItemLabel(field.placeholder, field.id) : publicText("fill")))}" ${required}>
       ${note}
     </div>
   `;
@@ -6500,8 +6995,8 @@ function renderPublicSocialMediaRecords(question, values) {
   return `
     <div class="public-social-media">
       <div class="public-social-media-heading">
-        <strong>选择平台并填写账号标识</strong>
-        <span>只填一个完整账号即可；多个账号也可以添加。不要填写密码。</span>
+        <strong>${escapeHtml(publicText("selectSocial"))}</strong>
+        <span>${escapeHtml(publicText("selectSocialBody"))}</span>
       </div>
       <div class="public-social-platform-grid">
         ${(platformField?.choices || []).map((choice, index) => {
@@ -6509,8 +7004,8 @@ function renderPublicSocialMediaRecords(question, values) {
           return `
             <div class="public-social-platform ${selected ? "selected" : ""}">
               <input id="social-platform-${index}" type="checkbox" data-public-social-platform="${question.id}" value="${escapeHtml(choice.value)}" ${selected ? "checked" : ""}>
-              <label for="social-platform-${index}">${escapeHtml(choice.label)}</label>
-              <input type="text" data-public-social-handle="${question.id}" data-social-platform-value="${escapeHtml(choice.value)}" value="${escapeHtml(records.get(choice.value) || "")}" placeholder="用户名 / Handle" ${selected ? "required" : "disabled"}>
+              <label for="social-platform-${index}">${escapeHtml(publicLocalizedChoice(choice))}</label>
+              <input type="text" data-public-social-handle="${question.id}" data-social-platform-value="${escapeHtml(choice.value)}" value="${escapeHtml(records.get(choice.value) || "")}" placeholder="${escapeHtml(publicText("socialHandle"))}" ${selected ? "required" : "disabled"}>
             </div>
           `;
         }).join("")}
@@ -6522,9 +7017,9 @@ function renderPublicSocialMediaRecords(question, values) {
 function renderPublicSocialMediaOverview(question) {
   const platformField = (question.recordFields || []).find((field) => field.id === "platform");
   return `
-    <div class="public-social-overview" aria-label="DS-160 页面列出的社交媒体平台">
-      <strong>先查看页面列出的平台</strong>
-      <div>${(platformField?.choices || []).map((choice) => `<span>${escapeHtml(choice.label)}</span>`).join("")}</div>
+    <div class="public-social-overview" aria-label="${escapeHtml(publicText("socialOverview"))}">
+      <strong>${escapeHtml(publicText("socialOverview"))}</strong>
+      <div>${(platformField?.choices || []).map((choice) => `<span>${escapeHtml(publicLocalizedChoice(choice))}</span>`).join("")}</div>
     </div>
   `;
 }
@@ -6542,10 +7037,10 @@ function renderPublicRecordField(question, field, record, recordIndex) {
   if ((field.choices || []).length) {
     return `
       <div class="public-form-row">
-        <label for="${escapeHtml(inputId)}">${escapeHtml(field.label)}</label>
+        <label for="${escapeHtml(inputId)}">${escapeHtml(publicItemLabel(field.label, field.id))}</label>
         <select id="${escapeHtml(inputId)}" data-public-record-field="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}" data-public-record-id="${escapeHtml(field.id)}">
-          <option value="">请选择</option>
-          ${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
+          <option value="">${escapeHtml(publicText("choose"))}</option>
+          ${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(publicLocalizedChoice(choice))}</option>`).join("")}
         </select>
       </div>
     `;
@@ -6553,16 +7048,16 @@ function renderPublicRecordField(question, field, record, recordIndex) {
   if (field.type === "textarea") {
     return `
       <div class="public-form-row full">
-        <label for="${escapeHtml(inputId)}">${escapeHtml(field.label)}</label>
-        <textarea id="${escapeHtml(inputId)}" data-public-record-field="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}" data-public-record-id="${escapeHtml(field.id)}" placeholder="请按实际情况填写">${escapeHtml(value)}</textarea>
+        <label for="${escapeHtml(inputId)}">${escapeHtml(publicItemLabel(field.label, field.id))}</label>
+        <textarea id="${escapeHtml(inputId)}" data-public-record-field="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}" data-public-record-id="${escapeHtml(field.id)}" placeholder="${escapeHtml(publicText("explain"))}">${escapeHtml(value)}</textarea>
       </div>
     `;
   }
   const type = field.type === "email" ? "email" : "text";
   return `
     <div class="public-form-row">
-      <label for="${escapeHtml(inputId)}">${escapeHtml(field.label)}</label>
-      <input id="${escapeHtml(inputId)}" type="${type}" ${field.type === "date" ? 'inputmode="numeric"' : ""} data-public-record-field="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}" data-public-record-id="${escapeHtml(field.id)}" value="${escapeHtml(value)}" placeholder="${field.type === "date" ? "YYYY-MM-DD" : "请填写"}">
+      <label for="${escapeHtml(inputId)}">${escapeHtml(publicItemLabel(field.label, field.id))}</label>
+      <input id="${escapeHtml(inputId)}" type="${type}" ${field.type === "date" ? 'inputmode="numeric"' : ""} data-public-record-field="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}" data-public-record-id="${escapeHtml(field.id)}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.type === "date" ? "YYYY-MM-DD" : publicText("fill"))}">
     </div>
   `;
 }
@@ -6571,18 +7066,19 @@ function renderPublicRecordEditor(question, values) {
   seedEducationRecordFromCurrentSchool(question, values);
   const records = ensurePublicRecordRows(question, values);
   const minimum = Math.max(0, Number(question.minRecords ?? 1));
+  const recordLabel = publicItemLabel(question.recordLabel, question.id);
   return `
     <div class="public-record-editor">
       <div class="public-record-editor-heading">
-        <div><strong>${escapeHtml(question.recordLabel)}</strong><span>${minimum > 1 ? `至少填写 ${minimum} 条` : minimum === 0 ? "可选，按实际情况添加" : "可按实际情况添加多条"}</span></div>
-        <button class="icon-text-btn" type="button" data-public-add-record="${escapeHtml(question.id)}">+ 添加一条</button>
+        <div><strong>${escapeHtml(recordLabel)}</strong><span>${escapeHtml(minimum > 1 ? publicText("recordMinimum", { minimum, label: recordLabel }) : minimum === 0 ? publicText("recordOptional") : publicText("recordMany"))}</span></div>
+        <button class="icon-text-btn" type="button" data-public-add-record="${escapeHtml(question.id)}">${escapeHtml(publicText("addRecord"))}</button>
       </div>
       <div class="public-record-list">
         ${records.map((record, recordIndex) => `
           <section class="public-record-item" data-public-record-row="${escapeHtml(question.id)}" data-public-record-index="${recordIndex}">
             <header>
-              <strong>${escapeHtml(question.recordLabel)} ${recordIndex + 1}</strong>
-              <button class="icon-btn" type="button" data-public-remove-record="${escapeHtml(question.id)}" data-public-remove-index="${recordIndex}" aria-label="删除第 ${recordIndex + 1} 条记录" ${records.length <= minimum ? "disabled" : ""}>${iconClose()}</button>
+              <strong>${escapeHtml(recordLabel)} ${recordIndex + 1}</strong>
+              <button class="icon-btn" type="button" data-public-remove-record="${escapeHtml(question.id)}" data-public-remove-index="${recordIndex}" aria-label="${escapeHtml(publicText("removeRecord", { number: recordIndex + 1 }))}" ${records.length <= minimum ? "disabled" : ""}>${iconClose()}</button>
             </header>
             <div class="public-detail-grid">
               ${publicActiveRecordFields(question, record).map((field) => renderPublicRecordField(question, field, record, recordIndex)).join("")}
@@ -6651,13 +7147,16 @@ function renderPublicQuestion(question, questionsById) {
   const recordResponse = question.id === "contact.social_media"
     ? renderPublicSocialMediaRecords(question, values)
     : renderPublicRecordEditor(question, values);
+  const prompt = publicQuestionPrompt(question);
+  const englishPrompt = String(question.englishPrompt || "").trim();
+  const guidance = publicIntakeI18n().guidance(publicIntakeState.data, question);
   let answerControl = "";
   if (question.lockAnswer) {
     const choice = (question.choices || []).find((item) => item.value === answer);
-    answerControl = `<div class="public-prefilled-answer"><span>材料已提供</span><strong>${escapeHtml(choice?.label || answer || "已读取")}</strong></div>`;
+    answerControl = `<div class="public-prefilled-answer"><span>${escapeHtml(publicText("materialProvided"))}</span><strong>${escapeHtml(choice ? publicLocalizedChoice(choice) : answer || publicText("loaded"))}</strong></div>`;
   } else if (question.answerType === "yes_no") {
     answerControl = `
-      <div class="public-choice-grid" role="radiogroup" aria-label="${escapeHtml(question.prompt)}">
+      <div class="public-choice-grid" role="radiogroup" aria-label="${escapeHtml(prompt)}">
         ${(question.choices || []).map((choice) => `
           <label class="public-choice ${answer === choice.value ? "selected" : ""}">
             <input type="radio" name="public-answer-${question.id}" data-public-answer="${question.id}" value="${escapeHtml(choice.value)}" ${answer === choice.value ? "checked" : ""}>
@@ -6669,9 +7168,9 @@ function renderPublicQuestion(question, questionsById) {
   } else if (question.answerType === "select") {
     answerControl = `
       <div class="public-form-row full">
-        <select data-public-answer-select="${question.id}" aria-label="${escapeHtml(question.prompt)}">
-          <option value="">请选择</option>
-          ${(question.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${answer === choice.value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}
+        <select data-public-answer-select="${question.id}" aria-label="${escapeHtml(prompt)}">
+          <option value="">${escapeHtml(publicText("choose"))}</option>
+          ${(question.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${answer === choice.value ? "selected" : ""}>${escapeHtml(publicLocalizedChoice(choice))}</option>`).join("")}
         </select>
       </div>
     `;
@@ -6680,14 +7179,14 @@ function renderPublicQuestion(question, questionsById) {
     <article class="public-question ${question.sensitive ? "sensitive" : ""}" data-public-question="${escapeHtml(question.id)}">
       <header>
         <div>
-          <h3>${escapeHtml(question.prompt)}</h3>
-          ${question.englishPrompt ? `<p lang="en">${escapeHtml(question.englishPrompt)}</p>` : ""}
+          <h3>${escapeHtml(prompt)}</h3>
+          ${englishPrompt && englishPrompt !== prompt ? `<p lang="en">${escapeHtml(englishPrompt)}</p>` : ""}
         </div>
       </header>
-      ${question.guidance ? `<p class="public-question-guidance">${escapeHtml(question.guidance)}</p>` : ""}
-      ${question.id === "companions.has_companions" ? '<p class="public-question-guidance">没有同行人时，直接选择“没有同行人”，后续同行人资料将自动跳过。</p>' : ""}
+      ${guidance ? `<p class="public-question-guidance">${escapeHtml(guidance)}</p>` : ""}
+      ${question.id === "companions.has_companions" ? `<p class="public-question-guidance">${escapeHtml(publicText("companionsRequired"))}</p>` : ""}
       ${question.id === "contact.social_media" ? renderPublicSocialMediaOverview(question) : ""}
-      ${question.clientOptional ? '<p class="public-question-guidance optional-note">当前没有资料可先跳过，顾问会在最终填写前处理。</p>' : ""}
+      ${question.clientOptional ? `<p class="public-question-guidance optional-note">${escapeHtml(publicText("optional"))}</p>` : ""}
       ${answerControl}
       ${activeDetails.length ? `
         <div class="public-detail-grid">
@@ -6695,12 +7194,12 @@ function renderPublicQuestion(question, questionsById) {
             const value = values.details?.[field.id] || "";
             return `
               <div class="public-form-row ${field.type === "textarea" ? "full" : ""}">
-                <label>${escapeHtml(field.label)}</label>
+                <label>${escapeHtml(publicItemLabel(field.label, field.id))}</label>
                 ${(field.choices || []).length
-                  ? `<select data-public-detail="${question.id}" data-public-detail-id="${field.id}"><option value="">请选择</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(choice.label)}</option>`).join("")}</select>`
+                  ? `<select data-public-detail="${question.id}" data-public-detail-id="${field.id}"><option value="">${escapeHtml(publicText("choose"))}</option>${(field.choices || []).map((choice) => `<option value="${escapeHtml(choice.value)}" ${choice.value === value ? "selected" : ""}>${escapeHtml(publicLocalizedChoice(choice))}</option>`).join("")}</select>`
                   : field.type === "textarea"
-                  ? `<textarea data-public-detail="${question.id}" data-public-detail-id="${field.id}" placeholder="${escapeHtml(field.placeholder || "请按实际情况说明")}">${escapeHtml(value)}</textarea>`
-                  : `<input type="${field.type === "email" ? "email" : "text"}" ${field.type === "date" ? 'inputmode="numeric"' : ""} data-public-detail="${question.id}" data-public-detail-id="${field.id}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || (field.type === "date" ? "YYYY-MM-DD" : "请填写"))}">`
+                  ? `<textarea data-public-detail="${question.id}" data-public-detail-id="${field.id}" placeholder="${escapeHtml(field.placeholder ? publicItemLabel(field.placeholder, field.id) : publicText("explain"))}">${escapeHtml(value)}</textarea>`
+                  : `<input type="${field.type === "email" ? "email" : "text"}" ${field.type === "date" ? 'inputmode="numeric"' : ""} data-public-detail="${question.id}" data-public-detail-id="${field.id}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.type === "date" ? "YYYY-MM-DD" : (field.placeholder ? publicItemLabel(field.placeholder, field.id) : publicText("fill")))}">`
                 }
               </div>
             `;
@@ -6826,13 +7325,13 @@ async function savePublicIntakeDraft({ silent = true } = {}) {
       body: JSON.stringify(publicIntakeSubmissionPayload())
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "草稿保存失败");
+    if (!response.ok) throw new Error(data.error || publicText("draftFailed"));
     return true;
   } catch (error) {
     if (!silent) {
       const notice = document.querySelector("#publicIntakeNotice");
       if (notice) {
-        notice.textContent = error.message || "草稿保存失败，请稍后重试。";
+        notice.textContent = error.message || publicText("draftFailed");
         notice.className = "inline-notice visible error";
       }
     }
@@ -6850,15 +7349,16 @@ function schedulePublicIntakeDraftSave() {
 function renderPublicIntakeForm() {
   const app = document.querySelector("#app");
   const data = publicIntakeState.data;
+  publicIntakeI18n().applyDocumentLanguage(data);
   if (data.status === "submitted") {
     app.innerHTML = `
       <main class="public-intake-shell completion">
         <section class="public-completion">
           <div class="public-completion-icon">${iconCheck()}</div>
-          <span class="page-kicker">已提交</span>
-          <h1>资料已发送给顾问</h1>
-          <p>你的回答已经写入客户档案。文案老师或签证顾问会继续核对关键字段；无需再次提交。</p>
-          <small>本页面不会提交真实 DS-160，也不会处理费用或法律声明。</small>
+          <span class="page-kicker">${escapeHtml(publicText("submittedKicker"))}</span>
+          <h1>${escapeHtml(publicText("submittedTitle"))}</h1>
+          <p>${escapeHtml(publicText("submittedBody"))}</p>
+          <small>${escapeHtml(publicText("submittedNote"))}</small>
         </section>
       </main>
     `;
@@ -6878,39 +7378,39 @@ function renderPublicIntakeForm() {
         <span>${escapeHtml(data.visaType)}</span>
       </header>
       <section class="public-intake-intro">
-        <span class="page-kicker">${escapeHtml(data.applicantName)} · 客户资料补充</span>
-        <h1>只需补充材料里没有的信息</h1>
-        <p>顾问已经上传并整理现有材料。这里不会重复询问材料中已识别的内容；请按真实情况回答，专业格式与最终核查由顾问完成。不适用的文字字段可直接填写 D，系统会自动转为 DOES NOT APPLY。</p>
+        <span class="page-kicker">${escapeHtml(data.applicantName)} · ${escapeHtml(publicText("supplement"))}</span>
+        <h1>${escapeHtml(publicText("introTitle"))}</h1>
+        <p>${escapeHtml(publicText("introBody"))}</p>
       </section>
       <div class="public-intake-progress">
-        <div><span>第 ${publicIntakeState.sectionIndex + 1} / ${Math.max(1, sections.length)} 部分</span><strong>${escapeHtml(section)}</strong></div>
+        <div><span>${escapeHtml(publicText("part", { current: publicIntakeState.sectionIndex + 1, total: Math.max(1, sections.length) }))}</span><strong>${escapeHtml(publicSectionLabel(section))}</strong></div>
         <span>${progress}%</span>
         <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
       </div>
       <form id="publicIntakeForm" class="public-intake-form">
         <section class="public-identity-check">
           <div>
-            <span class="page-kicker">档案核对</span>
-            <h2>请先填写本次申请人的姓名</h2>
-            <p>顾问档案中的申请人为“${escapeHtml(data.applicantName)}”。如果不是本人，请停止填写并联系顾问确认链接。</p>
+            <span class="page-kicker">${escapeHtml(publicText("identityKicker"))}</span>
+            <h2>${escapeHtml(publicText("identityTitle"))}</h2>
+            <p>${escapeHtml(publicText("identityBody", { name: data.applicantName }))}</p>
           </div>
           <div class="public-form-row">
-            <label for="publicRespondentName">申请人姓名</label>
-            <input id="publicRespondentName" type="text" value="${escapeHtml(publicIntakeState.respondentName)}" placeholder="请输入申请人姓名" autocomplete="name" required>
+            <label for="publicRespondentName">${escapeHtml(publicText("applicantName"))}</label>
+            <input id="publicRespondentName" type="text" value="${escapeHtml(publicIntakeState.respondentName)}" placeholder="${escapeHtml(publicText("applicantNamePlaceholder"))}" autocomplete="name" required>
           </div>
         </section>
-        ${fields.length ? `<section class="public-field-group"><header><h2>基础资料补充</h2><p>以下内容没有从现有材料中稳定识别到。</p></header><div class="public-detail-grid">${fields.map(renderPublicField).join("")}</div></section>` : ""}
+        ${fields.length ? `<section class="public-field-group"><header><h2>${escapeHtml(publicText("basicDetails"))}</h2><p>${escapeHtml(publicText("basicDetailsBody"))}</p></header><div class="public-detail-grid">${fields.map(renderPublicField).join("")}</div></section>` : ""}
         ${questions.map((question) => renderPublicQuestion(question, questionsById)).join("")}
-        ${!fields.length && !questions.some((question) => publicQuestionVisible(question, questionsById)) ? '<div class="public-empty-section"><strong>这一部分目前无需补充</strong><span>可以直接进入下一部分。</span></div>' : ""}
+        ${!fields.length && !questions.some((question) => publicQuestionVisible(question, questionsById)) ? `<div class="public-empty-section"><strong>${escapeHtml(publicText("emptyTitle"))}</strong><span>${escapeHtml(publicText("emptyBody"))}</span></div>` : ""}
         <div class="inline-notice" id="publicIntakeNotice" role="status"></div>
         <footer class="public-intake-footer">
-          <button class="btn secondary" type="button" id="publicPrevious" ${publicIntakeState.sectionIndex === 0 ? "disabled" : ""}>${iconArrowLeft()} 上一步</button>
+          <button class="btn secondary" type="button" id="publicPrevious" ${publicIntakeState.sectionIndex === 0 ? "disabled" : ""}>${iconArrowLeft()} ${escapeHtml(publicText("previous"))}</button>
           ${publicIntakeState.sectionIndex < sections.length - 1
-            ? '<button class="btn" type="button" id="publicNext">保存并继续</button>'
-            : `<button class="btn" type="submit" id="publicSubmit" ${publicIntakeState.submitting ? "disabled" : ""}>${publicIntakeState.submitting ? "正在提交…" : "提交给顾问"}</button>`}
+            ? `<button class="btn" type="button" id="publicNext">${escapeHtml(publicText("next"))}</button>`
+            : `<button class="btn" type="submit" id="publicSubmit" ${publicIntakeState.submitting ? "disabled" : ""}>${escapeHtml(publicIntakeState.submitting ? publicText("submitting") : publicText("submit"))}</button>`}
         </footer>
       </form>
-      <footer class="public-intake-safety">资料仅用于当前顾问整理 DS-160 初稿，不提供法律建议，不预测签证结果，不连接或提交至美国政府网站。</footer>
+      <footer class="public-intake-safety">${escapeHtml(publicText("safety"))}</footer>
     </main>
   `;
 
@@ -6989,7 +7489,7 @@ async function submitPublicIntake(event) {
   if (!publicIntakeState.respondentName) {
     const notice = document.querySelector("#publicIntakeNotice");
     if (notice) {
-      notice.textContent = "请先填写申请人姓名，以便顾问核对客户档案。";
+      notice.textContent = publicText("identityRequired");
       notice.className = "inline-notice visible error";
     }
     document.querySelector("#publicRespondentName")?.focus();
@@ -7016,11 +7516,13 @@ async function submitPublicIntake(event) {
       body: JSON.stringify(publicIntakeSubmissionPayload())
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "资料提交失败");
+    if (!response.ok) throw new Error(data.error || publicText("submitFailed"));
     publicIntakeState.data = {
       status: "submitted",
       submittedAt: new Date().toISOString(),
-      identityMatch: data.identityMatch
+      identityMatch: data.identityMatch,
+      applicationCountry: publicIntakeState.data.applicationCountry,
+      sourceLocale: publicIntakeState.data.sourceLocale
     };
     renderPublicIntakeForm();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -7029,7 +7531,7 @@ async function submitPublicIntake(event) {
     renderPublicIntakeForm();
     const notice = document.querySelector("#publicIntakeNotice");
     if (notice) {
-      notice.textContent = error.message || "资料提交失败，请稍后重试。";
+      notice.textContent = error.message || publicText("submitFailed");
       notice.className = "inline-notice visible error";
     }
   }
@@ -7040,7 +7542,7 @@ async function renderPublicIntake(token) {
   publicIntakeState.token = token;
   app.innerHTML = `
     <main class="public-intake-shell loading">
-      <div class="public-intake-loading"><span class="loading-dot"></span><strong>正在读取客户补充表</strong></div>
+      <div class="public-intake-loading"><span class="loading-dot"></span><strong>${escapeHtml(window.DocFlowIntakeI18n.text(null, "loading"))}</strong></div>
     </main>
   `;
   try {
@@ -7050,15 +7552,16 @@ async function renderPublicIntake(token) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "补充链接无法打开");
     publicIntakeState.data = data;
+    publicIntakeI18n().applyDocumentLanguage(data);
     initializePublicIntakeValues(data);
     renderPublicIntakeForm();
   } catch (error) {
     app.innerHTML = `
       <main class="public-intake-shell completion">
         <section class="public-completion error">
-          <span class="page-kicker">链接不可用</span>
-          <h1>请联系顾问重新发送</h1>
-          <p>${escapeHtml(error.message || "该补充链接已失效或过期。")}</p>
+          <span class="page-kicker">${escapeHtml(publicText("unavailableKicker"))}</span>
+          <h1>${escapeHtml(publicText("unavailableTitle"))}</h1>
+          <p>${escapeHtml(error.message || publicText("unavailableBody"))}</p>
         </section>
       </main>
     `;
@@ -7073,8 +7576,12 @@ async function boot() {
     return;
   }
   await loadState();
-  if (state.user && !state.membership?.active && !state.trial?.active && !state.membershipBypass) {
-    window.location.replace("/membership?access=required");
+  if (new URLSearchParams(window.location.search).get("view") === "login") {
+    render("login");
+    return;
+  }
+  if (state.user && !hasWorkspaceAccess()) {
+    render("dashboard");
     return;
   }
   const savedNavigation = readSavedNavigation();
