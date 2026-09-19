@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>WestoryVisa Local Screen Agent Mock</title>
+  <link rel="stylesheet" href="screen-agent-target.css">
+</head>
+<body>
+  <header class="local-guard">
+    <div class="guard-identity">
+      <span class="guard-light" aria-hidden="true"></span>
+      <strong>WESTORYVISA LOCAL MOCK</strong>
+      <span>仅限本机 Screen Agent 训练</span>
+    </div>
+    <div class="guard-actions">
+      <span id="jobLabel">LOCAL SESSION</span>
+      <kbd>ESC</kbd>
+      <span>急停</span>
+    </div>
+  </header>
+
+  <main class="mock-shell">
+    <aside class="mock-rail" aria-label="Mock form sections">
+      <div class="mock-brand">WV</div>
+      <nav>
+        <a href="#personal">Personal</a>
+        <a href="#passport">Passport</a>
+        <a href="#travel">Travel</a>
+        <a href="#contact">Contact</a>
+        <a href="#work">Work / Study</a>
+        <a href="#security">Security</a>
+      </nav>
+      <div class="rail-boundary">
+        <strong>0 / 16</strong>
+        <span>本地字段</span>
+      </div>
+    </aside>
+
+    <div class="mock-content">
+      <section class="mock-intro">
+        <div>
+          <span class="eyebrow">Controlled training surface</span>
+          <h1>Mock DS-160 Application Draft</h1>
+          <p>该页面没有政府连接、验证码、付款、法律声明或提交功能。</p>
+        </div>
+        <div class="agent-ready"><span></span> Screen OCR ready</div>
+      </section>
+
+      <section class="mock-section" id="personal">
+        <header><span>01</span><div><h2>Personal Information</h2><p>Applicant identity details</p></div></header>
+        <div class="field-stack">
+          <label class="mock-field" data-field-id="personal.surname"><strong>Surname</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="personal.givenNames"><strong>Given Names</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="personal.dateOfBirth"><strong>Date of Birth</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="personal.placeOfBirth"><strong>Place of Birth</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+        </div>
+      </section>
+
+      <section class="mock-section" id="passport">
+        <header><span>02</span><div><h2>Passport Information</h2><p>Travel document details</p></div></header>
+        <div class="field-stack">
+          <label class="mock-field" data-field-id="passport.number"><strong>Passport Number</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="passport.issueDate"><strong>Passport Issue Date</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="passport.expiration"><strong>Passport Expiration Date</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+        </div>
+      </section>
+
+      <section class="mock-section" id="travel">
+        <header><span>03</span><div><h2>Travel Information</h2><p>Purpose and intended itinerary</p></div></header>
+        <div class="field-stack">
+          <label class="mock-field" data-field-id="travel.visaType"><strong>Purpose of Trip</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="travel.arrivalDate"><strong>Intended Date of Arrival</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="contact.usAddress"><strong>Address Where You Will Stay</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+        </div>
+      </section>
+
+      <section class="mock-section" id="contact">
+        <header><span>04</span><div><h2>U.S. Contact</h2><p>Organization and contact details</p></div></header>
+        <div class="field-stack">
+          <label class="mock-field" data-field-id="contact.organizationName"><strong>U.S. Contact Organization</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="contact.phone"><strong>U.S. Contact Phone</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+        </div>
+      </section>
+
+      <section class="mock-section" id="work">
+        <header><span>05</span><div><h2>Work / Education</h2><p>Current employer, school and program</p></div></header>
+        <div class="field-stack">
+          <label class="mock-field" data-field-id="work.employerName"><strong>Present Employer or School</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="education.schoolName"><strong>School Name</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="education.sevisId"><strong>SEVIS ID</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+          <label class="mock-field" data-field-id="education.programNumber"><strong>Program Number</strong><input type="text" autocomplete="off" spellcheck="false"><i></i></label>
+        </div>
+      </section>
+
+      <section class="mock-section safety-section" id="security">
+        <header><span>06</span><div><h2>Security and Background</h2><p>Applicant and advisor review required</p></div></header>
+        <div class="hard-stop">
+          <span class="stop-mark">!</span>
+          <div>
+            <span class="eyebrow">Mandatory human handoff</span>
+            <h3>Screen Agent stops here</h3>
+            <p>拒签、逾期、犯罪、移民违规及安全背景问题不会由 Agent 推断或自动选择。</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="mock-footer">
+        <strong>NOT SUBMITTED</strong>
+        <span>Training interface only. No real DS-160 transmission is available.</span>
+      </footer>
+    </div>
+  </main>
+  <script src="screen-agent-target.js"></script>
+</body>
+</html>
