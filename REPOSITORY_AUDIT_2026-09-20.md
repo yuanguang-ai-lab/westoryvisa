@@ -8,10 +8,14 @@ Production endpoint: `https://westoryvisa.com`
 
 ## Executive conclusion
 
-Production cannot be mapped to any Git commit. It is a mixed deployment made
-from GitHub `main` plus changes applied outside Git.
+The sampled production frontend does not match any fetched repository commit.
+It shares files with `main` and also contains content absent from fetched Git
+history. The deployment process that produced those differences is not yet
+known; HTTP comparisons alone cannot establish that files were edited on the
+server.
 
-- The public frontend exposes 39 files derived from the repository frontend.
+- 39 public frontend files were collected using known paths; this is not a
+  complete enumeration of the server filesystem.
 - 23 files exactly match the baseline commit.
 - 14 existing files differ from every blob in all fetched Git branches and
   history.
@@ -30,29 +34,30 @@ The public frontend evidence is preserved under
 
 ## Version-control findings
 
-### Critical: production has no commit-based rollback point
+### Critical: production has no verified commit-based rollback point
 
 GitHub has no deployments, environments, Actions workflows, or release tags.
-`main` is not branch-protected. The server files were changed after the last
-GitHub commit: the live homepage reported a 2026-08-31 last-modified timestamp,
-while `main` last changed on 2026-08-26.
+`main` is not branch-protected. The live homepage reported a 2026-08-31
+last-modified timestamp, while `main` last changed on 2026-08-26. These
+timestamps alone do not establish how the changes were deployed.
 
 Impact: a rebuild from GitHub would silently remove production-only frontend
 features and would install an older backend API.
 
-### High: duplicate implementations have diverged
+### High: legacy frontend copies have diverged
 
 The repository contains both legacy root-level source and the intended
 `frontend/` and `backend/` boundaries.
 
 - Of 12 duplicated frontend files checked, 9 differ.
-- All 12 duplicated backend modules checked differ.
+- The 12 similarly named root backend modules are short compatibility aliases
+  importing `backend/`, not separate divergent backend implementations.
 - `server.py` remains as a legacy entry point while production documentation
   says `backend.main` is authoritative.
 
-There is no safe way to know which copy should be edited without first choosing
-one canonical implementation and deleting or mechanically generating the
-compatibility copy.
+Edit backend business logic in `backend/`. Preserve its compatibility aliases
+until callers and launchers have been migrated. Frontend duplicates still need
+an explicit cleanup plan and caller checks before removal.
 
 ### High: the default branch is already red
 
@@ -80,27 +85,30 @@ Future large media should use Git LFS or a release/object store.
 
 ## Production and security follow-up
 
-The private audit identified access-control, account-lifecycle, information-
+The local audit identified access-control, account-lifecycle, information-
 exposure, static-image scope, browser-header, and authentication-hardening work.
-Exact security findings are intentionally not published in this public
-repository. Complete that review on the reconciliation branch before treating
-the service as production-ready.
+The current report omits exact security details. Correction: an earlier commit
+contained those details and remains in Git history; removing paragraphs from
+the current file did not erase that publication. Findings based on the older
+GitHub backend require rechecking against the recovered production backend.
 
 ## Recommended repair order
 
-1. Obtain a read-only export of `/opt/docflow` and the running container/image
-   identities without exporting secrets, customer data, databases, or uploads.
+1. Export reviewed source roots from the actual running containers, selected
+   host build files, and sanitized container/image identities. Do not archive
+   the whole `/opt/docflow` tree or copy secrets, customer data, or databases.
 2. Match or archive the production revision-22 backend source and automation
    service source.
 3. Reconcile the recovered public frontend into the work branch and make the
    complete application pass tests.
 4. Resolve the private security-review findings before the next release.
-5. Make `frontend/` and `backend/` the only canonical implementations; remove
-   or generate legacy root copies.
+5. Make `frontend/` and `backend/` the documented canonical implementations;
+   reconcile duplicate frontend files and retain required backend aliases.
 6. Add CI, release metadata, immutable image tags, and a verified rollback
    procedure.
 7. Protect `main`, then require reviewed pull requests and passing checks.
-8. Replace manual server edits with a single scripted deployment path.
+8. Establish one auditable deployment path; the current process is not yet
+   established by evidence.
 
 ## Evidence limitations
 
