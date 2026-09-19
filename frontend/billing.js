@@ -30,14 +30,14 @@
   }
 
   function money(amount, currency) {
-    return new Intl.NumberFormat(global.WestoryCountry?.locale || "zh-CN", {
+    return new Intl.NumberFormat(global.WestoryLanguage?.locale || "zh-CN", {
       style: "currency", currency: String(currency || "cny").toUpperCase(),
     }).format(Number(amount || 0) / 100);
   }
 
   function dateTime(value) {
     if (!value) return "—";
-    return new Intl.DateTimeFormat(global.WestoryCountry?.locale || "zh-CN", {
+    return new Intl.DateTimeFormat(global.WestoryLanguage?.locale || "zh-CN", {
       dateStyle: "medium", timeStyle: "short",
     }).format(new Date(value));
   }

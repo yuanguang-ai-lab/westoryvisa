@@ -1,0 +1,300 @@
+.country-version-bar {
+  position: relative;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 7px 18px;
+  border-bottom: 1px solid rgba(17, 19, 16, .1);
+  background: #fff;
+  color: #5b5f56;
+  font-size: 12px;
+}
+
+.country-version-bar > strong {
+  color: #171913;
+  margin-right: 4px;
+}
+
+.country-version-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.country-version-option,
+.country-version-button {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid rgba(17, 19, 16, .12);
+  border-radius: 999px;
+  color: #4f534a;
+  background: #f7f7f2;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.country-version-option:hover,
+.country-version-button:hover {
+  border-color: rgba(17, 19, 16, .28);
+  color: #171913;
+}
+
+.country-version-option.active,
+.country-version-button.active {
+  border-color: #171913;
+  color: #171913;
+  background: #caff35;
+}
+
+.country-version-option:disabled {
+  cursor: default;
+  opacity: .45;
+}
+
+.country-version-option.active:disabled { opacity: 1; }
+
+.country-version-button.workspace-country-button {
+  position: static;
+  min-height: 38px;
+  padding-inline: 14px;
+  box-shadow: none;
+}
+
+.auth-country-selector {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.auth-copy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: clamp(32px, 7vw, 86px);
+}
+
+.auth-copy-header .brand-line { margin-bottom: 0; }
+
+/*
+ * Localised copy is materially longer than the Chinese source. Keep the
+ * shared layout, but let Latin-script versions use their own type metrics
+ * and wrap at word boundaries instead of inheriting Chinese display rules.
+ */
+html[lang="es"] body,
+html[lang="pt-BR"] body,
+html[lang="en"] body {
+  font-family: var(--font-en, var(--font, Inter, "SF Pro Display", "Helvetica Neue", Arial, sans-serif));
+}
+
+html[lang="es"] .auth-kicker,
+html[lang="pt-BR"] .auth-kicker,
+html[lang="en"] .auth-kicker {
+  max-width: 520px;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: .055em;
+}
+
+html[lang="es"] .auth-panel h1,
+html[lang="pt-BR"] .auth-panel h1,
+html[lang="en"] .auth-panel h1 {
+  max-width: 560px;
+  font-family: var(--font-en, Inter, "SF Pro Display", "Helvetica Neue", Arial, sans-serif);
+  font-size: clamp(38px, 3.65vw, 50px);
+  font-weight: 720;
+  line-height: 1.02;
+  letter-spacing: -.045em;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
+}
+
+html[lang="es"] .auth-panel h1,
+html[lang="pt-BR"] .auth-panel h1 {
+  font-size: clamp(36px, 3.35vw, 46px);
+}
+
+html[lang="es"] .auth-lede,
+html[lang="pt-BR"] .auth-lede,
+html[lang="en"] .auth-lede {
+  max-width: 540px;
+  font-size: clamp(15px, 1.25vw, 17px);
+  line-height: 1.7;
+}
+
+html[lang="es"] .visual-document > div,
+html[lang="pt-BR"] .visual-document > div,
+html[lang="en"] .visual-document > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+html[lang="es"] .visual-document strong,
+html[lang="pt-BR"] .visual-document strong,
+html[lang="en"] .visual-document strong {
+  font-family: var(--font-en, Inter, "SF Pro Display", "Helvetica Neue", Arial, sans-serif);
+  font-size: clamp(20px, 1.8vw, 27px);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: auto;
+}
+
+html[lang="es"] .visual-document .badge,
+html[lang="pt-BR"] .visual-document .badge,
+html[lang="en"] .visual-document .badge {
+  flex: 0 0 auto;
+  max-width: 148px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.workspace-portal-account {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+
+.country-picker.open { opacity: 1; visibility: visible; }
+.country-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(8, 10, 7, .68);
+  backdrop-filter: blur(10px);
+}
+
+.country-picker-dialog {
+  position: relative;
+  width: min(760px, 100%);
+  padding: clamp(24px, 4vw, 38px);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 28px;
+  background: #f7f7f2;
+  box-shadow: 0 30px 90px rgba(0,0,0,.3);
+}
+
+.country-picker-dialog header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.country-picker-dialog h2 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 40px); }
+.country-picker-dialog p { margin: 0; color: #6d7168; line-height: 1.6; }
+.country-picker-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(17,19,16,.14);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 22px;
+}
+
+.country-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.country-picker-grid .country-version-option {
+  min-height: 76px;
+  justify-content: flex-start;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 15px;
+}
+
+.country-picker-grid .country-version-option span:first-child { font-size: 23px; }
+.country-picker-grid .country-version-option span:last-child { display: grid; text-align: left; }
+.country-picker-grid .country-version-option small { margin-top: 3px; color: #7e817a; font-weight: 500; }
+
+.country-scope-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 2px;
+  padding: 12px 14px;
+  border: 1px solid rgba(17, 19, 16, .11);
+  border-radius: 14px;
+  color: #62665d;
+  background: rgba(255,255,255,.62);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.country-scope-notice strong {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #263600;
+  background: #caff35;
+}
+
+body.country-picker-open { overflow: hidden; }
+
+@media (max-width: 720px) {
+  .country-version-bar { align-items: flex-start; flex-direction: column; padding: 9px 14px; }
+  .country-version-options { justify-content: flex-start; }
+  .country-picker-grid { grid-template-columns: 1fr; }
+  .country-version-button.workspace-country-button {
+    min-height: 34px;
+  }
+  .workspace-portal-account { gap: 5px; }
+  .auth-country-selector {
+    justify-content: flex-end;
+  }
+  .auth-copy-header { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .country-scope-notice { align-items: flex-start; flex-direction: column; }
+
+  html[lang="es"] .auth-panel h1,
+  html[lang="pt-BR"] .auth-panel h1,
+  html[lang="en"] .auth-panel h1 {
+    font-size: clamp(32px, 10vw, 42px);
+    line-height: 1.06;
+  }
+
+  html[lang="es"] .visual-document,
+  html[lang="pt-BR"] .visual-document,
+  html[lang="en"] .visual-document {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  html[lang="es"] .visual-document strong,
+  html[lang="pt-BR"] .visual-document strong,
+  html[lang="en"] .visual-document strong {
+    font-size: clamp(19px, 6vw, 24px);
+  }
+}

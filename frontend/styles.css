@@ -5273,7 +5273,13 @@ td input {
   margin: 0;
 }
 
-.public-intake-header > span {
+.public-intake-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.public-intake-header-actions > span {
   color: var(--muted);
   font-size: 13px;
 }

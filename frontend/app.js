@@ -2,7 +2,7 @@ const STORAGE_KEY = "docflowDs160Cases";
 const SESSION_KEY = "docflowDs160Session";
 const NAVIGATION_KEY = "docflowDs160Navigation";
 const API_BASE = window.location.protocol === "file:" ? "" : DocFlowApi.apiBaseUrl;
-const REQUIRED_API_VERSION = "2026-07-27-inline-intake-v17";
+const REQUIRED_API_VERSION = "2026-07-27-inline-intake-v22";
 const REQUIRED_API_REVISION = 22;
 const US_TRAVEL_DOCS_URL = "https://www.ustraveldocs.com/";
 
@@ -2171,9 +2171,10 @@ async function refreshOcrServiceStatus() {
     const hasUploadedFile = documents.some((item) => item.fileName);
     const hasActiveUpload = documents.some((item) => ["uploading", "queued", "running"].includes(item.scanStatus));
     startButton.disabled = !hasUploadedFile || hasActiveUpload || startButton.dataset.busy === "true";
-    startButton.title = !hasUploadedFile
+    const startButtonTitle = !hasUploadedFile
       ? "请先上传至少一份客户材料"
       : (hasActiveUpload ? "请等待当前材料上传完成" : (state.ocrService.available ? "" : "请先完成文档解析服务配置"));
+    startButton.title = window.WestoryLanguage?.translate(startButtonTitle) || startButtonTitle;
   }
   return state.ocrService;
 }
@@ -3792,7 +3793,7 @@ function renderScreenAgentLogs(logs) {
 function formatAgentLogTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "刚刚";
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(window.WestoryLanguage?.locale || "zh-CN", {
     hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
   }).format(date);
 }
@@ -6296,37 +6297,93 @@ function showReportNotice(message, type) {
 async function exportAuditReportPdf(application) {
   buildAuditReport(application);
   const report = application.auditReport;
+  const copy = auditReportPdfCopy();
   const sections = [
-    { title: "客户档案摘要", items: [
-      `客户姓名：${report.applicantName || "未填写"}`,
-      `签证类型：${report.visaType || "未填写"}`,
-      "档案状态：待人工终审 / 未提交",
+    { title: copy.caseSummary, items: [
+      `${copy.clientName}: ${report.applicantName || copy.notProvided}`,
+      `${copy.visaType}: ${report.visaType || copy.notProvided}`,
+      `${copy.caseStatus}: ${copy.pendingReview}`,
       ...report.caseSummary
     ] },
-    { title: "已保存客户材料", items: report.uploadedDocuments },
-    { title: "DS-160 初稿字段", items: report.draftFields },
-    { title: "文案老师编辑记录", items: report.editedFields },
-    { title: "待补充与重要复核项", items: report.missingFields },
-    { title: "DS-160 条件问答", items: report.branchAnswers },
-    { title: "已处理冲突", items: report.resolvedConflicts },
-    { title: "未完成的背景问题", items: report.unresolvedSensitiveQuestions },
-    { title: "文档处理日志", items: report.agentProcessingLog },
-    { title: "安全与使用边界", items: report.safetyBoundaries }
-  ];
-  const pages = renderPdfReportPages(application, sections);
+    { title: copy.savedDocuments, items: report.uploadedDocuments },
+    { title: copy.draftFields, items: report.draftFields },
+    { title: copy.edits, items: report.editedFields },
+    { title: copy.followUp, items: report.missingFields },
+    { title: copy.conditionalQuestions, items: report.branchAnswers },
+    { title: copy.resolvedConflicts, items: report.resolvedConflicts },
+    { title: copy.backgroundQuestions, items: report.unresolvedSensitiveQuestions },
+    { title: copy.processingLog, items: report.agentProcessingLog },
+    { title: copy.safetyBoundaries, items: report.safetyBoundaries }
+  ].map((section) => ({
+    ...section,
+    items: (section.items || []).map((item) => window.WestoryLanguage?.translate(item) || item)
+  }));
+  const pages = renderPdfReportPages(application, sections, copy);
   const pdfBytes = buildCanvasImagePdf(pages);
   const blob = new Blob([pdfBytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${sanitizeFilename(application.applicantName || "ds160-case")}-DS160-核查报告.pdf`;
+  link.download = `${sanitizeFilename(application.applicantName || "ds160-case")}-${copy.fileSuffix}.pdf`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1200);
 }
 
-function renderPdfReportPages(application, sections) {
+function auditReportPdfCopy() {
+  const language = window.WestoryLanguage?.locale || "zh-CN";
+  if (language.startsWith("zh")) return {
+    caseSummary: "客户档案摘要", clientName: "客户姓名", visaType: "签证类型",
+    caseStatus: "档案状态", notProvided: "未填写", pendingReview: "待人工终审 / 未提交",
+    savedDocuments: "已保存客户材料", draftFields: "DS-160 初稿字段", edits: "文案老师编辑记录",
+    followUp: "待补充与重要复核项", conditionalQuestions: "DS-160 条件问答",
+    resolvedConflicts: "已处理冲突", backgroundQuestions: "未完成的背景问题",
+    processingLog: "文档处理日志", safetyBoundaries: "安全与使用边界",
+    header: "机构客户档案 · 本地核查报告", title: "DS-160 客户核查报告",
+    unnamedClient: "未命名客户", missingVisaType: "签证类型待补充", empty: "暂无记录",
+    footer: "仅供机构内部人工复核 · 未提交至美国政府网站", page: "页",
+    fileSuffix: "DS160-核查报告"
+  };
+  if (language.startsWith("es")) return {
+    caseSummary: "Resumen del expediente", clientName: "Nombre del cliente", visaType: "Tipo de visa",
+    caseStatus: "Estado del expediente", notProvided: "No indicado", pendingReview: "Pendiente de revisión humana / No enviado",
+    savedDocuments: "Documentos guardados", draftFields: "Campos del borrador DS-160", edits: "Registro de ediciones",
+    followUp: "Datos pendientes y revisiones importantes", conditionalQuestions: "Preguntas condicionales del DS-160",
+    resolvedConflicts: "Conflictos resueltos", backgroundQuestions: "Preguntas de antecedentes pendientes",
+    processingLog: "Registro de procesamiento", safetyBoundaries: "Límites de seguridad y uso",
+    header: "Expediente de la agencia · Informe de revisión local", title: "Informe de revisión del DS-160",
+    unnamedClient: "Cliente sin nombre", missingVisaType: "Tipo de visa pendiente", empty: "Sin registros",
+    footer: "Solo para revisión interna de la agencia · No enviado al sitio del Gobierno de EE. UU.", page: "Página",
+    fileSuffix: "informe-revision-DS160"
+  };
+  if (language.startsWith("pt")) return {
+    caseSummary: "Resumo do dossiê", clientName: "Nome do cliente", visaType: "Tipo de visto",
+    caseStatus: "Status do dossiê", notProvided: "Não informado", pendingReview: "Aguardando revisão humana / Não enviado",
+    savedDocuments: "Documentos salvos", draftFields: "Campos do rascunho DS-160", edits: "Registro de edições",
+    followUp: "Dados pendentes e revisões importantes", conditionalQuestions: "Perguntas condicionais do DS-160",
+    resolvedConflicts: "Conflitos resolvidos", backgroundQuestions: "Perguntas de antecedentes pendentes",
+    processingLog: "Registro de processamento", safetyBoundaries: "Limites de segurança e uso",
+    header: "Dossiê da agência · Relatório de revisão local", title: "Relatório de revisão do DS-160",
+    unnamedClient: "Cliente sem nome", missingVisaType: "Tipo de visto pendente", empty: "Sem registros",
+    footer: "Somente para revisão interna da agência · Não enviado ao site do Governo dos EUA", page: "Página",
+    fileSuffix: "relatorio-revisao-DS160"
+  };
+  return {
+    caseSummary: "Case summary", clientName: "Client name", visaType: "Visa type",
+    caseStatus: "Case status", notProvided: "Not provided", pendingReview: "Pending human review / Not submitted",
+    savedDocuments: "Saved client documents", draftFields: "DS-160 draft fields", edits: "Editing history",
+    followUp: "Missing details and priority review items", conditionalQuestions: "DS-160 conditional questions",
+    resolvedConflicts: "Resolved conflicts", backgroundQuestions: "Incomplete background questions",
+    processingLog: "Document processing log", safetyBoundaries: "Safety and use boundaries",
+    header: "Agency case file · Local review report", title: "DS-160 client review report",
+    unnamedClient: "Unnamed client", missingVisaType: "Visa type pending", empty: "No records",
+    footer: "For internal agency review only · Not submitted to a U.S. government website", page: "Page",
+    fileSuffix: "DS160-review-report"
+  };
+}
+
+function renderPdfReportPages(application, sections, copy = auditReportPdfCopy()) {
   const width = 1240;
   const height = 1754;
   const left = 92;
@@ -6349,7 +6406,7 @@ function renderPdfReportPages(application, sections) {
     context.fillText("WestoryVisa", left, 58);
     context.fillStyle = "#777773";
     context.font = '400 18px "Noto Sans SC", "PingFang SC", sans-serif';
-    context.fillText("机构客户档案 · 本地核查报告", right - 292, 61);
+    context.fillText(copy.header, right - 430, 61);
     context.strokeStyle = "#deddd8";
     context.lineWidth = 1;
     context.beginPath();
@@ -6367,12 +6424,12 @@ function renderPdfReportPages(application, sections) {
   newPage();
   page.context.fillStyle = "#111111";
   page.context.font = '500 46px "Noto Serif SC", "Source Han Serif SC", "PingFang SC", serif';
-  page.context.fillText("DS-160 客户核查报告", left, page.y);
+  page.context.fillText(copy.title, left, page.y);
   page.y += 66;
   page.context.fillStyle = "#555551";
   page.context.font = '400 21px "Noto Sans SC", "PingFang SC", sans-serif';
   page.context.fillText(
-    `${application.applicantName || "未命名客户"} · ${application.visaType || "签证类型待补充"} · ${new Intl.DateTimeFormat("zh-CN", { dateStyle: "long", timeStyle: "short" }).format(new Date())}`,
+    `${application.applicantName || copy.unnamedClient} · ${application.visaType || copy.missingVisaType} · ${new Intl.DateTimeFormat(window.WestoryLanguage?.locale || "zh-CN", { dateStyle: "long", timeStyle: "short" }).format(new Date())}`,
     left,
     page.y
   );
@@ -6384,9 +6441,9 @@ function renderPdfReportPages(application, sections) {
     page.context.font = '600 24px "Noto Sans SC", "PingFang SC", sans-serif';
     page.context.fillText(section.title, left, page.y);
     page.y += 45;
-    const items = section.items?.length ? section.items : ["暂无记录"];
+    const items = section.items?.length ? section.items : [copy.empty];
     items.forEach((rawItem) => {
-      const text = String(rawItem || "暂无记录");
+      const text = String(rawItem || copy.empty);
       page.context.font = '400 19px "Noto Sans SC", "PingFang SC", sans-serif';
       const lines = wrapCanvasText(page.context, text, right - left - 42);
       lines.forEach((line, lineIndex) => {
@@ -6414,8 +6471,8 @@ function renderPdfReportPages(application, sections) {
     context.stroke();
     context.fillStyle = "#777773";
     context.font = '400 15px Inter, "PingFang SC", sans-serif';
-    context.fillText("仅供机构内部人工复核 · 未提交至美国政府网站", left, height - 58);
-    context.fillText(`第 ${index + 1} / ${pages.length} 页`, right - 92, height - 58);
+    context.fillText(copy.footer, left, height - 58);
+    context.fillText(`${copy.page} ${index + 1} / ${pages.length}`, right - 120, height - 58);
   });
   return pages.map((item) => item.canvas);
 }
@@ -6587,7 +6644,7 @@ function groupBy(items, key) {
 
 function formatDate(dateString) {
   if (!dateString) return "今天";
-  return new Intl.DateTimeFormat(organizationCountry().locale, {
+  return new Intl.DateTimeFormat(window.WestoryLanguage?.locale || "zh-CN", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -7375,7 +7432,7 @@ function renderPublicIntakeForm() {
     <main class="public-intake-shell">
       <header class="public-intake-header">
         <div class="brand-line"><span class="brand-dot"></span><span lang="en">WestoryVisa</span></div>
-        <span>${escapeHtml(data.visaType)}</span>
+        <div class="public-intake-header-actions"><span>${escapeHtml(data.visaType)}</span><button class="country-version-button workspace-country-button" type="button" data-country-current></button></div>
       </header>
       <section class="public-intake-intro">
         <span class="page-kicker">${escapeHtml(data.applicantName)} · ${escapeHtml(publicText("supplement"))}</span>
