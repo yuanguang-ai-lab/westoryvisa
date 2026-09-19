@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "WestoryVisa DS-160 Autofill",
+  "version": "1.0.5",
+  "description": "读取 WestoryVisa 服务器字段计划，在当前 CEAC DS-160 页面填写、校验并连续进入下一页。",
+  "permissions": [
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://westoryvisa.com/*",
+    "https://ceac.state.gov/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "DocFlow Page Agent",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://westoryvisa.com/*"
+      ],
+      "js": [
+        "docflow-bridge.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://ceac.state.gov/GenNIV/*"
+      ],
+      "js": [
+        "ceac-postback-monitor.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://ceac.state.gov/GenNIV/*"
+      ],
+      "js": [
+        "agent-core.js",
+        "ceac-agent.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtgtla727HevNduG8jSbO0axTS5dRPuJBZ6OK0HlyU/ozwsrHEhWgktL7s9oP13raeJnghGWxV36qY3lrBQUqGGPqz7++myMTPdqFqQ+4DzQvciwlw4URZY+ARp2QQ8mKXhBk7u3T1UMPERHHsCFgnUII70tpJAG8vkMIYkeupX/o24SfY33I7DYY5l6NrGjUHzT2Hm+mroOy3s2n4cua8IqdHLDrFl2kNDKHGDucFRY4V3GCXHQX6qk4gOpdmW8pm0GqNaTDf/JexIlTu5SMr5Qjlj0KFCcE1OvQVY8XR66akCwzftI816wKNSGUsxABeQh0AyFe1fAjldmsWgsvhQIDAQAB",
+  "homepage_url": "https://westoryvisa.com/extension.html"
+}

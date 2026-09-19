@@ -1,1 +1,0 @@
-docling-serve[ui,rapidocr]>=1.21,<2

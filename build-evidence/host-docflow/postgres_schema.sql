@@ -1,0 +1,12 @@
+-- Deprecated safety stub.
+--
+-- The historical version of this file began with DROP TABLE and omitted
+-- several live DocFlow tables.  It must not be used for a concurrent/local
+-- deployment.  PostgreSQL schema initialization is idempotent and versioned
+-- by backend.application.init_db().  Legacy data is copied and verified with:
+--
+--   python scripts/migrate_sqlite_to_postgres.py \
+--     --sqlite data/docflow_ds160.sqlite3 \
+--     --database-url "$DOCFLOW_DATABASE_URL"
+--
+-- This file intentionally executes no SQL.

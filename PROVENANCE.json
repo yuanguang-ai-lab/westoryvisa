@@ -1,0 +1,2616 @@
+{
+  "capture_started_utc": "2026-09-19T20:39:27.179522+00:00",
+  "capture_ended_utc": "2026-09-19T20:39:33.316188+00:00",
+  "source_archive_sha256": "433aa32a36aa938ee04fca4e5b3482884526a63526b5596b09e730af9ba10aeb",
+  "old_main_commit": "2e985e95a1030e497e502c273e954bfd13154d2b",
+  "components": {
+    "frontend": {
+      "image_tag": "westoryvisa-frontend:navigation-20260914",
+      "image_id": "sha256:35867916cd8f9e26a5de8775375b1b74821109ab38f3e37e0c4e373cf3c87526",
+      "instances": 1
+    },
+    "backend": {
+      "image_tag": "westoryvisa-backend:plugin-20260914",
+      "image_id": "sha256:70950f009cdab8f3408791470d2543960ac6cb1f86f6271558a580e98fa6f332",
+      "instances": 1
+    },
+    "scheduler": {
+      "image_tag": "westoryvisa-backend:official-chrome-primary-20260902-min3",
+      "image_id": "sha256:84cade4966e069d555a881d4816492cb43078a65432514411687db440d31fa4c",
+      "instances": 1
+    },
+    "ocr-worker": {
+      "image_tag": "westoryvisa-backend:pg-20260824-queued-hotfix-v1",
+      "image_id": "sha256:0924e423b3ca8bf2b709ff710e0a47fbbf950a742f5764c3fae441045a7dfd2f",
+      "instances": 1
+    },
+    "agent-standard": {
+      "image_tag": "westoryvisa-agent-v2:pg-20260824-queued-hotfix-v1",
+      "image_id": "sha256:ecd873159b42b16769705e9c64a71d0027fa81501e6ca1b14067ee75da0f5636",
+      "instances": 2
+    },
+    "agent-chrome": {
+      "image_tag": "westoryvisa-agent-v2-chrome:phase0",
+      "image_id": "sha256:639b5aac29da427de822ab68c39dc2c56e91e84a5848c30a66fef29139077050",
+      "instances": 1
+    }
+  },
+  "files": [
+    {
+      "path": "build-evidence/host-chrome-pilot/.dockerignore",
+      "sha256": "ad99c5830a5699babf8045ab7edca3705ff404573ba5d598f4202a92a202810e",
+      "bytes": 136,
+      "origin_role": "host-chrome-build-candidate",
+      "origin_path": ".dockerignore"
+    },
+    {
+      "path": "build-evidence/host-chrome-pilot/deploy/agent-v2-chrome.Dockerfile",
+      "sha256": "7038546cb2995395af18b6ebf9a788f6bc047bed902372d562c76a4a3ac0a6e7",
+      "bytes": 2394,
+      "origin_role": "host-chrome-build-candidate",
+      "origin_path": "agent-v2-chrome.Dockerfile"
+    },
+    {
+      "path": "build-evidence/host-chrome-pilot/deploy/agent-v2-entrypoint.sh",
+      "sha256": "0bc9a2e491e22b7a12266361e20a945fdefeff40a65fc998fe7f5430d1048b76",
+      "bytes": 1816,
+      "origin_role": "host-chrome-build-candidate",
+      "origin_path": "agent-v2-entrypoint.sh"
+    },
+    {
+      "path": "build-evidence/host-chrome-pilot/deploy/chrome-pilot-desktop.sh",
+      "sha256": "2a3a9574d6f6d0f8b10357d678ead932f1ddfcde18ba31ef555038ee01ec8b92",
+      "bytes": 1780,
+      "origin_role": "host-chrome-build-candidate",
+      "origin_path": "chrome-pilot-desktop.sh"
+    },
+    {
+      "path": "build-evidence/host-chrome-pilot/deploy/seccomp_profile.json",
+      "sha256": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849",
+      "bytes": 12997,
+      "origin_role": "host-chrome-build-candidate",
+      "origin_path": "seccomp_profile.json"
+    },
+    {
+      "path": "build-evidence/host-docflow/.dockerignore",
+      "sha256": "ad99c5830a5699babf8045ab7edca3705ff404573ba5d598f4202a92a202810e",
+      "bytes": 136,
+      "origin_role": "host-supplement",
+      "origin_path": ".dockerignore"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/agent-v2-entrypoint.sh",
+      "sha256": "0bc9a2e491e22b7a12266361e20a945fdefeff40a65fc998fe7f5430d1048b76",
+      "bytes": 1816,
+      "origin_role": "host-build-config",
+      "origin_path": "agent-v2-entrypoint.sh"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/agent-v2.Dockerfile",
+      "sha256": "b884e2b252854639ea6a69704f40dfa3dbeea4a5f322198343d6ed86423710ea",
+      "bytes": 1475,
+      "origin_role": "host-build-config",
+      "origin_path": "agent-v2.Dockerfile"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/backend.Dockerfile",
+      "sha256": "05921a999687dd58ee85d7467eef6996b0551a768b6be86080c8a753fd4388ce",
+      "bytes": 653,
+      "origin_role": "host-build-config",
+      "origin_path": "backend.Dockerfile"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/frontend.Dockerfile",
+      "sha256": "68f2b33d4be0b8e8a5f66dd08fd6d56154576902c3b36404394006e268f42c59",
+      "bytes": 125,
+      "origin_role": "host-build-config",
+      "origin_path": "frontend.Dockerfile"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/nginx.conf",
+      "sha256": "29bdd1cf692edcf443c62fbcbfbcba6dca1c7a22ed5d8fb76a7ab97eb0a4e2d8",
+      "bytes": 6518,
+      "origin_role": "host-build-config",
+      "origin_path": "nginx.conf"
+    },
+    {
+      "path": "build-evidence/host-docflow/deploy/postgres-backup.sh",
+      "sha256": "d8367217d41088f1ddd0b396b87fb82c402092d6114a545b7fc11009449c2dda",
+      "bytes": 1100,
+      "origin_role": "host-build-config",
+      "origin_path": "postgres-backup.sh"
+    },
+    {
+      "path": "build-evidence/host-docflow/migrations/20260713_client_intake_links.sql",
+      "sha256": "0b94ee48055227393e88d29883a03f47e263f2fec7f7c39361292e3b0fdc0657",
+      "bytes": 542,
+      "origin_role": "host-supplement",
+      "origin_path": "20260713_client_intake_links.sql"
+    },
+    {
+      "path": "build-evidence/host-docflow/migrations/20260713_email_delivery_status.sql",
+      "sha256": "8892e21762956d65a55bcf735b41e486ee72126e9bb4cb405740fc440e6dd939",
+      "bytes": 495,
+      "origin_role": "host-supplement",
+      "origin_path": "20260713_email_delivery_status.sql"
+    },
+    {
+      "path": "build-evidence/host-docflow/postgres_schema.sql",
+      "sha256": "1c1071e4d8d3ef568df16a3e103526bad0a4aee151c2b9b7447e256087c91c37",
+      "bytes": 528,
+      "origin_role": "host-supplement",
+      "origin_path": "postgres_schema.sql"
+    },
+    {
+      "path": "components/agent-chrome/app/scripts/human_first_chrome_smoke.py",
+      "sha256": "f551b2bdb90e1f95c4532ca2fe02ed4d54c560abebd89806191d09aa076ca973",
+      "bytes": 3287,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/scripts/human_first_chrome_smoke.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/README.md",
+      "sha256": "d4e814dcebdebb3210a56c76677677e2cd811695084359990417e3274c1c2ec0",
+      "bytes": 4960,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/README.md"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/local_supervisor.py",
+      "sha256": "eb16cad73094f7c684126cff2f2a65e99f3038a6ddfbcbc37f63306433bea5de",
+      "bytes": 11576,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/local_supervisor.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/pyproject.toml",
+      "sha256": "db915d0bc7599991f5fc16b1503c8ab40913941b7d810ad8f6dd784f11c9a254",
+      "bytes": 392,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/pyproject.toml"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/run_docflow.py",
+      "sha256": "5a9e799558fa1fbfd59e895607569b7df108007da8b70594b4690bd85a56cc79",
+      "bytes": 6339,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/run_docflow.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_fast_browser.py",
+      "sha256": "537b6a2147639691d5e8273c2b348579538da84fa90e8522f41417fe8753447d",
+      "bytes": 77517,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_browser.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_fast_launcher.py",
+      "sha256": "e21e163f80a0ab0131eeee0dca9a25a5e6a3f65804ed6676aaf124ba6c6e6364",
+      "bytes": 868,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_launcher.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_fast_workflow.py",
+      "sha256": "d594c186f0f97e10f009d17eaf5555dddfc3a1a6599e202b0f0a310f7869ce67",
+      "bytes": 50750,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_workflow.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_field_ids.py",
+      "sha256": "12e4ec405aa863b697cfc7087cdbcf830554aad8f5dd6e0e28ec1da2094a9bf8",
+      "bytes": 1190,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_field_ids.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_human_first_chrome.py",
+      "sha256": "56c43fa3cdf07273f954d5324b03d2d46dded29f54af85901dcea8fcfabc7b88",
+      "bytes": 13960,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_human_first_chrome.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_linux_native_input.py",
+      "sha256": "9f44a7a32e61204082577ec54272838dd8c3d46e2927cfb3f380aa18272c0544",
+      "bytes": 3337,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_linux_native_input.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_country_executors.py",
+      "sha256": "934b7dcaf6f0bbe89a610b5c536a811a8777bf72f87e4229b32de35ea76d9560",
+      "bytes": 1910,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_country_executors.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_country_guard.py",
+      "sha256": "9258e49a0ccf4c02ec736e3a9aa64914b51525ffaa208963a48b4bf6933d1653",
+      "bytes": 1726,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_country_guard.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_international_acceptance.py",
+      "sha256": "82e37f892fb17256a5d7bf3d1e7bea881971a4eb6b35eebd4607eca7d2338f94",
+      "bytes": 10516,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_international_acceptance.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_playwright_acceptance.py",
+      "sha256": "dd208fddf5bf0f3cb3b009756279e971c2631f1819c86a26a5e608d98308382c",
+      "bytes": 157081,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_playwright_acceptance.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_preflight.py",
+      "sha256": "1a84a04ad8dfca48c4b3286c826bf7671f9baab584ca6f0f1f4e9d24196c2abc",
+      "bytes": 6354,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_preflight.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_safety.py",
+      "sha256": "05996156e3d7be2347e39ca1d759b5568dc72458276f40e487297693c6b4fb22",
+      "bytes": 1409,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_safety.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/tests/test_v2_settings.py",
+      "sha256": "d4f08bdd8fbfed9744dbd07c5150acd4943edb0851efcb5f8198e00c62aa707b",
+      "bytes": 802,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_settings.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/__init__.py",
+      "sha256": "77d1dc5b6a20c080b93f379231a45d87ac44d0a53b6ce0314d07d9ffa6e80abb",
+      "bytes": 434,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/__init__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/__main__.py",
+      "sha256": "651e91dfc082311061a23263057cb8d6cdf6ca2e428ea7f1ce7031461755a6c1",
+      "bytes": 1616,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/__main__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/browser.py",
+      "sha256": "b53c7eda6eae3da7311dc2059f6587feca71b773d63364cdc6a8a935195fc4a1",
+      "bytes": 361602,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/browser.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/chrome_process.py",
+      "sha256": "d5d19b39f32b4a5afa457e87bf52da442f820a4acdcd9777f59e2ad8fe3b2f06",
+      "bytes": 9334,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/chrome_process.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/__init__.py",
+      "sha256": "61e186d212263bab66b7379564c05cc53de637b62bb0b0a253ff536aa45c44a4",
+      "bytes": 203,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/__init__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/base.py",
+      "sha256": "e6b479222f50b624a957a7e96decb61082fde63477c481ec30ecd9b17d13b944",
+      "bytes": 734,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/base.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/br.py",
+      "sha256": "017ef92d228a8d73bc664c24087b05227abf1ee26e6316e0991ece81d56aec14",
+      "bytes": 370,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/br.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/india.py",
+      "sha256": "084f19fe01ea438c9f9215dfa40e57b8799aaf01f5ce662eaf759c4aa5bfcb23",
+      "bytes": 374,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/india.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/mx.py",
+      "sha256": "87c16e6c767d8aad9be1ffca966f43eaba926448280c8a8be700bf5814ea81ef",
+      "bytes": 372,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/mx.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_executors/registry.py",
+      "sha256": "edf58afb401c0f7df6bff38d2fd38527cc70d3894246535d8f5e8fec881d3c9b",
+      "bytes": 1326,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_executors/registry.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/country_guard.py",
+      "sha256": "5b89c886dcbd755865b329a8cf4b8c64f0aca5944f1bb7cbf4ebe02c52d34add",
+      "bytes": 2058,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/country_guard.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/factory.py",
+      "sha256": "54c3dd30f59ec33115e58eee3df9a38a253fac79094f870c1914db50199b21f9",
+      "bytes": 6728,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/factory.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/field_ids.py",
+      "sha256": "a034721c00d448109b6ef864b02684f9d839d0847c6831633e1c73840bb0eafb",
+      "bytes": 935,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/field_ids.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/gemini.py",
+      "sha256": "532e5e001c321190bb8212d7be09ef5ecdf0baeb368655ac80432a2ecfdf0877",
+      "bytes": 797,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/gemini.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/native_input.py",
+      "sha256": "3553b39ebdca33e47a63d9a48ae790c8edc2430e97ad1113a88db7c05063c3cb",
+      "bytes": 34154,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/native_input.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/preflight.py",
+      "sha256": "057e0ef742791f3664391fdbc93a95b05117e0f293168894ea6ad5c655d8f79a",
+      "bytes": 4223,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/preflight.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/safety.py",
+      "sha256": "3ebeb35e7ec2a82e0a0b65704c3a5a813ae90ca24c67bbfa1894e37d39cb7e9e",
+      "bytes": 727,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/safety.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/server.py",
+      "sha256": "c80bf423d17fdd9b41fda6776e468c52bdfbb6b3baf915c754a5a847888e0239",
+      "bytes": 12258,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/server.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/settings.py",
+      "sha256": "b1c7d58350515db2c91380ea2ed1180faad98f799a707fad85a5201d4bd06d9b",
+      "bytes": 560,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/settings.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent-v2/visa_agent_v2/workflow.py",
+      "sha256": "30e575d004f26f922ca941be102d2c449812088c3632ae15fd6df0cc2751f938",
+      "bytes": 39554,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/workflow.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/.gitignore",
+      "sha256": "89affb392418e571b1af7b8f7085bee446c8a22422153e07f7b94a5643f17d89",
+      "bytes": 173,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/.gitignore"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/INTEGRATION.md",
+      "sha256": "01cc04a1157019e12fd6cb6979954fa8cb79f4e48b9ab3700f79c8ee48b36ea1",
+      "bytes": 3781,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/INTEGRATION.md"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/README.md",
+      "sha256": "1ce03f82475dafa1518f101d69ea27ce4a68d8cf115ae908eb65a94680db7356",
+      "bytes": 7485,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/README.md"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/SECURITY.md",
+      "sha256": "123d686351e294dd1ce9d7fb33a315f5e740299e9a9b60183e5ed986e280747c",
+      "bytes": 2122,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/SECURITY.md"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/examples/sample_passport_mrz.txt",
+      "sha256": "207e5abcc4befcb19dc1775f5e220e424f718e1f5f7ec53562d2a3c92efa7083",
+      "bytes": 90,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/examples/sample_passport_mrz.txt"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/pyproject.toml",
+      "sha256": "2b51b8cd449dd2e72b594569531c929941a453b2514bf73c9e864bf8240d9a3a",
+      "bytes": 605,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/pyproject.toml"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/scripts/gemini_practice_e2e.py",
+      "sha256": "0df2190fbac336a1604fa459233d2f5d3b34c1c9c686b81172ba6013ed744add",
+      "bytes": 7536,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/scripts/gemini_practice_e2e.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/__init__.py",
+      "sha256": "57c2ffff02431ac1a2285ba7679dfb1d3af56390ca18221955ad494b5cce46a1",
+      "bytes": 30,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/__init__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_auto_resume_provider_outage_e2e.py",
+      "sha256": "7b1d37e40569c9202829e67aa6493ed8439122d9a3b3942886bcbc1cc1ce9b5d",
+      "bytes": 19031,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_auto_resume_provider_outage_e2e.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_builtin_adapters.py",
+      "sha256": "c24f7f22ded39e99b954798d9016df389f1b1de8361cd597c8b52392809e4edf",
+      "bytes": 158767,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_builtin_adapters.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_ceac_page_classification.py",
+      "sha256": "2247acc643a2c46b3688ef2be9b8d1b6309a1d7c442bf3b34629d52edcea9028",
+      "bytes": 8588,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_ceac_page_classification.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_continuous_form_stress.py",
+      "sha256": "1c17bfd7f706a0ac121a498db56713f90025f28eaf83d3ee1d7c585fb08a85ed",
+      "bytes": 17113,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_continuous_form_stress.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_full_ds160_continuous_run.py",
+      "sha256": "a9ec5201946820f20dbe40aa9130546f64151a91f4805b441f8428457bcf9081",
+      "bytes": 20597,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_full_ds160_continuous_run.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_full_live_gemini_playwright_acceptance.py",
+      "sha256": "7e78a10f37ad5923fb7b8ddce2d694c866bd70d8398d0f85a54624fc398f8b92",
+      "bytes": 57253,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_full_live_gemini_playwright_acceptance.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_integration_health.py",
+      "sha256": "1bdf138443198eac5bb5cb44f063d5ac3b2ef042e30b3e5cc906a92a609173fd",
+      "bytes": 942,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_integration_health.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_lifecycle_provenance_invariants.py",
+      "sha256": "73dc80d54015277d5de33385ad9a573afe239aee4db98c8c22fbbc44acdf3d65",
+      "bytes": 35914,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_lifecycle_provenance_invariants.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_live_gemini_synthetic_ceac.py",
+      "sha256": "ffad568a962c0f235346e1019648d2c5175119fd04b722ac9985a5235a35aff3",
+      "bytes": 12221,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_live_gemini_synthetic_ceac.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_mock_ds160_api_playwright_e2e.py",
+      "sha256": "898dc33636db402ec696eafe03eb0a65d0494f89834cac6439d242dfe65acbe5",
+      "bytes": 46863,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_mock_ds160_api_playwright_e2e.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_orchestrator_and_storage.py",
+      "sha256": "5ff365be943ca7a30a7b1d1deb458927e4776ab83a3cf5b41d0cd954b644ff2e",
+      "bytes": 5971,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_orchestrator_and_storage.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_physical_route_and_profile_gc.py",
+      "sha256": "26f22f22744e38231cf434372b94dabb1d56750090ca89660acc9b0df51c4c2d",
+      "bytes": 18593,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_physical_route_and_profile_gc.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_playwright_service_continuous_e2e.py",
+      "sha256": "82e6d48248ffab583e6c12dbefff2e68e9494be1a4705314060519708eea9903",
+      "bytes": 30525,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_playwright_service_continuous_e2e.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_progress_recovery.py",
+      "sha256": "949260a8c23e8a82ccb612b22cd294fe00ec616dd67c6c85d3090aff267d6f33",
+      "bytes": 47056,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_progress_recovery.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_recognition.py",
+      "sha256": "e6221f6d514e154fbc7160758247b58bee460d63eab328f480f722e6591a65c3",
+      "bytes": 5216,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_recognition.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_root_invariants.py",
+      "sha256": "c39001e63a1b14ad0b5bbe9fc0f255cad4ec0d39028210b4a3d623ecfb990289",
+      "bytes": 41457,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_root_invariants.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_service_and_isolation.py",
+      "sha256": "9b29994f945c337fe0a7834d9d7121dd9ec7fa54e94c6a13a321d72e8ea80924",
+      "bytes": 153988,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_service_and_isolation.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_service_auth.py",
+      "sha256": "84922d3efa37e2d734031103357bc0d2e7c2f8f27d123311af0faac8495f7e37",
+      "bytes": 1553,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_service_auth.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_validation_and_providers.py",
+      "sha256": "bf0334a3d65b81e5136d28b8ea3b08929d094a803aefd65ac728a645d483bb17",
+      "bytes": 5719,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_validation_and_providers.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_visual_page_batch_participation.py",
+      "sha256": "25c859ef0ea5293d2778f606de14701e8d8d1bb566a389c9397668c89a9cf6b8",
+      "bytes": 6258,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_visual_page_batch_participation.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/tests/test_workflow.py",
+      "sha256": "fd78bd0dd4f53957e9b44868acc8c2460d32cc01d429c4e3d182abe6458d333b",
+      "bytes": 122963,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/tests/test_workflow.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/__init__.py",
+      "sha256": "0968604f76ec2557d13a2064ec5f11a4eaae31fe5227a58019da27e65e527c12",
+      "bytes": 792,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/__init__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/__main__.py",
+      "sha256": "3d2438ae92f4746e9ffaa1f837b1fe803f6281091d1f31f8c95643716f257d9a",
+      "bytes": 80,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/__main__.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/adapters.py",
+      "sha256": "d6cfb160699a9dce3b933dfcc6caebf42c4ac92d64a1bb41859fe218f6236e5d",
+      "bytes": 394008,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/adapters.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/cli.py",
+      "sha256": "d6fbe6f064a08b8a3672a58e378fefd7af937290bdb9785a1b106e9a6d3c9337",
+      "bytes": 4857,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/cli.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/config.py",
+      "sha256": "1070296788bebdad8e3161b44a5d045b461c8f042da896b9de2b91cabaebd514",
+      "bytes": 9025,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/config.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/factory.py",
+      "sha256": "bc7df1be3aae441b4bd3ac5f77aa6bf100b0b94379dcd1a99cae3bb888347658",
+      "bytes": 5615,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/factory.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/mocks.py",
+      "sha256": "d9daec30bae7ea0e9b1972966e9fc83348c9396365198ee9186b867b2e4e552d",
+      "bytes": 1902,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/mocks.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/models.py",
+      "sha256": "d0606ab70ab0d43f45e9546eff0c03f72464944a4cc192a6b6431b7e358d2453",
+      "bytes": 34105,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/models.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/mrz.py",
+      "sha256": "a586df1dee4187896269679783e3f63ec187dd02682c85d079642681e2bdf9f0",
+      "bytes": 2814,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/mrz.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/orchestrator.py",
+      "sha256": "4ab94e3b1613bed5ad57dcf4cea5c9a6b68000100b2500f3733b170a5e6a89f8",
+      "bytes": 9157,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/orchestrator.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/page_plans.py",
+      "sha256": "b699d97f4d85d8240651572605b205674c793593381aeaeea256461a7af26c71",
+      "bytes": 33731,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/page_plans.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/profile_storage.py",
+      "sha256": "e9b919c022bd543b546e47848f552551898ca69749a444f9666dbdd8ed8507e2",
+      "bytes": 3056,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/profile_storage.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/providers.py",
+      "sha256": "933a730b9487f60c9d836e8cda86bf2097114f85010809447ad8ca21a3c489c4",
+      "bytes": 7529,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/providers.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/recognition.py",
+      "sha256": "5e409a1068e1bceb9af896affc8cbd6bddd7d889c18ca7bf972b4921acec421d",
+      "bytes": 14525,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/recognition.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/recovery.py",
+      "sha256": "6ce25e9bfa18d83cfcea5103e41ef3ca0dd0c10d27d3f19d5e30865bac0d1358",
+      "bytes": 5939,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/recovery.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/safety.py",
+      "sha256": "36257e4dc603143c37b15537249937261dadf99cc0feaa4e47282d7d0c2d936f",
+      "bytes": 9064,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/safety.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/service.py",
+      "sha256": "26619039f3228cf03f45d7946b481538a30abe38439dc3924811251365e2af69",
+      "bytes": 217830,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/service.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/storage.py",
+      "sha256": "d5284aea6983c972172e63e740f281b8f1017a5241200716790e1511817d25e8",
+      "bytes": 5810,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/storage.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/validation.py",
+      "sha256": "81bd92184ad5ae49c324a54ba44a78b3ade0a8ec90dee6fa446f807bddaa7323",
+      "bytes": 8105,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/validation.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/verification.py",
+      "sha256": "54fa6f0df52a7956918c0491852c3cb7e3d116d09d82e28f5cc64916f875ceb4",
+      "bytes": 8629,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/verification.py"
+    },
+    {
+      "path": "components/agent-chrome/app/standalone-agent/visa_agent/workflow.py",
+      "sha256": "2d3500744f6a559464c403eaf02a879bffd6157ec4f619afb0eb82a62410ad73",
+      "bytes": 184805,
+      "origin_role": "agent-chrome",
+      "origin_path": "/app/standalone-agent/visa_agent/workflow.py"
+    },
+    {
+      "path": "components/agent-chrome/bin/docflow-agent",
+      "sha256": "4807ea36469e1ca18ab67e8cad6191587786e61e553888956dd65d67495be744",
+      "bytes": 222,
+      "origin_role": "agent-chrome",
+      "origin_path": "/usr/local/bin/docflow-agent"
+    },
+    {
+      "path": "components/agent-chrome/bin/docflow-agent-v2",
+      "sha256": "e6d6e7480a21d83ef69f24ba3003fd5d62e4df9eec1d30b0a469388c07573564",
+      "bytes": 230,
+      "origin_role": "agent-chrome",
+      "origin_path": "/usr/local/bin/docflow-agent-v2"
+    },
+    {
+      "path": "components/agent-chrome/bin/docflow-agent-v2-entrypoint",
+      "sha256": "0bc9a2e491e22b7a12266361e20a945fdefeff40a65fc998fe7f5430d1048b76",
+      "bytes": 1816,
+      "origin_role": "agent-chrome",
+      "origin_path": "/usr/local/bin/docflow-agent-v2-entrypoint"
+    },
+    {
+      "path": "components/agent-chrome/bin/docflow-chrome-pilot-desktop",
+      "sha256": "2a3a9574d6f6d0f8b10357d678ead932f1ddfcde18ba31ef555038ee01ec8b92",
+      "bytes": 1780,
+      "origin_role": "agent-chrome",
+      "origin_path": "/usr/local/bin/docflow-chrome-pilot-desktop"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/README.md",
+      "sha256": "d4e814dcebdebb3210a56c76677677e2cd811695084359990417e3274c1c2ec0",
+      "bytes": 4960,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/README.md"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/local_supervisor.py",
+      "sha256": "eb16cad73094f7c684126cff2f2a65e99f3038a6ddfbcbc37f63306433bea5de",
+      "bytes": 11576,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/local_supervisor.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/pyproject.toml",
+      "sha256": "db915d0bc7599991f5fc16b1503c8ab40913941b7d810ad8f6dd784f11c9a254",
+      "bytes": 392,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/pyproject.toml"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/run_docflow.py",
+      "sha256": "174e313a4e2eb5c93a8fd956c3591456d5caed9890d5a532b668c22bd46d7a14",
+      "bytes": 5661,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/run_docflow.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_fast_browser.py",
+      "sha256": "537b6a2147639691d5e8273c2b348579538da84fa90e8522f41417fe8753447d",
+      "bytes": 77517,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_browser.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_fast_launcher.py",
+      "sha256": "e21e163f80a0ab0131eeee0dca9a25a5e6a3f65804ed6676aaf124ba6c6e6364",
+      "bytes": 868,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_launcher.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_fast_workflow.py",
+      "sha256": "d594c186f0f97e10f009d17eaf5555dddfc3a1a6599e202b0f0a310f7869ce67",
+      "bytes": 50750,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_fast_workflow.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_field_ids.py",
+      "sha256": "12e4ec405aa863b697cfc7087cdbcf830554aad8f5dd6e0e28ec1da2094a9bf8",
+      "bytes": 1190,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_field_ids.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_linux_native_input.py",
+      "sha256": "9f44a7a32e61204082577ec54272838dd8c3d46e2927cfb3f380aa18272c0544",
+      "bytes": 3337,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_linux_native_input.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_v2_playwright_acceptance.py",
+      "sha256": "dd208fddf5bf0f3cb3b009756279e971c2631f1819c86a26a5e608d98308382c",
+      "bytes": 157081,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_playwright_acceptance.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_v2_preflight.py",
+      "sha256": "1a84a04ad8dfca48c4b3286c826bf7671f9baab584ca6f0f1f4e9d24196c2abc",
+      "bytes": 6354,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_preflight.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_v2_safety.py",
+      "sha256": "05996156e3d7be2347e39ca1d759b5568dc72458276f40e487297693c6b4fb22",
+      "bytes": 1409,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_safety.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/tests/test_v2_settings.py",
+      "sha256": "d4f08bdd8fbfed9744dbd07c5150acd4943edb0851efcb5f8198e00c62aa707b",
+      "bytes": 802,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/tests/test_v2_settings.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/__init__.py",
+      "sha256": "77d1dc5b6a20c080b93f379231a45d87ac44d0a53b6ce0314d07d9ffa6e80abb",
+      "bytes": 434,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/__init__.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/__main__.py",
+      "sha256": "651e91dfc082311061a23263057cb8d6cdf6ca2e428ea7f1ce7031461755a6c1",
+      "bytes": 1616,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/__main__.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/browser.py",
+      "sha256": "0417f194a60f963029a416adc59fe221b1821186dc0083f3d946efe4e39c12b9",
+      "bytes": 354267,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/browser.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/factory.py",
+      "sha256": "70c7067344cb421bcbb1ed3faf100ec3463a2542d29f823db8ecf3839d8d90e8",
+      "bytes": 5857,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/factory.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/field_ids.py",
+      "sha256": "a034721c00d448109b6ef864b02684f9d839d0847c6831633e1c73840bb0eafb",
+      "bytes": 935,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/field_ids.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/gemini.py",
+      "sha256": "532e5e001c321190bb8212d7be09ef5ecdf0baeb368655ac80432a2ecfdf0877",
+      "bytes": 797,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/gemini.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/native_input.py",
+      "sha256": "3553b39ebdca33e47a63d9a48ae790c8edc2430e97ad1113a88db7c05063c3cb",
+      "bytes": 34154,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/native_input.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/preflight.py",
+      "sha256": "a9b34b5bb6f072991591122cbb503aa85a73dec2ef00a7fe0157632e025b9212",
+      "bytes": 4139,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/preflight.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/safety.py",
+      "sha256": "3ebeb35e7ec2a82e0a0b65704c3a5a813ae90ca24c67bbfa1894e37d39cb7e9e",
+      "bytes": 727,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/safety.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/server.py",
+      "sha256": "b2ce013b6a0d5fc458a12bab3d0b8c24d1bf4bba1f644f2c35fc2495a68c270d",
+      "bytes": 10629,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/server.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/settings.py",
+      "sha256": "b1c7d58350515db2c91380ea2ed1180faad98f799a707fad85a5201d4bd06d9b",
+      "bytes": 560,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/settings.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent-v2/visa_agent_v2/workflow.py",
+      "sha256": "30e575d004f26f922ca941be102d2c449812088c3632ae15fd6df0cc2751f938",
+      "bytes": 39554,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent-v2/visa_agent_v2/workflow.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/.gitignore",
+      "sha256": "89affb392418e571b1af7b8f7085bee446c8a22422153e07f7b94a5643f17d89",
+      "bytes": 173,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/.gitignore"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/INTEGRATION.md",
+      "sha256": "01cc04a1157019e12fd6cb6979954fa8cb79f4e48b9ab3700f79c8ee48b36ea1",
+      "bytes": 3781,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/INTEGRATION.md"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/README.md",
+      "sha256": "1ce03f82475dafa1518f101d69ea27ce4a68d8cf115ae908eb65a94680db7356",
+      "bytes": 7485,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/README.md"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/SECURITY.md",
+      "sha256": "123d686351e294dd1ce9d7fb33a315f5e740299e9a9b60183e5ed986e280747c",
+      "bytes": 2122,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/SECURITY.md"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/examples/sample_passport_mrz.txt",
+      "sha256": "207e5abcc4befcb19dc1775f5e220e424f718e1f5f7ec53562d2a3c92efa7083",
+      "bytes": 90,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/examples/sample_passport_mrz.txt"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/pyproject.toml",
+      "sha256": "2b51b8cd449dd2e72b594569531c929941a453b2514bf73c9e864bf8240d9a3a",
+      "bytes": 605,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/pyproject.toml"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/scripts/gemini_practice_e2e.py",
+      "sha256": "0df2190fbac336a1604fa459233d2f5d3b34c1c9c686b81172ba6013ed744add",
+      "bytes": 7536,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/scripts/gemini_practice_e2e.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/__init__.py",
+      "sha256": "57c2ffff02431ac1a2285ba7679dfb1d3af56390ca18221955ad494b5cce46a1",
+      "bytes": 30,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/__init__.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_auto_resume_provider_outage_e2e.py",
+      "sha256": "7b1d37e40569c9202829e67aa6493ed8439122d9a3b3942886bcbc1cc1ce9b5d",
+      "bytes": 19031,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_auto_resume_provider_outage_e2e.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_builtin_adapters.py",
+      "sha256": "c24f7f22ded39e99b954798d9016df389f1b1de8361cd597c8b52392809e4edf",
+      "bytes": 158767,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_builtin_adapters.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_ceac_page_classification.py",
+      "sha256": "2247acc643a2c46b3688ef2be9b8d1b6309a1d7c442bf3b34629d52edcea9028",
+      "bytes": 8588,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_ceac_page_classification.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_continuous_form_stress.py",
+      "sha256": "1c17bfd7f706a0ac121a498db56713f90025f28eaf83d3ee1d7c585fb08a85ed",
+      "bytes": 17113,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_continuous_form_stress.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_full_ds160_continuous_run.py",
+      "sha256": "a9ec5201946820f20dbe40aa9130546f64151a91f4805b441f8428457bcf9081",
+      "bytes": 20597,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_full_ds160_continuous_run.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_full_live_gemini_playwright_acceptance.py",
+      "sha256": "7e78a10f37ad5923fb7b8ddce2d694c866bd70d8398d0f85a54624fc398f8b92",
+      "bytes": 57253,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_full_live_gemini_playwright_acceptance.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_integration_health.py",
+      "sha256": "1bdf138443198eac5bb5cb44f063d5ac3b2ef042e30b3e5cc906a92a609173fd",
+      "bytes": 942,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_integration_health.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_lifecycle_provenance_invariants.py",
+      "sha256": "73dc80d54015277d5de33385ad9a573afe239aee4db98c8c22fbbc44acdf3d65",
+      "bytes": 35914,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_lifecycle_provenance_invariants.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_live_gemini_synthetic_ceac.py",
+      "sha256": "ffad568a962c0f235346e1019648d2c5175119fd04b722ac9985a5235a35aff3",
+      "bytes": 12221,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_live_gemini_synthetic_ceac.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_mock_ds160_api_playwright_e2e.py",
+      "sha256": "898dc33636db402ec696eafe03eb0a65d0494f89834cac6439d242dfe65acbe5",
+      "bytes": 46863,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_mock_ds160_api_playwright_e2e.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_orchestrator_and_storage.py",
+      "sha256": "5ff365be943ca7a30a7b1d1deb458927e4776ab83a3cf5b41d0cd954b644ff2e",
+      "bytes": 5971,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_orchestrator_and_storage.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_physical_route_and_profile_gc.py",
+      "sha256": "26f22f22744e38231cf434372b94dabb1d56750090ca89660acc9b0df51c4c2d",
+      "bytes": 18593,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_physical_route_and_profile_gc.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_playwright_service_continuous_e2e.py",
+      "sha256": "82e6d48248ffab583e6c12dbefff2e68e9494be1a4705314060519708eea9903",
+      "bytes": 30525,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_playwright_service_continuous_e2e.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_progress_recovery.py",
+      "sha256": "949260a8c23e8a82ccb612b22cd294fe00ec616dd67c6c85d3090aff267d6f33",
+      "bytes": 47056,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_progress_recovery.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_recognition.py",
+      "sha256": "e6221f6d514e154fbc7160758247b58bee460d63eab328f480f722e6591a65c3",
+      "bytes": 5216,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_recognition.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_root_invariants.py",
+      "sha256": "c39001e63a1b14ad0b5bbe9fc0f255cad4ec0d39028210b4a3d623ecfb990289",
+      "bytes": 41457,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_root_invariants.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_service_and_isolation.py",
+      "sha256": "9b29994f945c337fe0a7834d9d7121dd9ec7fa54e94c6a13a321d72e8ea80924",
+      "bytes": 153988,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_service_and_isolation.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_validation_and_providers.py",
+      "sha256": "bf0334a3d65b81e5136d28b8ea3b08929d094a803aefd65ac728a645d483bb17",
+      "bytes": 5719,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_validation_and_providers.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_visual_page_batch_participation.py",
+      "sha256": "25c859ef0ea5293d2778f606de14701e8d8d1bb566a389c9397668c89a9cf6b8",
+      "bytes": 6258,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_visual_page_batch_participation.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/tests/test_workflow.py",
+      "sha256": "fd78bd0dd4f53957e9b44868acc8c2460d32cc01d429c4e3d182abe6458d333b",
+      "bytes": 122963,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/tests/test_workflow.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/__init__.py",
+      "sha256": "0968604f76ec2557d13a2064ec5f11a4eaae31fe5227a58019da27e65e527c12",
+      "bytes": 792,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/__init__.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/__main__.py",
+      "sha256": "3d2438ae92f4746e9ffaa1f837b1fe803f6281091d1f31f8c95643716f257d9a",
+      "bytes": 80,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/__main__.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/adapters.py",
+      "sha256": "d6cfb160699a9dce3b933dfcc6caebf42c4ac92d64a1bb41859fe218f6236e5d",
+      "bytes": 394008,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/adapters.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/cli.py",
+      "sha256": "d6fbe6f064a08b8a3672a58e378fefd7af937290bdb9785a1b106e9a6d3c9337",
+      "bytes": 4857,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/cli.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/config.py",
+      "sha256": "9529a264269c81cfb997af249ead763ee5e7891836e6f0c434f44781662042b0",
+      "bytes": 8456,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/config.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/factory.py",
+      "sha256": "bc7df1be3aae441b4bd3ac5f77aa6bf100b0b94379dcd1a99cae3bb888347658",
+      "bytes": 5615,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/factory.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/mocks.py",
+      "sha256": "d9daec30bae7ea0e9b1972966e9fc83348c9396365198ee9186b867b2e4e552d",
+      "bytes": 1902,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/mocks.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/models.py",
+      "sha256": "d0606ab70ab0d43f45e9546eff0c03f72464944a4cc192a6b6431b7e358d2453",
+      "bytes": 34105,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/models.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/mrz.py",
+      "sha256": "a586df1dee4187896269679783e3f63ec187dd02682c85d079642681e2bdf9f0",
+      "bytes": 2814,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/mrz.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/orchestrator.py",
+      "sha256": "4ab94e3b1613bed5ad57dcf4cea5c9a6b68000100b2500f3733b170a5e6a89f8",
+      "bytes": 9157,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/orchestrator.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/page_plans.py",
+      "sha256": "b699d97f4d85d8240651572605b205674c793593381aeaeea256461a7af26c71",
+      "bytes": 33731,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/page_plans.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/profile_storage.py",
+      "sha256": "e9b919c022bd543b546e47848f552551898ca69749a444f9666dbdd8ed8507e2",
+      "bytes": 3056,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/profile_storage.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/providers.py",
+      "sha256": "933a730b9487f60c9d836e8cda86bf2097114f85010809447ad8ca21a3c489c4",
+      "bytes": 7529,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/providers.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/recognition.py",
+      "sha256": "5e409a1068e1bceb9af896affc8cbd6bddd7d889c18ca7bf972b4921acec421d",
+      "bytes": 14525,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/recognition.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/recovery.py",
+      "sha256": "6ce25e9bfa18d83cfcea5103e41ef3ca0dd0c10d27d3f19d5e30865bac0d1358",
+      "bytes": 5939,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/recovery.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/safety.py",
+      "sha256": "36257e4dc603143c37b15537249937261dadf99cc0feaa4e47282d7d0c2d936f",
+      "bytes": 9064,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/safety.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/service.py",
+      "sha256": "6c80f44cc1da5c867216ce318b497483c53225b7715b14b48c8e95b7bbc6bac7",
+      "bytes": 207361,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/service.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/storage.py",
+      "sha256": "d5284aea6983c972172e63e740f281b8f1017a5241200716790e1511817d25e8",
+      "bytes": 5810,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/storage.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/validation.py",
+      "sha256": "81bd92184ad5ae49c324a54ba44a78b3ade0a8ec90dee6fa446f807bddaa7323",
+      "bytes": 8105,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/validation.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/verification.py",
+      "sha256": "54fa6f0df52a7956918c0491852c3cb7e3d116d09d82e28f5cc64916f875ceb4",
+      "bytes": 8629,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/verification.py"
+    },
+    {
+      "path": "components/agent-standard/app/standalone-agent/visa_agent/workflow.py",
+      "sha256": "2d3500744f6a559464c403eaf02a879bffd6157ec4f619afb0eb82a62410ad73",
+      "bytes": 184805,
+      "origin_role": "agent-standard",
+      "origin_path": "/app/standalone-agent/visa_agent/workflow.py"
+    },
+    {
+      "path": "components/agent-standard/bin/docflow-agent",
+      "sha256": "4807ea36469e1ca18ab67e8cad6191587786e61e553888956dd65d67495be744",
+      "bytes": 222,
+      "origin_role": "agent-standard",
+      "origin_path": "/usr/local/bin/docflow-agent"
+    },
+    {
+      "path": "components/agent-standard/bin/docflow-agent-v2",
+      "sha256": "e6d6e7480a21d83ef69f24ba3003fd5d62e4df9eec1d30b0a469388c07573564",
+      "bytes": 230,
+      "origin_role": "agent-standard",
+      "origin_path": "/usr/local/bin/docflow-agent-v2"
+    },
+    {
+      "path": "components/agent-standard/bin/docflow-agent-v2-entrypoint",
+      "sha256": "0bc9a2e491e22b7a12266361e20a945fdefeff40a65fc998fe7f5430d1048b76",
+      "bytes": 1816,
+      "origin_role": "agent-standard",
+      "origin_path": "/usr/local/bin/docflow-agent-v2-entrypoint"
+    },
+    {
+      "path": "components/backend/app/backend-requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "backend",
+      "origin_path": "/app/backend-requirements.txt"
+    },
+    {
+      "path": "components/backend/app/backend/README.md",
+      "sha256": "6659e69f0dce66173a1d7aa56ada7671df5ba46544829ba6223ddbcfe9a96f1b",
+      "bytes": 1028,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/README.md"
+    },
+    {
+      "path": "components/backend/app/backend/__init__.py",
+      "sha256": "9e0a20fde76f1b408c643c3d56cb90f6f9eff9b6a509e0ae339fd9aa62a583e3",
+      "bytes": 46,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/__init__.py"
+    },
+    {
+      "path": "components/backend/app/backend/agent_client.py",
+      "sha256": "55d27ac7dd5fa1cbcbf4d6bb4c5c0c57bd8b5e82ce7287a33a45ae2902671b52",
+      "bytes": 6733,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/agent_client.py"
+    },
+    {
+      "path": "components/backend/app/backend/api_main.py",
+      "sha256": "8dcaf4e22a6007ec22ee4513b33a2b7769e0546cd79291a11ea0f4de50a4439d",
+      "bytes": 219,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/api_main.py"
+    },
+    {
+      "path": "components/backend/app/backend/application.py",
+      "sha256": "ed6b7b438596140c88f0c628022af11f02b76618191cc17cf809b597192ee2b9",
+      "bytes": 328748,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/application.py"
+    },
+    {
+      "path": "components/backend/app/backend/appointment_bridge.py",
+      "sha256": "b938bedfce48cee4078b521abb8e5ae6a280fa12c362f484293cca22b1f85cd0",
+      "bytes": 25211,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/appointment_bridge.py"
+    },
+    {
+      "path": "components/backend/app/backend/appointment_monitor.py",
+      "sha256": "a59f342b3b2de94e6ed654f750687d3bfe381f4ad33879406510010e20a8c0d0",
+      "bytes": 20455,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/appointment_monitor.py"
+    },
+    {
+      "path": "components/backend/app/backend/appointment_monitor_service.py",
+      "sha256": "7d09cde67419ba920cb161ce318735e80eea7346e82b7fd5b05c63abf0274180",
+      "bytes": 4155,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/appointment_monitor_service.py"
+    },
+    {
+      "path": "components/backend/app/backend/appointment_monitor_store.py",
+      "sha256": "31fe481fcab3aa1223c0bae9ba62396de759a9868c9fc70e5d9d520a7fcef33f",
+      "bytes": 9527,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/appointment_monitor_store.py"
+    },
+    {
+      "path": "components/backend/app/backend/automation_config.py",
+      "sha256": "4ca937ea2339371ba0f008f28aa909d076ad4ab702d6e4c4fe164ee1047c4fda",
+      "bytes": 1281,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/automation_config.py"
+    },
+    {
+      "path": "components/backend/app/backend/automation_queue.py",
+      "sha256": "28f399f674ab2bdf2711af5ffa9b365eb5b8505a08ffb73c4184b212048cf6dd",
+      "bytes": 27563,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/automation_queue.py"
+    },
+    {
+      "path": "components/backend/app/backend/automation_scheduler.py",
+      "sha256": "385f33cedff69c0c118aceee7b1237ede9088df8c954c42d2064e4229f3e97e5",
+      "bytes": 18477,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/automation_scheduler.py"
+    },
+    {
+      "path": "components/backend/app/backend/browser_use_bridge.py",
+      "sha256": "1769fcea38444cc3c4da2d9383e7d71bd33865dcd62807011b8eb92484f7bf7a",
+      "bytes": 96192,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/browser_use_bridge.py"
+    },
+    {
+      "path": "components/backend/app/backend/central_automation.py",
+      "sha256": "5665234319a4896a5372e4caedf240e1fc6d6a0f571235c16ced591f23c1cf60",
+      "bytes": 11896,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/central_automation.py"
+    },
+    {
+      "path": "components/backend/app/backend/config.py",
+      "sha256": "749ce8d40086ab822a778755c0a0daf0dbdf40de7fdd59ddec8a3001e67d8d8e",
+      "bytes": 1550,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/config.py"
+    },
+    {
+      "path": "components/backend/app/backend/container_health.py",
+      "sha256": "2b5049beef703a6f5a1ed33690a8de4e84a5d4c8605358ade08d8fc66501331e",
+      "bytes": 1840,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/container_health.py"
+    },
+    {
+      "path": "components/backend/app/backend/database.py",
+      "sha256": "1ed5bfc2a2c8d1a9b7a11293b802ad476129f94139f30ab515110555d8b679dd",
+      "bytes": 7835,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/database.py"
+    },
+    {
+      "path": "components/backend/app/backend/docling_client.py",
+      "sha256": "e3ff2d39a4f56be72fb165b14147cb1c78ee180baf05927649512a0453de0879",
+      "bytes": 17371,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/docling_client.py"
+    },
+    {
+      "path": "components/backend/app/backend/ds160_intake_schema.py",
+      "sha256": "2333037b3bd780a700b3f7d41d17a5a512da9294cc8d0eebbb841c08378f62fa",
+      "bytes": 10000,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ds160_intake_schema.py"
+    },
+    {
+      "path": "components/backend/app/backend/ds160_language.py",
+      "sha256": "90c6fb82eba223444ae0ded0c45848929661794d0c446c1bf2301bb1ea9a9798",
+      "bytes": 99338,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ds160_language.py"
+    },
+    {
+      "path": "components/backend/app/backend/ds160_mapper.py",
+      "sha256": "fd4ad01fd8e6729bbd515ba2e139f2c86b44df5d1135948b1f5b1e4eec6b3306",
+      "bytes": 57483,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ds160_mapper.py"
+    },
+    {
+      "path": "components/backend/app/backend/ds160_rules.py",
+      "sha256": "3eb7dab2a3a0becd1e3439c607c2ae88fe71660321de7bf644cc8603023ce687",
+      "bytes": 78547,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ds160_rules.py"
+    },
+    {
+      "path": "components/backend/app/backend/ds160_value_validation.py",
+      "sha256": "4c00add96dfa6724ca7d56773751cce75edbdc24a1619857abb481251c996abd",
+      "bytes": 2999,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ds160_value_validation.py"
+    },
+    {
+      "path": "components/backend/app/backend/email_service.py",
+      "sha256": "1a4d225952cd5435d6701491a9ebe35027168abb4b379cb81c191a364b454f4e",
+      "bytes": 12954,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/email_service.py"
+    },
+    {
+      "path": "components/backend/app/backend/env_config.py",
+      "sha256": "fd783d378ab8eb33e98373c7f6a217dbf98c211c2b374033e4ec9e26e1007811",
+      "bytes": 3591,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/env_config.py"
+    },
+    {
+      "path": "components/backend/app/backend/extension_plan.py",
+      "sha256": "35a0b4aa6edf6ee589bb0728e712a0f54c43736a2314e6bf0d9c5c52ecaa0048",
+      "bytes": 2679,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/extension_plan.py"
+    },
+    {
+      "path": "components/backend/app/backend/extension_service.py",
+      "sha256": "d44689567e44db7d6e55e076e21e08590ff96d5f4ac93d4f726e4a202ea34cdb",
+      "bytes": 13763,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/extension_service.py"
+    },
+    {
+      "path": "components/backend/app/backend/extension_workflow.py",
+      "sha256": "ced6865dfa20e9ba27729128070f48388954aea8682f1b6856ddaed57cde5d6e",
+      "bytes": 98307,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/extension_workflow.py"
+    },
+    {
+      "path": "components/backend/app/backend/gemini_v2_bridge.py",
+      "sha256": "64efbfa45b87931823c660aa47bafdc0e4e5836b02abd90041931a30f7cb2011",
+      "bytes": 13489,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/gemini_v2_bridge.py"
+    },
+    {
+      "path": "components/backend/app/backend/main.py",
+      "sha256": "76b171f8b1ace8040c5dd3b5e3ecf6439cb4b2e2c41dbbd7011e6e8ea4cc0f1f",
+      "bytes": 199,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/main.py"
+    },
+    {
+      "path": "components/backend/app/backend/mineru_client.py",
+      "sha256": "f017a5e3c10dce10f06815862311522c93d4dd032f147bafedaedc542a940f45",
+      "bytes": 12592,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/mineru_client.py"
+    },
+    {
+      "path": "components/backend/app/backend/ocr_provider.py",
+      "sha256": "a97443883a013d55c61b610bb64bb48410cc9b85db65cfe33d81305bfa3e0d5f",
+      "bytes": 1829,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ocr_provider.py"
+    },
+    {
+      "path": "components/backend/app/backend/ocr_queue.py",
+      "sha256": "fd854a56baaac003809ab3e7a60e491107706b4add108a4d4512da28f9435c20",
+      "bytes": 22457,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ocr_queue.py"
+    },
+    {
+      "path": "components/backend/app/backend/ocr_worker.py",
+      "sha256": "c9d270267d3429ab04c2e861116f52f79df610daf9e6602da8022a4e32f30b16",
+      "bytes": 13430,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/ocr_worker.py"
+    },
+    {
+      "path": "components/backend/app/backend/requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/requirements.txt"
+    },
+    {
+      "path": "components/backend/app/backend/school_directory.py",
+      "sha256": "519af66134db5e145af8b107b188c153be41a4af1343501006607b42520bc07f",
+      "bytes": 30227,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/school_directory.py"
+    },
+    {
+      "path": "components/backend/app/backend/status_page.py",
+      "sha256": "09f1b1b8cffe52b00cacc826a75ca1adc66e213a771885fa92311975723b27a1",
+      "bytes": 7768,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/status_page.py"
+    },
+    {
+      "path": "components/backend/app/backend/workers/__init__.py",
+      "sha256": "4fca5b07d4b4c26851a1a9eabcbc376ccd967454b1fefcd7a804f0eaef737a95",
+      "bytes": 32,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/workers/__init__.py"
+    },
+    {
+      "path": "components/backend/app/backend/workers/browser_use_travel_worker.py",
+      "sha256": "6301e8e8cf0c79728cab0d2b775aae2cc47d4a8c397e8e0aa774663d27735693",
+      "bytes": 23267,
+      "origin_role": "backend",
+      "origin_path": "/app/backend/workers/browser_use_travel_worker.py"
+    },
+    {
+      "path": "components/backend/app/school_directory_verified.json",
+      "sha256": "2b49faa84b78c6a98f057e622500a42277ec73627511aac0364b550c4ef9e28d",
+      "bytes": 1646,
+      "origin_role": "backend",
+      "origin_path": "/app/school_directory_verified.json"
+    },
+    {
+      "path": "components/backend/app/scripts/__init__.py",
+      "sha256": "ba2f3078b3e383e1c45f38df7e671fc4bfb36a0bea65a31ed2b2bd2f9fbea9ab",
+      "bytes": 64,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/__init__.py"
+    },
+    {
+      "path": "components/backend/app/scripts/cutover_sqlite_to_postgres.py",
+      "sha256": "6bc0199be613ddb9d6224e1cdadcce07f81397767960c851cd2cf9a84ead7f95",
+      "bytes": 3247,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/cutover_sqlite_to_postgres.py"
+    },
+    {
+      "path": "components/backend/app/scripts/extension_http_smoke.py",
+      "sha256": "69d7745757389dbec8b96972631c4e95017cae2c4dc78be3c7660eeec3eae67d",
+      "bytes": 5381,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/extension_http_smoke.py"
+    },
+    {
+      "path": "components/backend/app/scripts/local_concurrency_smoke.py",
+      "sha256": "9c636534746ad5355715970934fe21c12d7daf17f76939589e654aac6cc79ad7",
+      "bytes": 7569,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/local_concurrency_smoke.py"
+    },
+    {
+      "path": "components/backend/app/scripts/local_ocr_queue_smoke.py",
+      "sha256": "91a78ff72c7abbaf7f1720083b135d17748844c1da4d5019b2240daf236a713a",
+      "bytes": 5076,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/local_ocr_queue_smoke.py"
+    },
+    {
+      "path": "components/backend/app/scripts/migrate_sqlite_to_postgres.py",
+      "sha256": "f6a3d0a38474d667ccdbe8f56d0bc3ba83cabfd06efdb09e6572003909cb0313",
+      "bytes": 9209,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/migrate_sqlite_to_postgres.py"
+    },
+    {
+      "path": "components/backend/app/scripts/production_preflight.py",
+      "sha256": "68e7eb9d47ad6db877d0c66ccaf3c57ed639a5f199052abe696682e010954239",
+      "bytes": 4483,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/production_preflight.py"
+    },
+    {
+      "path": "components/backend/app/scripts/recover_automation_worker.py",
+      "sha256": "1d47d4bc55f1df737f402ed8f14cd05e15e86383861febf1ebef7043d8880dbd",
+      "bytes": 1171,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/recover_automation_worker.py"
+    },
+    {
+      "path": "components/backend/app/scripts/run_local.py",
+      "sha256": "f7835b7488c7ca4e6731830ac4366b868c5650e5012a26fdab0a7ee5aa8648d4",
+      "bytes": 3694,
+      "origin_role": "backend",
+      "origin_path": "/app/scripts/run_local.py"
+    },
+    {
+      "path": "components/browser-extension/README.md",
+      "sha256": "59ecfb4d0e2ae366250f689cffc01648a95c16e1362092b16953c652ae7def8a",
+      "bytes": 681,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/README.md"
+    },
+    {
+      "path": "components/browser-extension/agent-core.js",
+      "sha256": "92d88141454281a1eb17c8ef0b59c2b21ec43706dc1d9417742ffc6e0a0d39aa",
+      "bytes": 53960,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/agent-core.js"
+    },
+    {
+      "path": "components/browser-extension/background.js",
+      "sha256": "fae88687197231cbd87d7fa4518e177d9fd3c62bf6278208390c7d6e0ebcbe93",
+      "bytes": 37139,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/background.js"
+    },
+    {
+      "path": "components/browser-extension/ceac-agent.js",
+      "sha256": "169cf52a1aa2584335b79463740164b8f582e23f2522e4d1709974f20f006444",
+      "bytes": 21820,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/ceac-agent.js"
+    },
+    {
+      "path": "components/browser-extension/ceac-postback-monitor.js",
+      "sha256": "f30d1074961914e12bbb508000d866cfd9dcb94e76e2247b027387abdf2d7dd3",
+      "bytes": 6415,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/ceac-postback-monitor.js"
+    },
+    {
+      "path": "components/browser-extension/docflow-bridge.js",
+      "sha256": "9ae283d0d1eff321633eb5d8720fac76b6d533fe5c872967213af535dec4d95a",
+      "bytes": 5078,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/docflow-bridge.js"
+    },
+    {
+      "path": "components/browser-extension/manifest.json",
+      "sha256": "454a122db9bb4332979eba086e4b443bc7143ef472738e7e956dae5b0afc202a",
+      "bytes": 1579,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/manifest.json"
+    },
+    {
+      "path": "components/browser-extension/popup.css",
+      "sha256": "0094ed2248cf28963cc36d9d8419402bcce33fa316c755040b5c99c40795bed8",
+      "bytes": 2000,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/popup.css"
+    },
+    {
+      "path": "components/browser-extension/popup.html",
+      "sha256": "5c70b844724454439e0382919f0f26e1f7b8f4faaa7f58574573dcb797b79d93",
+      "bytes": 1197,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/popup.html"
+    },
+    {
+      "path": "components/browser-extension/popup.js",
+      "sha256": "e4b9b56eda68d3a97aab50ed7d6a72b3cab851f8887146965620af0667c441a0",
+      "bytes": 2796,
+      "origin_role": "browser-extension",
+      "origin_path": "WestoryVisa-Chrome-1.0.5.zip/popup.js"
+    },
+    {
+      "path": "components/frontend/nginx/default.conf",
+      "sha256": "05245a796721c01cbd51142364fa8b81deedd531bed74ac7e619386c03c8ddab",
+      "bytes": 6647,
+      "origin_role": "frontend",
+      "origin_path": "/etc/nginx/conf.d/default.conf"
+    },
+    {
+      "path": "components/frontend/www/50x.html",
+      "sha256": "876766b4e80133fd490603e073d3567425b88794828a9292104244c9e40875ed",
+      "bytes": 497,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/50x.html"
+    },
+    {
+      "path": "components/frontend/www/README.md",
+      "sha256": "14095af608a3056344c80262f594837be9ff805d5ada848d0a1736730aa0ad48",
+      "bytes": 730,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/README.md"
+    },
+    {
+      "path": "components/frontend/www/__init__.py",
+      "sha256": "0dbc8a57fa31d19cdd65cf2ddff88d1c7ee8b1ff80fbcc0dca81514a9f62ea89",
+      "bytes": 193,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/__init__.py"
+    },
+    {
+      "path": "components/frontend/www/admin-payments.html",
+      "sha256": "2e7faf66873f5a9854cfc68d7b0dbbd970dcb2480ade09724989617856f28008",
+      "bytes": 4926,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/admin-payments.html"
+    },
+    {
+      "path": "components/frontend/www/analytics.css",
+      "sha256": "25348883f1107264689242b993a7417891110fb1ad8a929fcbbd0813acc6a9ca",
+      "bytes": 12811,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/analytics.css"
+    },
+    {
+      "path": "components/frontend/www/analytics.html",
+      "sha256": "a0270a87ee9873ad9d0a53a97fce96b1520eafe780aff728b1345f7e5779fd92",
+      "bytes": 6050,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/analytics.html"
+    },
+    {
+      "path": "components/frontend/www/analytics.js",
+      "sha256": "0846310ccc59d46e4c26fc9bc5ee1bf0970691a0e4ccc8d2c25651797b5865cd",
+      "bytes": 11847,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/analytics.js"
+    },
+    {
+      "path": "components/frontend/www/api-client.js",
+      "sha256": "4733dfa7d82b8715594c1e0a0e4eb43cf8107dd465648c9fe9aa899d9d5c61b8",
+      "bytes": 2570,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/api-client.js"
+    },
+    {
+      "path": "components/frontend/www/app.js",
+      "sha256": "a98b6feafd18ba515b2d643964239965903af7d0d9227f02df4e16cbecf66232",
+      "bytes": 374035,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/app.js"
+    },
+    {
+      "path": "components/frontend/www/assets/computer-use-ui-v1.png",
+      "sha256": "6383ced2b42873d2338cf4e9221abb641645e9e8e1607b3c5f35e05da7247001",
+      "bytes": 69418,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/assets/computer-use-ui-v1.png"
+    },
+    {
+      "path": "components/frontend/www/assets/ds160-preview-ui-v1.png",
+      "sha256": "c1afe8d480d63c4d2d234cae13dbe66608987976cd6fe25c484f21ddb8a12c68",
+      "bytes": 61515,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/assets/ds160-preview-ui-v1.png"
+    },
+    {
+      "path": "components/frontend/www/assets/westoryvisa-mark.svg",
+      "sha256": "39a8aa1e3d493e2560835926509c33e7f15162b6d99b8e4ed87f0a3bc577fb91",
+      "bytes": 361,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/assets/westoryvisa-mark.svg"
+    },
+    {
+      "path": "components/frontend/www/billing.js",
+      "sha256": "cbfccdd3fc602ae10831a5a2b1cd4a0f299353f8621ec4f698b813f562286731",
+      "bytes": 15473,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/billing.js"
+    },
+    {
+      "path": "components/frontend/www/contact.html",
+      "sha256": "bf37b7709f0bac6e5798c06078303b0d6196e67d3087658c73314246d9eb8ccc",
+      "bytes": 3612,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/contact.html"
+    },
+    {
+      "path": "components/frontend/www/dev_server.py",
+      "sha256": "3273a4c0d3ece07232e8f97e4bdb71072c1a36ef046851be0be7f383ab5ccd66",
+      "bytes": 4706,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/dev_server.py"
+    },
+    {
+      "path": "components/frontend/www/downloads/WestoryVisa-Chrome-1.0.5.zip",
+      "sha256": "b951f8785ce27dcf4de6831cbacaeb9a81bce557182dfb93e0b02423adf74439",
+      "bytes": 37323,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/downloads/WestoryVisa-Chrome-1.0.5.zip"
+    },
+    {
+      "path": "components/frontend/www/extension-account.js",
+      "sha256": "9c6afb52304c6f2bb4da5d5aa10e771a8be2b2c75868b83bea7f6336f333d370",
+      "bytes": 5842,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/extension-account.js"
+    },
+    {
+      "path": "components/frontend/www/extension.html",
+      "sha256": "8a280838bc43ead37f1637c73222bcc543d16b58089e683d1b7ba2769ae39d43",
+      "bytes": 2144,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/extension.html"
+    },
+    {
+      "path": "components/frontend/www/index.html",
+      "sha256": "fb47468a2cd3953c7131431991afcc6a2703f14640520102eea0a685a7e8d6de",
+      "bytes": 615,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/index.html"
+    },
+    {
+      "path": "components/frontend/www/intake-i18n.js",
+      "sha256": "5d2b1f83c9c23d233bb670d3dd7a66a71d6da98caa91319a15ea0aa1d4e68cb9",
+      "bytes": 30092,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/intake-i18n.js"
+    },
+    {
+      "path": "components/frontend/www/legal.css",
+      "sha256": "856233d320abe1d99a1460ce074f404f2f5008c7e26e7ef255d2ba22b03a3e20",
+      "bytes": 3610,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/legal.css"
+    },
+    {
+      "path": "components/frontend/www/legal.js",
+      "sha256": "caaac37e0f55c2a57ccc8278632a5f6fc00031114306d565ad688990242252bf",
+      "bytes": 3743,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/legal.js"
+    },
+    {
+      "path": "components/frontend/www/membership.html",
+      "sha256": "27711713d4372c7c1b1dd367924d327a16871e49f58503f890131f01407adce5",
+      "bytes": 7103,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/membership.html"
+    },
+    {
+      "path": "components/frontend/www/mockData.js",
+      "sha256": "c97c2bd7170886f925d62be7329a13240e54fb187195355c03725b0bba84ea0b",
+      "bytes": 6350,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/mockData.js"
+    },
+    {
+      "path": "components/frontend/www/privacy.html",
+      "sha256": "b9cb724701bc57933ad375f0ecd948366cc79fd388a2eacb9e59034edef0ec1c",
+      "bytes": 5778,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/privacy.html"
+    },
+    {
+      "path": "components/frontend/www/product.css",
+      "sha256": "d8dd1a64eb6a2d899dd3ab8fdab0bad8261e898ea0a30550a4acaaa9d114c248",
+      "bytes": 52257,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/product.css"
+    },
+    {
+      "path": "components/frontend/www/product.html",
+      "sha256": "324add10eec8b4674aca79e6c802bce590699b258d09d4d00fe23a775edaaf08",
+      "bytes": 18116,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/product.html"
+    },
+    {
+      "path": "components/frontend/www/product.js",
+      "sha256": "76f2b07578cca4f199784b3e5f0efd97b44caff07cbc0b5a809c558951766135",
+      "bytes": 22188,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/product.js"
+    },
+    {
+      "path": "components/frontend/www/promo/encode-promo.swift",
+      "sha256": "e4fecc505a79b0ece52efb27ed56b4c80e87cd2b5386b8a2f0608f5d0b4900e5",
+      "bytes": 5049,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/encode-promo.swift"
+    },
+    {
+      "path": "components/frontend/www/promo/promo-video.css",
+      "sha256": "588999546c0eb43c847b0c8046ed12f2863ab09e8922dee9a2080d94566b21f5",
+      "bytes": 16962,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/promo-video.css"
+    },
+    {
+      "path": "components/frontend/www/promo/promo-video.html",
+      "sha256": "1252d473c51c3a12bf25e75e0cdd17b8cb29ab2fbaaedaaa5573575d69c30eaf",
+      "bytes": 5282,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/promo-video.html"
+    },
+    {
+      "path": "components/frontend/www/promo/render-promo.cjs",
+      "sha256": "05b931bb3196adffb171a91a6d4bf638d93ea6649f51ca4073c31c5d27ad6063",
+      "bytes": 1528,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/render-promo.cjs"
+    },
+    {
+      "path": "components/frontend/www/promo/rendered/docflow-promo-30s.mp4",
+      "sha256": "6759420b97e89b8e5253659ec143fbf2fbb22c57c283cc3f71b7891c2367b7e0",
+      "bytes": 8072725,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/rendered/docflow-promo-30s.mp4"
+    },
+    {
+      "path": "components/frontend/www/promo/rendered/docflow-promo-30s.webm",
+      "sha256": "d217a381e64ec1bef05660881d0de8c656fef2854d20d68a053b31d0533473a6",
+      "bytes": 3357292,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/promo/rendered/docflow-promo-30s.webm"
+    },
+    {
+      "path": "components/frontend/www/refund-policy.html",
+      "sha256": "4eb7c571f5414ebe426ca75217ae8579bbf512b3316ea66797f39fa9a79d4a71",
+      "bytes": 4576,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/refund-policy.html"
+    },
+    {
+      "path": "components/frontend/www/roadshow.html",
+      "sha256": "2924c8ab8ce52efbd9579ee7bd1957450036ece14319284e242c02ca57629aa5",
+      "bytes": 45180,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/roadshow.html"
+    },
+    {
+      "path": "components/frontend/www/runtime-config.js",
+      "sha256": "229f9920ab655391e7e6d41f00824258429e50138c9e76b4e9b3388f0e992e42",
+      "bytes": 264,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/runtime-config.js"
+    },
+    {
+      "path": "components/frontend/www/screen-agent-target.css",
+      "sha256": "a3d09339542163476ae8756e7da64e2da3cfd40897177d0e4703a9aba92ad4fe",
+      "bytes": 7374,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/screen-agent-target.css"
+    },
+    {
+      "path": "components/frontend/www/screen-agent-target.html",
+      "sha256": "8b8a6d061f2673e3cd16a45edf244ba654e802c819035ee0e7c3dc18758bffca",
+      "bytes": 6453,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/screen-agent-target.html"
+    },
+    {
+      "path": "components/frontend/www/screen-agent-target.js",
+      "sha256": "0cb9b807657e73f8ac6347a829e18ad647058449fe9f9181703807c6d0f82521",
+      "bytes": 1076,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/screen-agent-target.js"
+    },
+    {
+      "path": "components/frontend/www/site-country.css",
+      "sha256": "112bf60231b7cef5728b8882ac7e6b93958ed1ae7137fee64a3ab88ab7c378f7",
+      "bytes": 7167,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/site-country.css"
+    },
+    {
+      "path": "components/frontend/www/site-country.js",
+      "sha256": "4f6b17e7ad3afb57fcf0b75ac83cbfb2cebce241175c07e113af50b3441c0b5c",
+      "bytes": 130985,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/site-country.js"
+    },
+    {
+      "path": "components/frontend/www/styles.css",
+      "sha256": "2eb8e0e2550b72db471a10a94810f4eb5e06afefe9dfd3bfdbf268a021eef46e",
+      "bytes": 140441,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/styles.css"
+    },
+    {
+      "path": "components/frontend/www/terms.html",
+      "sha256": "0febf94a05a1a43309848c62f1606fe59938c810c3333b99c1d510b7695082a2",
+      "bytes": 6092,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/terms.html"
+    },
+    {
+      "path": "components/frontend/www/workspace.html",
+      "sha256": "f9ca897a7984ff86cd206155a5ab3727ac543c2a8bc4ab80f053e574638f01b3",
+      "bytes": 1161,
+      "origin_role": "frontend",
+      "origin_path": "/usr/share/nginx/html/workspace.html"
+    },
+    {
+      "path": "components/ocr-worker/app/backend-requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend-requirements.txt"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/README.md",
+      "sha256": "6659e69f0dce66173a1d7aa56ada7671df5ba46544829ba6223ddbcfe9a96f1b",
+      "bytes": 1028,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/README.md"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/__init__.py",
+      "sha256": "9e0a20fde76f1b408c643c3d56cb90f6f9eff9b6a509e0ae339fd9aa62a583e3",
+      "bytes": 46,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/__init__.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/agent_client.py",
+      "sha256": "9ecd40efbffe64436d31941079a2748169e784c8b6612f4a1874192394e80b61",
+      "bytes": 6450,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/agent_client.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/api_main.py",
+      "sha256": "8dcaf4e22a6007ec22ee4513b33a2b7769e0546cd79291a11ea0f4de50a4439d",
+      "bytes": 219,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/api_main.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/application.py",
+      "sha256": "3aabe8206a8731ae8fd8d8d9a71217f9caf08d97f1035c97ab5215dc9a0bdf30",
+      "bytes": 327401,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/application.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/appointment_bridge.py",
+      "sha256": "b938bedfce48cee4078b521abb8e5ae6a280fa12c362f484293cca22b1f85cd0",
+      "bytes": 25211,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/appointment_bridge.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/appointment_monitor.py",
+      "sha256": "a59f342b3b2de94e6ed654f750687d3bfe381f4ad33879406510010e20a8c0d0",
+      "bytes": 20455,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/appointment_monitor.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/appointment_monitor_service.py",
+      "sha256": "7d09cde67419ba920cb161ce318735e80eea7346e82b7fd5b05c63abf0274180",
+      "bytes": 4155,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/appointment_monitor_service.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/appointment_monitor_store.py",
+      "sha256": "31fe481fcab3aa1223c0bae9ba62396de759a9868c9fc70e5d9d520a7fcef33f",
+      "bytes": 9527,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/appointment_monitor_store.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/automation_config.py",
+      "sha256": "4ca937ea2339371ba0f008f28aa909d076ad4ab702d6e4c4fe164ee1047c4fda",
+      "bytes": 1281,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/automation_config.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/automation_queue.py",
+      "sha256": "8dc14087b424d6e5d3577325c3ad2e60827787ecd83768c7349a185714448c45",
+      "bytes": 27035,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/automation_queue.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/automation_scheduler.py",
+      "sha256": "3b75ef015ee370359bd609d10e3b142c286ebd08f35e489c88401985f1ad07e3",
+      "bytes": 16588,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/automation_scheduler.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/browser_use_bridge.py",
+      "sha256": "1769fcea38444cc3c4da2d9383e7d71bd33865dcd62807011b8eb92484f7bf7a",
+      "bytes": 96192,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/browser_use_bridge.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/central_automation.py",
+      "sha256": "6fefca40e263f5a3a23c4262b597d4598f522903498bc32692b800238bfea9c8",
+      "bytes": 10389,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/central_automation.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/config.py",
+      "sha256": "749ce8d40086ab822a778755c0a0daf0dbdf40de7fdd59ddec8a3001e67d8d8e",
+      "bytes": 1550,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/config.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/container_health.py",
+      "sha256": "2b5049beef703a6f5a1ed33690a8de4e84a5d4c8605358ade08d8fc66501331e",
+      "bytes": 1840,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/container_health.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/database.py",
+      "sha256": "1ed5bfc2a2c8d1a9b7a11293b802ad476129f94139f30ab515110555d8b679dd",
+      "bytes": 7835,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/database.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/docling_client.py",
+      "sha256": "e3ff2d39a4f56be72fb165b14147cb1c78ee180baf05927649512a0453de0879",
+      "bytes": 17371,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/docling_client.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ds160_intake_schema.py",
+      "sha256": "2333037b3bd780a700b3f7d41d17a5a512da9294cc8d0eebbb841c08378f62fa",
+      "bytes": 10000,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ds160_intake_schema.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ds160_language.py",
+      "sha256": "90c6fb82eba223444ae0ded0c45848929661794d0c446c1bf2301bb1ea9a9798",
+      "bytes": 99338,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ds160_language.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ds160_mapper.py",
+      "sha256": "fd4ad01fd8e6729bbd515ba2e139f2c86b44df5d1135948b1f5b1e4eec6b3306",
+      "bytes": 57483,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ds160_mapper.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ds160_rules.py",
+      "sha256": "3eb7dab2a3a0becd1e3439c607c2ae88fe71660321de7bf644cc8603023ce687",
+      "bytes": 78547,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ds160_rules.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ds160_value_validation.py",
+      "sha256": "4c00add96dfa6724ca7d56773751cce75edbdc24a1619857abb481251c996abd",
+      "bytes": 2999,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ds160_value_validation.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/email_service.py",
+      "sha256": "1a4d225952cd5435d6701491a9ebe35027168abb4b379cb81c191a364b454f4e",
+      "bytes": 12954,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/email_service.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/env_config.py",
+      "sha256": "fd783d378ab8eb33e98373c7f6a217dbf98c211c2b374033e4ec9e26e1007811",
+      "bytes": 3591,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/env_config.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/gemini_v2_bridge.py",
+      "sha256": "bf457a2d784b3969fb31a3db6994da7f0b85ba9b7143d9d2afea0468ca5fb2fa",
+      "bytes": 12542,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/gemini_v2_bridge.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/main.py",
+      "sha256": "76b171f8b1ace8040c5dd3b5e3ecf6439cb4b2e2c41dbbd7011e6e8ea4cc0f1f",
+      "bytes": 199,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/main.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/mineru_client.py",
+      "sha256": "f017a5e3c10dce10f06815862311522c93d4dd032f147bafedaedc542a940f45",
+      "bytes": 12592,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/mineru_client.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ocr_provider.py",
+      "sha256": "a97443883a013d55c61b610bb64bb48410cc9b85db65cfe33d81305bfa3e0d5f",
+      "bytes": 1829,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ocr_provider.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ocr_queue.py",
+      "sha256": "fd854a56baaac003809ab3e7a60e491107706b4add108a4d4512da28f9435c20",
+      "bytes": 22457,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ocr_queue.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/ocr_worker.py",
+      "sha256": "c9d270267d3429ab04c2e861116f52f79df610daf9e6602da8022a4e32f30b16",
+      "bytes": 13430,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/ocr_worker.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/requirements.txt"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/school_directory.py",
+      "sha256": "519af66134db5e145af8b107b188c153be41a4af1343501006607b42520bc07f",
+      "bytes": 30227,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/school_directory.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/status_page.py",
+      "sha256": "09f1b1b8cffe52b00cacc826a75ca1adc66e213a771885fa92311975723b27a1",
+      "bytes": 7768,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/status_page.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/workers/__init__.py",
+      "sha256": "4fca5b07d4b4c26851a1a9eabcbc376ccd967454b1fefcd7a804f0eaef737a95",
+      "bytes": 32,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/workers/__init__.py"
+    },
+    {
+      "path": "components/ocr-worker/app/backend/workers/browser_use_travel_worker.py",
+      "sha256": "6301e8e8cf0c79728cab0d2b775aae2cc47d4a8c397e8e0aa774663d27735693",
+      "bytes": 23267,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/backend/workers/browser_use_travel_worker.py"
+    },
+    {
+      "path": "components/ocr-worker/app/school_directory_verified.json",
+      "sha256": "2b49faa84b78c6a98f057e622500a42277ec73627511aac0364b550c4ef9e28d",
+      "bytes": 1646,
+      "origin_role": "ocr-worker",
+      "origin_path": "/app/school_directory_verified.json"
+    },
+    {
+      "path": "components/scheduler/app/backend-requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend-requirements.txt"
+    },
+    {
+      "path": "components/scheduler/app/backend/README.md",
+      "sha256": "6659e69f0dce66173a1d7aa56ada7671df5ba46544829ba6223ddbcfe9a96f1b",
+      "bytes": 1028,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/README.md"
+    },
+    {
+      "path": "components/scheduler/app/backend/__init__.py",
+      "sha256": "9e0a20fde76f1b408c643c3d56cb90f6f9eff9b6a509e0ae339fd9aa62a583e3",
+      "bytes": 46,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/__init__.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/agent_client.py",
+      "sha256": "55d27ac7dd5fa1cbcbf4d6bb4c5c0c57bd8b5e82ce7287a33a45ae2902671b52",
+      "bytes": 6733,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/agent_client.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/api_main.py",
+      "sha256": "8dcaf4e22a6007ec22ee4513b33a2b7769e0546cd79291a11ea0f4de50a4439d",
+      "bytes": 219,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/api_main.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/application.py",
+      "sha256": "31879fc73cf09fd509f435a58ce905366d0df9ba48c2a74ea2ccd7e20b74157f",
+      "bytes": 328294,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/application.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/appointment_bridge.py",
+      "sha256": "b938bedfce48cee4078b521abb8e5ae6a280fa12c362f484293cca22b1f85cd0",
+      "bytes": 25211,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/appointment_bridge.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/appointment_monitor.py",
+      "sha256": "a59f342b3b2de94e6ed654f750687d3bfe381f4ad33879406510010e20a8c0d0",
+      "bytes": 20455,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/appointment_monitor.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/appointment_monitor_service.py",
+      "sha256": "7d09cde67419ba920cb161ce318735e80eea7346e82b7fd5b05c63abf0274180",
+      "bytes": 4155,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/appointment_monitor_service.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/appointment_monitor_store.py",
+      "sha256": "31fe481fcab3aa1223c0bae9ba62396de759a9868c9fc70e5d9d520a7fcef33f",
+      "bytes": 9527,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/appointment_monitor_store.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/automation_config.py",
+      "sha256": "4ca937ea2339371ba0f008f28aa909d076ad4ab702d6e4c4fe164ee1047c4fda",
+      "bytes": 1281,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/automation_config.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/automation_queue.py",
+      "sha256": "28f399f674ab2bdf2711af5ffa9b365eb5b8505a08ffb73c4184b212048cf6dd",
+      "bytes": 27563,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/automation_queue.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/automation_scheduler.py",
+      "sha256": "385f33cedff69c0c118aceee7b1237ede9088df8c954c42d2064e4229f3e97e5",
+      "bytes": 18477,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/automation_scheduler.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/browser_use_bridge.py",
+      "sha256": "1769fcea38444cc3c4da2d9383e7d71bd33865dcd62807011b8eb92484f7bf7a",
+      "bytes": 96192,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/browser_use_bridge.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/central_automation.py",
+      "sha256": "5665234319a4896a5372e4caedf240e1fc6d6a0f571235c16ced591f23c1cf60",
+      "bytes": 11896,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/central_automation.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/config.py",
+      "sha256": "749ce8d40086ab822a778755c0a0daf0dbdf40de7fdd59ddec8a3001e67d8d8e",
+      "bytes": 1550,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/config.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/container_health.py",
+      "sha256": "2b5049beef703a6f5a1ed33690a8de4e84a5d4c8605358ade08d8fc66501331e",
+      "bytes": 1840,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/container_health.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/database.py",
+      "sha256": "1ed5bfc2a2c8d1a9b7a11293b802ad476129f94139f30ab515110555d8b679dd",
+      "bytes": 7835,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/database.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/docling_client.py",
+      "sha256": "e3ff2d39a4f56be72fb165b14147cb1c78ee180baf05927649512a0453de0879",
+      "bytes": 17371,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/docling_client.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ds160_intake_schema.py",
+      "sha256": "2333037b3bd780a700b3f7d41d17a5a512da9294cc8d0eebbb841c08378f62fa",
+      "bytes": 10000,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ds160_intake_schema.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ds160_language.py",
+      "sha256": "90c6fb82eba223444ae0ded0c45848929661794d0c446c1bf2301bb1ea9a9798",
+      "bytes": 99338,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ds160_language.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ds160_mapper.py",
+      "sha256": "fd4ad01fd8e6729bbd515ba2e139f2c86b44df5d1135948b1f5b1e4eec6b3306",
+      "bytes": 57483,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ds160_mapper.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ds160_rules.py",
+      "sha256": "3eb7dab2a3a0becd1e3439c607c2ae88fe71660321de7bf644cc8603023ce687",
+      "bytes": 78547,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ds160_rules.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ds160_value_validation.py",
+      "sha256": "4c00add96dfa6724ca7d56773751cce75edbdc24a1619857abb481251c996abd",
+      "bytes": 2999,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ds160_value_validation.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/email_service.py",
+      "sha256": "1a4d225952cd5435d6701491a9ebe35027168abb4b379cb81c191a364b454f4e",
+      "bytes": 12954,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/email_service.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/env_config.py",
+      "sha256": "fd783d378ab8eb33e98373c7f6a217dbf98c211c2b374033e4ec9e26e1007811",
+      "bytes": 3591,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/env_config.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/gemini_v2_bridge.py",
+      "sha256": "64efbfa45b87931823c660aa47bafdc0e4e5836b02abd90041931a30f7cb2011",
+      "bytes": 13489,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/gemini_v2_bridge.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/main.py",
+      "sha256": "76b171f8b1ace8040c5dd3b5e3ecf6439cb4b2e2c41dbbd7011e6e8ea4cc0f1f",
+      "bytes": 199,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/main.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/mineru_client.py",
+      "sha256": "f017a5e3c10dce10f06815862311522c93d4dd032f147bafedaedc542a940f45",
+      "bytes": 12592,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/mineru_client.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ocr_provider.py",
+      "sha256": "a97443883a013d55c61b610bb64bb48410cc9b85db65cfe33d81305bfa3e0d5f",
+      "bytes": 1829,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ocr_provider.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ocr_queue.py",
+      "sha256": "fd854a56baaac003809ab3e7a60e491107706b4add108a4d4512da28f9435c20",
+      "bytes": 22457,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ocr_queue.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/ocr_worker.py",
+      "sha256": "c9d270267d3429ab04c2e861116f52f79df610daf9e6602da8022a4e32f30b16",
+      "bytes": 13430,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/ocr_worker.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/requirements.txt",
+      "sha256": "dae85d2867c7b6440f454b87d958f90c0ddeebacfd18335c79c2df7da0a65f04",
+      "bytes": 57,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/requirements.txt"
+    },
+    {
+      "path": "components/scheduler/app/backend/school_directory.py",
+      "sha256": "519af66134db5e145af8b107b188c153be41a4af1343501006607b42520bc07f",
+      "bytes": 30227,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/school_directory.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/status_page.py",
+      "sha256": "09f1b1b8cffe52b00cacc826a75ca1adc66e213a771885fa92311975723b27a1",
+      "bytes": 7768,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/status_page.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/workers/__init__.py",
+      "sha256": "4fca5b07d4b4c26851a1a9eabcbc376ccd967454b1fefcd7a804f0eaef737a95",
+      "bytes": 32,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/workers/__init__.py"
+    },
+    {
+      "path": "components/scheduler/app/backend/workers/browser_use_travel_worker.py",
+      "sha256": "6301e8e8cf0c79728cab0d2b775aae2cc47d4a8c397e8e0aa774663d27735693",
+      "bytes": 23267,
+      "origin_role": "scheduler",
+      "origin_path": "/app/backend/workers/browser_use_travel_worker.py"
+    },
+    {
+      "path": "components/scheduler/app/school_directory_verified.json",
+      "sha256": "2b49faa84b78c6a98f057e622500a42277ec73627511aac0364b550c4ef9e28d",
+      "bytes": 1646,
+      "origin_role": "scheduler",
+      "origin_path": "/app/school_directory_verified.json"
+    }
+  ],
+  "private_or_generated_omissions": {
+    "macos_metadata_not_application_source": 114,
+    "verified_byte_identical_build_copy": 107,
+    "generated_package_metadata_versions_recorded_separately": 27,
+    "second_instance_identical_to_agent_standard": 77,
+    "host_runtime_configuration_retained_privately": 10
+  },
+  "limitations": [
+    "Source-on-disk snapshot, not a complete machine/image/database backup.",
+    "Host build files are candidates, not proof of the exact historical build process.",
+    "Runtime environment values, client records, sessions, logs and internal deployment inventories are excluded.",
+    "Application behavior was not changed; known defects are preserved for separate fixes.",
+    "Unpinned OS/browser dependencies and unavailable OCI revision labels prevent a guaranteed byte-identical rebuild."
+  ]
+}

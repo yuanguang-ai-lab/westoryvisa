@@ -1,0 +1,11 @@
+.git
+.DS_Store
+**/__pycache__
+**/*.pyc
+**/node_modules
+data
+dist
+outputs
+deploy/*.env
+standalone-agent/.env
+visa-form-practice-lab/.env

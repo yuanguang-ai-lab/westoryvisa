@@ -1,0 +1,2 @@
+# Preserve captured byte identity, including original line endings.
+* -text
