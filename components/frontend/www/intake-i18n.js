@@ -175,7 +175,7 @@
       choices: {}
     },
     "en-IN": {
-      lang: "en-IN",
+      lang: "en",
       messages: BASE_MESSAGES,
       sections: {
         application: "Application details", personal: "Personal information",
@@ -210,7 +210,7 @@
       }
     },
     "es-MX": {
-      lang: "es-MX",
+      lang: "es",
       messages: {
         ...BASE_MESSAGES,
         loading: "Cargando el formulario del solicitante",
@@ -392,8 +392,13 @@
   };
 
   const COUNTRY_LOCALES = { CN: "zh-CN", MX: "es-MX", BR: "pt-BR", IN: "en-IN" };
+  const DISPLAY_LOCALES = { zh: "zh-CN", en: "en-IN", es: "es-MX", pt: "pt-BR" };
 
   function locale(data) {
+    const explicit = String(global.WestoryLanguage?.locale
+      || new URLSearchParams(global.location.search).get("lang")
+      || "").toLowerCase().split("-")[0];
+    if (DISPLAY_LOCALES[explicit]) return DISPLAY_LOCALES[explicit];
     const requested = String(data?.sourceLocale || "");
     if (PACKS[requested]) return requested;
     return COUNTRY_LOCALES[String(data?.applicationCountry || "CN").toUpperCase()] || "zh-CN";

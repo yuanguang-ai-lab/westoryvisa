@@ -4,6 +4,7 @@
   let extensionId='', job=null, busy=false, message='正在检测插件…', poll=null;
   const pending=new Map();
   const closed=new Set(['completed','revoked','expired','failed']);
+  const t=(value)=>window.WestoryLanguage?.translate(value)||value;
   function post(type,payload={}) {
     const requestId=crypto.randomUUID();
     return new Promise((resolve,reject)=>{
@@ -63,10 +64,10 @@
     const area=document.querySelector('.codex-agent-actions');if(!area)return;
     let panel=document.getElementById('memberExtensionPanel');
     if(!panel){panel=document.createElement('section');panel.id='memberExtensionPanel';panel.className='screen-agent-safety-note';
-      panel.innerHTML='<strong>会员插件填写 · 当前电脑 Chrome</strong><p data-extension-message></p><p data-extension-progress></p><div class="actions"><button class="btn" data-extension-create>连接当前档案</button><button class="btn" data-extension-resume>开始填写</button><button class="btn secondary" data-extension-stop>停止插件任务</button><a href="/extension.html" target="_blank" rel="noopener">下载与安装插件</a></div>';
+      panel.innerHTML=`<strong>${t('会员插件填写 · 当前电脑 Chrome')}</strong><p data-extension-message></p><p data-extension-progress></p><div class="actions"><button class="btn" data-extension-create>${t('连接当前档案')}</button><button class="btn" data-extension-resume>${t('开始填写')}</button><button class="btn secondary" data-extension-stop>${t('停止插件任务')}</button><a href="/extension.html" target="_blank" rel="noopener">${t('下载与安装插件')}</a></div>`;
       area.parentElement.append(panel);panel.querySelector('[data-extension-create]').onclick=create;panel.querySelector('[data-extension-resume]').onclick=resume;panel.querySelector('[data-extension-stop]').onclick=stop;
     }
-    const setText=(selector,value)=>{const e=panel.querySelector(selector);if(e.textContent!==value)e.textContent=value;};
+    const setText=(selector,value)=>{const e=panel.querySelector(selector);const localized=t(value);if(e.textContent!==localized)e.textContent=localized;};
     setText('[data-extension-message]',message==='正在检测插件…'?(extensionId?'插件已连接，使用当前网站账号的会员权限':'未检测到正式网站版插件，请安装后刷新此页'):message);
     setText('[data-extension-progress]',job?`${job.pageLabel||''} ${job.completedFields||0} / ${job.totalFields||0}`:'每个账号同时一份；机构默认同时三份。无需安装本地服务。');
     const active=job&&!closed.has(job.state);
