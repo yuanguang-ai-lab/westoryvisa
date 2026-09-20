@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { JSDOM } = require('jsdom');
+const { JSDOM, requestInterceptor, VirtualConsole } = require('jsdom');
 
 const root = path.resolve(__dirname, '../../components/frontend/www');
 const source = (name) => fs.readFileSync(path.join(root, name), 'utf8');
@@ -102,10 +102,89 @@ async function compatibilityCopy(locale, variant) {
   } finally { await tick(); w.close(); }
 }
 
+async function realBootCompatibility(locale, variant) {
+  const scriptRequests = [];
+  const executionErrors = [];
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on('jsdomError', (error) => {
+    if (error.type === 'unhandled-exception') executionErrors.push(error.message);
+  });
+  // Execute the actual HTML and its external scripts in parser order, unlike
+  // compatibilityCopy's isolated helper test. All resources and API replies are
+  // intercepted locally: no real server/account or network access is involved.
+  const dom = new JSDOM(source('workspace.html'), {
+    url: `https://westoryvisa.test/workspace.html?lang=${locale}`,
+    runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole,
+    resources: { interceptors: [requestInterceptor((request) => {
+      const url = new URL(request.url);
+      if (url.origin !== 'https://westoryvisa.test') return new Response('', { headers: { 'Content-Type': 'text/css' } });
+      const filename = path.resolve(root, `.${url.pathname}`);
+      if (!filename.startsWith(`${root}${path.sep}`) || !fs.existsSync(filename)) return new Response('', { status: 404 });
+      const script = filename.endsWith('.js');
+      if (script) scriptRequests.push(url.pathname.slice(1));
+      return new Response(fs.readFileSync(filename), {
+        headers: { 'Content-Type': script ? 'application/javascript' : 'text/css' }
+      });
+    })] },
+    beforeParse(w) {
+      w.Headers = global.Headers;
+      w.Response = global.Response;
+      w.fetch = async () => {
+        // Deliberately settle after startup so the post-boot alert must be
+        // translated by the real DOM observer, not only the initial pass.
+        await new Promise((resolve) => setTimeout(resolve, 40));
+        if (variant === 'network-error') throw new TypeError('Synthetic network failure');
+        if (variant === 'outdated') return new Response(JSON.stringify({
+          apiVersion: '2026-07-27-inline-intake-v20', apiRevision: 20, auth: 'cookie-v1'
+        }), { status: 200 });
+        return new Response('<!doctype html><h1>Not found</h1>', { status: 404 });
+      };
+      w.scrollTo = () => {};
+      w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+    }
+  });
+  const w = dom.window;
+  try {
+    await new Promise((resolve) => w.addEventListener('load', resolve, { once: true }));
+    for (let attempt = 0; attempt < 40 && !w.document.querySelector('.service-alert'); attempt += 1) await tick();
+    await tick();
+    assert.deepEqual(executionErrors, [], 'actual page scripts must not throw');
+    assert.ok(w.document.querySelector('#authForm'), 'actual boot must render the login form');
+    const visualLabels = {
+      'zh-CN': ['DS-160 初稿工作台', '资料完整度', '核查队列'],
+      es: ['Espacio de trabajo del borrador DS-160', 'Información completa', 'Cola de revisión'],
+      'pt-BR': ['Espaço de trabalho do rascunho DS-160', 'Completude das informações', 'Fila de revisão'],
+      en: ['DS-160 draft workspace', 'Information completeness', 'Review queue']
+    };
+    const labels = w.document.querySelectorAll('.visual-topline > span, .auth-visual .visual-label');
+    assert.deepEqual([...labels].map((label) => label.textContent.trim()), visualLabels[locale], 'all preview captions must follow the display language');
+    assert.ok([...labels].every((label) => !label.hasAttribute('lang')), 'preview captions must inherit the current page language');
+    for (const name of ['site-language.js', 'site-translations.js', 'app.js', 'extension-account.js']) assert.ok(scriptRequests.includes(name), `missing actual script ${name}`);
+    const text = w.document.querySelector('.service-alert')?.textContent.trim() || '';
+    const expected = variant === 'outdated' ? {
+      'zh-CN': '当前地址连接的是后端', es: 'Esta dirección está conectada al backend',
+      'pt-BR': 'Este endereço está conectado ao backend', en: 'This address is connected to backend'
+    } : {
+      'zh-CN': '当前地址没有连接到 WestoryVisa 后端', es: 'Esta dirección no está conectada al backend de WestoryVisa',
+      'pt-BR': 'Este endereço não está conectado ao backend da WestoryVisa', en: 'This address is not connected to the WestoryVisa backend'
+    };
+    assert.ok(text.startsWith(expected[locale]), `wrong actual-boot alert: ${text}`);
+    assert.equal(w.document.documentElement.lang, locale);
+    if (locale !== 'zh-CN') assert.ok(!/[\u3400-\u9fff]/.test(text));
+    if (variant === 'outdated') {
+      assert.ok(text.includes('2026-07-27-inline-intake-v20'));
+      assert.ok(text.includes('2026-07-27-inline-intake-v22'));
+    }
+  } finally { w.close(); }
+}
+
 (async () => {
   for (const locale of locales) {
     for (const variant of ['file', 'outdated', 'disconnected']) {
       await check(`compatibility-copy-${variant}-${locale}`, () => compatibilityCopy(locale, variant));
+    }
+    for (const variant of ['http-404', 'network-error', 'outdated']) {
+      await check(`actual-boot-compatibility-${variant}-${locale}`, () => realBootCompatibility(locale, variant));
     }
     const dom = await boot(locale);
     const w = dom.window;

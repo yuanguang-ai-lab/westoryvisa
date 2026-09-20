@@ -1134,19 +1134,19 @@ function renderLogin(container) {
         </div>
         <div class="auth-visual" aria-label="WestoryVisa 工作台预览">
           <div class="visual-topline">
-            <span lang="en">DS-160 draft workspace</span>
+            <span>DS-160 初稿工作台</span>
             <strong lang="en">86%</strong>
           </div>
           <div class="visual-document">
             <div>
-              <span class="visual-label" lang="en">Information completeness</span>
+              <span class="visual-label">资料完整度</span>
               <strong class="zh-feature-line" lang="zh-CN">基础信息 · 护照 · 旅行 · 家庭 · 工作教育</strong>
             </div>
             <span class="badge confirmed">初稿已生成</span>
           </div>
           <div class="visual-document raised">
             <div>
-              <span class="visual-label" lang="en">Review queue</span>
+              <span class="visual-label">核查队列</span>
               <strong class="zh-feature-line" lang="zh-CN">拒签记录 · 赴美历史 · 背景问题 · SEVIS 信息</strong>
             </div>
             <span class="badge running">待人工核查</span>
