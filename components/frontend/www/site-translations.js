@@ -2,6 +2,8 @@
   "use strict";
 
   const rows = [
+    ["请通过“启动完整版本.command”打开网站，不要直接双击 index.html。", "Abre el sitio con el script de inicio de la versión completa; no abras index.html directamente.", "Abra o site pelo script de inicialização da versão completa; não abra index.html diretamente.", "Open the website using the full-version startup script; do not open index.html directly."],
+    ["当前地址没有连接到 WestoryVisa 后端。请重新运行“启动完整版本.command”，并使用它自动打开的网页地址。", "Esta dirección no está conectada al backend de WestoryVisa. Ejecuta de nuevo el script de inicio de la versión completa y usa la dirección web que abra automáticamente.", "Este endereço não está conectado ao backend da WestoryVisa. Execute novamente o script de inicialização da versão completa e use o endereço web que ele abrir automaticamente.", "This address is not connected to the WestoryVisa backend. Run the full-version startup script again and use the web address it opens automatically."],
     ["机构服务国家", "País de servicio de la agencia", "País de atendimento da agência", "Agency service country"],
     ["请选择机构注册的服务国家；切换显示语言不会改变此项。", "Selecciona el país de servicio registrado de la agencia. Cambiar el idioma no modifica esta selección.", "Selecione o país de atendimento cadastrado da agência. Alterar o idioma não modifica esta seleção.", "Select the agency's registered service country. Changing the display language does not change this selection."],
     // Chrome extension installation page.

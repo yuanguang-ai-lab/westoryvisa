@@ -62,8 +62,51 @@ function fillForm(w, mode) {
   assert.equal(w.auditState.authMode, mode);
 }
 
+async function compatibilityCopy(locale, variant) {
+  const dom = new JSDOM('<!doctype html><html><body><p role="status"></p></body></html>', {
+    url: `${variant === 'file' ? 'file:///tmp/westoryvisa' : 'https://westoryvisa.test'}/workspace.html?lang=${locale}`,
+    runScripts: 'outside-only'
+  });
+  const w = dom.window;
+  try {
+    // No live API or application boot. Exercise the actual compatibility helper
+    // under each protocol/state, then the same DOM translator used by the alert.
+    // jsdom does not support history updates on file: URLs. URL navigation is
+    // outside this copy-only test; the protocol itself remains file:.
+    if (variant === 'file') w.history.replaceState = () => {};
+    w.DocFlowApi = { apiBaseUrl: '/api' };
+    for (const name of ['site-language.js', 'site-translations.js']) w.eval(source(name));
+    const appWithoutBoot = source('app.js').replace(/\nboot\(\);\s*$/, '\n');
+    w.eval(`${source('mockData.js')}\n${appWithoutBoot}\nwindow.auditState = state;`);
+    w.auditState.apiVersion = variant === 'outdated' ? '2026-07-27-inline-intake-v20' : '';
+    const chinese = w.apiCompatibilityMessage();
+    const alert = w.document.querySelector('[role="status"]');
+    alert.textContent = chinese;
+    w.document.dispatchEvent(new w.Event('DOMContentLoaded'));
+    await tick();
+    const prefixes = {
+      file: { 'zh-CN': '请通过', es: 'Abre el sitio con el script', 'pt-BR': 'Abra o site pelo script', en: 'Open the website using the full-version startup script' },
+      outdated: { 'zh-CN': '当前地址连接的是后端', es: 'Esta dirección está conectada al backend', 'pt-BR': 'Este endereço está conectado ao backend', en: 'This address is connected to backend' },
+      disconnected: { 'zh-CN': '当前地址没有连接到 WestoryVisa 后端', es: 'Esta dirección no está conectada al backend de WestoryVisa', 'pt-BR': 'Este endereço não está conectado ao backend da WestoryVisa', en: 'This address is not connected to the WestoryVisa backend' }
+    };
+    assert.ok(alert.textContent.startsWith(prefixes[variant][locale]), `wrong alert language: ${alert.textContent}`);
+    if (locale !== 'zh-CN') assert.ok(!/[\u3400-\u9fff]/.test(alert.textContent), 'foreign-language alert contains untranslated Chinese');
+    if (variant === 'outdated') {
+      assert.ok(alert.textContent.includes('2026-07-27-inline-intake-v20'));
+      assert.ok(alert.textContent.includes('2026-07-27-inline-intake-v22'));
+    }
+    w.WestoryLanguage.activate('zh-CN', { reload: false });
+    assert.equal(alert.textContent, chinese, 'switching back must restore the original Chinese alert');
+    w.WestoryLanguage.activate(locale, { reload: false });
+    assert.ok(alert.textContent.startsWith(prefixes[variant][locale]));
+  } finally { await tick(); w.close(); }
+}
+
 (async () => {
   for (const locale of locales) {
+    for (const variant of ['file', 'outdated', 'disconnected']) {
+      await check(`compatibility-copy-${variant}-${locale}`, () => compatibilityCopy(locale, variant));
+    }
     const dom = await boot(locale);
     const w = dom.window;
     try {
